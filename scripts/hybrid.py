@@ -58,4 +58,4 @@ def hybrid_rank_controls(case,llm,top_k=20):
     except ValueError as exc:
         recs=[]; parse_error=str(exc)
     recovered={x["control_id"] for x in recs if x["decision"] in {"AFFECTED","UNCERTAIN"}}
-    return {"baseline":baseline,"retrieved":retrieved,"llm_recommendations":recs,"recommended_control_ids":sorted(baseline_ids|recovered),"uncertain_control_ids":sorted(x["control_id"] for x in recs if x["decision"]=="UNCERTAIN"),"parse_error":parse_error}
+    return {"baseline":baseline,"retrieved":retrieved,"llm_recommendations":recs,"recommended_control_ids":sorted(baseline_ids|recovered),"uncertain_control_ids":sorted(x["control_id"] for x in recs if x["decision"]=="UNCERTAIN"),"parse_error":parse_error,"raw_model_response":raw[:8000] if parse_error else None}

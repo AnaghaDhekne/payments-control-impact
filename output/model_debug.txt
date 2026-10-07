@@ -1,0 +1,38 @@
+[run 1/1] case 1/1: CHG-004
+{
+  "level": 30,
+  "mode": "correlated",
+  "split": "development",
+  "cases": 1,
+  "runs": 1,
+  "top_k": 20,
+  "key_prediction_exact_agreement": 1.0,
+  "repeated_run_agreement": 1.0,
+  "runs_detail": [
+    {
+      "run": 1,
+      "key_control_pairs": 19,
+      "baseline_key_hits": 0,
+      "final_key_hits": 0,
+      "baseline_key_misses": 19,
+      "recovered_key_misses": 0,
+      "key_miss_recovery_rate": 0.0,
+      "final_key_recall": 0.0,
+      "final_affected_recall": 0.0,
+      "baseline_workload": 0,
+      "final_workload": 0,
+      "workload_increase_rate": 0,
+      "parse_failure_count": 1,
+      "parse_failures": [
+        {
+          "change_id": "CHG-004",
+          "error": "model response JSON could not be decoded",
+          "raw_model_response": "```json\n[\n  {\n    \"control_id\": \"C02\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Creditor country code change may impact sanctions screening\"\n  },\n  {\n    \"control_id\": \"C01\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on required outbound payment fields validation due to country code change\"\n  },\n  {\n    \"control_id\": \"C012\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Daily completeness control in the validation family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C013\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"High-risk corridor control in the validation family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C014\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Priority payment control in the validation family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C015\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Manual override control in the validation family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C021\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Daily completeness control in the screening family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C022\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"High-risk corridor control in the screening family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C023\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Priority payment control in the screening family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C024\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Manual override control in the screening family may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C03\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"Unresolved sanctions alerts review may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C057\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on daily completeness control due to country code change\"\n  },\n  {\n    \"control_id\": \"C058\",\n    \"decision\": \"AFFECTED\",\n    \"actions\": [\"REASSESS_DESIGN\"],\n    \"confidence\": \"HIGH\",\n    \"reason\": \"High-risk corridor control may be impacted by country code change\"\n  },\n  {\n    \"control_id\": \"C059\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on priority payment control due to country code change\"\n  },\n  {\n    \"control_id\": \"C060\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on manual override control due to country code change\"\n  },\n  {\n    \"control_id\": \"C061\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on after-hours processing control due to country code change\"\n  },\n  {\n    \"control_id\": \"C062\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on currency-specific control due to country code change\"\n  },\n  {\n    \"control_id\": \"C063\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on high-value transaction control due to country code change\"\n  },\n  {\n    \"control_id\": \"C064\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on repair queue control due to country code change\"\n  },\n  {\n    \"control_id\": \"C065\",\n    \"decision\": \"UNCERTAIN\",\n    \"actions\": [\"REFRESH_EVIDENCE\"],\n    \"confidence\": \"MEDIUM\",\n    \"reason\": \"Potential impact on weekend processing control due to country code change\"\n  }\n]\n```"
+        }
+      ],
+      "decisions": {
+        "CHG-004": []
+      }
+    }
+  ]
+}

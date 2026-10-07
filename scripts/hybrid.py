@@ -38,13 +38,22 @@ def parse_recommendations(raw,allowed):
             obj=json.loads(raw[start:end+1])
         except json.JSONDecodeError as exc:
             raise ValueError("model response JSON could not be decoded") from exc
+    items=obj if isinstance(obj,list) else obj.get("recommendations",[])
+    if not isinstance(items,list):
+        raise ValueError("model response recommendations must be a list")
     out=[]; seen=set()
     decisions={"AFFECTED","UNAFFECTED","UNCERTAIN"}
     valid_actions={"REASSESS_DESIGN","REFRESH_EVIDENCE","OUT_OF_CYCLE_TEST","CONTROL_GAP_REVIEW"}
-    for x in obj.get("recommendations",[]):
+    confidence_map={"LOW":0.33,"MEDIUM":0.67,"HIGH":1.0}
+    for x in items:
         cid=x.get("control_id")
         if cid not in allowed or cid in seen or x.get("decision") not in decisions: continue
-        out.append({"control_id":cid,"decision":x["decision"],"actions":[a for a in x.get("actions",[]) if a in valid_actions],"confidence":float(x.get("confidence",0.0)),"reason":str(x.get("reason",""))[:1000]})
+        raw_conf=x.get("confidence",0.0)
+        try:
+            confidence=float(raw_conf)
+        except (TypeError,ValueError):
+            confidence=confidence_map.get(str(raw_conf).upper(),0.0)
+        out.append({"control_id":cid,"decision":x["decision"],"actions":[a for a in x.get("actions",[]) if a in valid_actions],"confidence":confidence,"reason":str(x.get("reason",""))[:1000]})
         seen.add(cid)
     return out
 

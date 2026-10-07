@@ -27,15 +27,22 @@ def parse_recommendations(raw,allowed):
     raw=(raw or "").strip()
     if not raw:
         raise ValueError("empty model response")
-    if raw.startswith("```"): raw=re.sub(r"^```(?:json)?\\s*|\\s*```$","",raw,flags=re.I|re.S)
+    fenced=re.match(r"^\`\`\`(?:json)?\\s*([\\s\\S]*?)\\s*\`\`\`$",raw,flags=re.I)
+    if fenced:
+        raw=fenced.group(1).strip()
     try:
         obj=json.loads(raw)
-    except json.JSONDecodeError:
-        start=raw.find("{"); end=raw.rfind("}")
-        if start < 0 or end <= start:
-            raise ValueError("model response contained no JSON object")
+    except json.JSONDecodeError as first_exc:
+        starts=[(raw.find("{"),"}"),(raw.find("["),"]")]
+        starts=[x for x in starts if x[0]>=0]
+        if not starts:
+            raise ValueError("model response contained no JSON object or array") from first_exc
+        pos,closer=min(starts,key=lambda x:x[0])
+        end=raw.rfind(closer)
+        if end<=pos:
+            raise ValueError("model response JSON could not be decoded") from first_exc
         try:
-            obj=json.loads(raw[start:end+1])
+            obj=json.loads(raw[pos:end+1])
         except json.JSONDecodeError as exc:
             raise ValueError("model response JSON could not be decoded") from exc
     items=obj if isinstance(obj,list) else obj.get("recommendations",[])
@@ -57,14 +64,3 @@ def parse_recommendations(raw,allowed):
         seen.add(cid)
     return out
 
-def hybrid_rank_controls(case,llm,top_k=20):
-    baseline=rank_controls(case); baseline_ids={x["control_id"] for x in baseline}
-    retrieved=retrieve_control_documents(case,top_k)
-    raw=llm(build_prompt(case,retrieved,baseline_ids))
-    parse_error=None
-    try:
-        recs=parse_recommendations(raw,{d["control_id"] for d in retrieved})
-    except ValueError as exc:
-        recs=[]; parse_error=str(exc)
-    recovered={x["control_id"] for x in recs if x["decision"] in {"AFFECTED","UNCERTAIN"}}
-    return {"baseline":baseline,"retrieved":retrieved,"llm_recommendations":recs,"recommended_control_ids":sorted(baseline_ids|recovered),"uncertain_control_ids":sorted(x["control_id"] for x in recs if x["decision"]=="UNCERTAIN"),"parse_error":parse_error,"raw_model_response":raw[:8000] if parse_error else None}

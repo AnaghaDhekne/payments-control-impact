@@ -1,0 +1,650 @@
+[
+  {
+    "change_id": "CHG-051",
+    "title": "Screening engine change \u2014 release 3",
+    "changed_node_ids": [
+      "S03"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-004",
+    "title": "Creditor country-code mapping change \u2014 release 1",
+    "changed_node_ids": [
+      "D08"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-014",
+    "title": "Authorization exception report change \u2014 release 1",
+    "changed_node_ids": [
+      "RP04"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-027",
+    "title": "Screening interface change \u2014 release 2",
+    "changed_node_ids": [
+      "I02"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-003",
+    "title": "Creditor town-name mapping change \u2014 release 1",
+    "changed_node_ids": [
+      "D07"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-006",
+    "title": "Screening field-set change \u2014 release 1",
+    "changed_node_ids": [
+      "R03"
+    ],
+    "change_type": "SCREENING_FIELD_SET",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-010",
+    "title": "Outbound network interface change \u2014 release 1",
+    "changed_node_ids": [
+      "I03"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-025",
+    "title": "Outbound message mapping change \u2014 release 2",
+    "changed_node_ids": [
+      "R04"
+    ],
+    "change_type": "MESSAGE_MAPPING",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-022",
+    "title": "Creditor country-code mapping change \u2014 release 2",
+    "changed_node_ids": [
+      "D08"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-021",
+    "title": "Creditor town-name mapping change \u2014 release 2",
+    "changed_node_ids": [
+      "D07"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-054",
+    "title": "Ledger-posting feed change \u2014 release 3",
+    "changed_node_ids": [
+      "I05"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-041",
+    "title": "Structured-address validation rule change \u2014 release 3",
+    "changed_node_ids": [
+      "R01"
+    ],
+    "change_type": "VALIDATION_RULE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-024",
+    "title": "Screening field-set change \u2014 release 2",
+    "changed_node_ids": [
+      "R03"
+    ],
+    "change_type": "SCREENING_FIELD_SET",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-026",
+    "title": "High-value approval threshold change \u2014 release 2",
+    "changed_node_ids": [
+      "R02"
+    ],
+    "change_type": "PARAMETER_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-028",
+    "title": "Outbound network interface change \u2014 release 2",
+    "changed_node_ids": [
+      "I03"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-017",
+    "title": "Settlement-status feed change \u2014 release 1",
+    "changed_node_ids": [
+      "I04"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-030",
+    "title": "Payment reject report change \u2014 release 2",
+    "changed_node_ids": [
+      "RP02"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-029",
+    "title": "Screening exception report change \u2014 release 2",
+    "changed_node_ids": [
+      "RP01"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-002",
+    "title": "Debtor country-code mapping change \u2014 release 1",
+    "changed_node_ids": [
+      "D04"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-044",
+    "title": "High-value approval threshold change \u2014 release 3",
+    "changed_node_ids": [
+      "R02"
+    ],
+    "change_type": "PARAMETER_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-043",
+    "title": "Outbound message mapping change \u2014 release 3",
+    "changed_node_ids": [
+      "R04"
+    ],
+    "change_type": "MESSAGE_MAPPING",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-038",
+    "title": "Debtor country-code mapping change \u2014 release 3",
+    "changed_node_ids": [
+      "D04"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-050",
+    "title": "Authorization exception report change \u2014 release 3",
+    "changed_node_ids": [
+      "RP04"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-047",
+    "title": "Screening exception report change \u2014 release 3",
+    "changed_node_ids": [
+      "RP01"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-032",
+    "title": "Authorization exception report change \u2014 release 2",
+    "changed_node_ids": [
+      "RP04"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-016",
+    "title": "Transformation service change \u2014 release 1",
+    "changed_node_ids": [
+      "S06"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-020",
+    "title": "Debtor country-code mapping change \u2014 release 2",
+    "changed_node_ids": [
+      "D04"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-042",
+    "title": "Screening field-set change \u2014 release 3",
+    "changed_node_ids": [
+      "R03"
+    ],
+    "change_type": "SCREENING_FIELD_SET",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-049",
+    "title": "Reconciliation report change \u2014 release 3",
+    "changed_node_ids": [
+      "RP03"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-052",
+    "title": "Transformation service change \u2014 release 3",
+    "changed_node_ids": [
+      "S06"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-034",
+    "title": "Transformation service change \u2014 release 2",
+    "changed_node_ids": [
+      "S06"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-035",
+    "title": "Settlement-status feed change \u2014 release 2",
+    "changed_node_ids": [
+      "I04"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-012",
+    "title": "Payment reject report change \u2014 release 1",
+    "changed_node_ids": [
+      "RP02"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-011",
+    "title": "Screening exception report change \u2014 release 1",
+    "changed_node_ids": [
+      "RP01"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-008",
+    "title": "High-value approval threshold change \u2014 release 1",
+    "changed_node_ids": [
+      "R02"
+    ],
+    "change_type": "PARAMETER_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-013",
+    "title": "Reconciliation report change \u2014 release 1",
+    "changed_node_ids": [
+      "RP03"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-001",
+    "title": "Debtor town-name mapping change \u2014 release 1",
+    "changed_node_ids": [
+      "D03"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-031",
+    "title": "Reconciliation report change \u2014 release 2",
+    "changed_node_ids": [
+      "RP03"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-048",
+    "title": "Payment reject report change \u2014 release 3",
+    "changed_node_ids": [
+      "RP02"
+    ],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-045",
+    "title": "Screening interface change \u2014 release 3",
+    "changed_node_ids": [
+      "I02"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-036",
+    "title": "Ledger-posting feed change \u2014 release 2",
+    "changed_node_ids": [
+      "I05"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-033",
+    "title": "Screening engine change \u2014 release 2",
+    "changed_node_ids": [
+      "S03"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-009",
+    "title": "Screening interface change \u2014 release 1",
+    "changed_node_ids": [
+      "I02"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-018",
+    "title": "Ledger-posting feed change \u2014 release 1",
+    "changed_node_ids": [
+      "I05"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-007",
+    "title": "Outbound message mapping change \u2014 release 1",
+    "changed_node_ids": [
+      "R04"
+    ],
+    "change_type": "MESSAGE_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-037",
+    "title": "Debtor town-name mapping change \u2014 release 3",
+    "changed_node_ids": [
+      "D03"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-046",
+    "title": "Outbound network interface change \u2014 release 3",
+    "changed_node_ids": [
+      "I03"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-040",
+    "title": "Creditor country-code mapping change \u2014 release 3",
+    "changed_node_ids": [
+      "D08"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-039",
+    "title": "Creditor town-name mapping change \u2014 release 3",
+    "changed_node_ids": [
+      "D07"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "test"
+  },
+  {
+    "change_id": "CHG-019",
+    "title": "Debtor town-name mapping change \u2014 release 2",
+    "changed_node_ids": [
+      "D03"
+    ],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-005",
+    "title": "Structured-address validation rule change \u2014 release 1",
+    "changed_node_ids": [
+      "R01"
+    ],
+    "change_type": "VALIDATION_RULE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-023",
+    "title": "Structured-address validation rule change \u2014 release 2",
+    "changed_node_ids": [
+      "R01"
+    ],
+    "change_type": "VALIDATION_RULE",
+    "implementation_date": "2026-12-01",
+    "material": true,
+    "release_group": "R2",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-053",
+    "title": "Settlement-status feed change \u2014 release 3",
+    "changed_node_ids": [
+      "I04"
+    ],
+    "change_type": "INTERFACE_CHANGE",
+    "implementation_date": "2027-01-15",
+    "material": true,
+    "release_group": "R3",
+    "split": "development"
+  },
+  {
+    "change_id": "CHG-015",
+    "title": "Screening engine change \u2014 release 1",
+    "changed_node_ids": [
+      "S03"
+    ],
+    "change_type": "SYSTEM_CHANGE",
+    "implementation_date": "2026-11-14",
+    "material": true,
+    "release_group": "R1",
+    "split": "test"
+  }
+]

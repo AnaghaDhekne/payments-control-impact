@@ -8,7 +8,10 @@ import json, random, hashlib
 from collections import defaultdict, deque
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]
+try:
+    ROOT=Path(__file__).resolve().parents[1]
+except NameError:
+    ROOT=Path.cwd().parent
 GT_GRAPH=ROOT/"data"/"ground_truth"/"payment_graph_benchmark.json"
 GT_CHANGES=ROOT/"data"/"ground_truth"/"benchmark_changes.json"
 OUT=ROOT/"data"/"observable"

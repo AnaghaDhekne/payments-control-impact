@@ -8,7 +8,10 @@ import json, random
 from copy import deepcopy
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]
+try:
+    ROOT=Path(__file__).resolve().parents[1]
+except NameError:
+    ROOT=Path.cwd().parent
 SEED_GRAPH=ROOT/"data"/"ground_truth"/"payment_graph_v0_1.json"
 OUT_GRAPH=ROOT/"data"/"ground_truth"/"payment_graph_benchmark.json"
 OUT_CHANGES=ROOT/"data"/"ground_truth"/"benchmark_changes.json"

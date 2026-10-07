@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scope": "fictional outbound cross-border payments",
   "nodes": [
     {
@@ -1596,6 +1596,14 @@
     },
     {
       "id": "E060",
+      "source": "R01",
+      "target": "C012",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E061",
       "source": "S02",
       "target": "C013",
       "relationship": "GOVERNED_BY",
@@ -1603,7 +1611,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E061",
+      "id": "E062",
+      "source": "R01",
+      "target": "C013",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E063",
       "source": "S02",
       "target": "C014",
       "relationship": "GOVERNED_BY",
@@ -1611,7 +1627,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E062",
+      "id": "E064",
+      "source": "R01",
+      "target": "C014",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E065",
       "source": "S02",
       "target": "C015",
       "relationship": "GOVERNED_BY",
@@ -1619,7 +1643,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E063",
+      "id": "E066",
+      "source": "R01",
+      "target": "C015",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E067",
       "source": "S02",
       "target": "C016",
       "relationship": "GOVERNED_BY",
@@ -1627,7 +1659,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E064",
+      "id": "E068",
+      "source": "R01",
+      "target": "C016",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E069",
       "source": "S02",
       "target": "C017",
       "relationship": "GOVERNED_BY",
@@ -1635,7 +1675,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E065",
+      "id": "E070",
+      "source": "R01",
+      "target": "C017",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E071",
       "source": "S02",
       "target": "C018",
       "relationship": "GOVERNED_BY",
@@ -1643,7 +1691,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E066",
+      "id": "E072",
+      "source": "R01",
+      "target": "C018",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E073",
       "source": "S02",
       "target": "C019",
       "relationship": "GOVERNED_BY",
@@ -1651,7 +1707,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E067",
+      "id": "E074",
+      "source": "R01",
+      "target": "C019",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E075",
       "source": "S02",
       "target": "C020",
       "relationship": "GOVERNED_BY",
@@ -1659,7 +1723,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E068",
+      "id": "E076",
+      "source": "R01",
+      "target": "C020",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E077",
       "source": "S03",
       "target": "C021",
       "relationship": "GOVERNED_BY",
@@ -1667,7 +1739,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E069",
+      "id": "E078",
+      "source": "R03",
+      "target": "C021",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E079",
       "source": "S03",
       "target": "C022",
       "relationship": "GOVERNED_BY",
@@ -1675,7 +1755,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E070",
+      "id": "E080",
+      "source": "R03",
+      "target": "C022",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E081",
       "source": "S03",
       "target": "C023",
       "relationship": "GOVERNED_BY",
@@ -1683,7 +1771,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E071",
+      "id": "E082",
+      "source": "R03",
+      "target": "C023",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E083",
       "source": "S03",
       "target": "C024",
       "relationship": "GOVERNED_BY",
@@ -1691,7 +1787,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E072",
+      "id": "E084",
+      "source": "R03",
+      "target": "C024",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E085",
       "source": "S03",
       "target": "C025",
       "relationship": "GOVERNED_BY",
@@ -1699,7 +1803,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E073",
+      "id": "E086",
+      "source": "R03",
+      "target": "C025",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E087",
       "source": "S03",
       "target": "C026",
       "relationship": "GOVERNED_BY",
@@ -1707,7 +1819,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E074",
+      "id": "E088",
+      "source": "R03",
+      "target": "C026",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E089",
       "source": "S03",
       "target": "C027",
       "relationship": "GOVERNED_BY",
@@ -1715,7 +1835,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E075",
+      "id": "E090",
+      "source": "R03",
+      "target": "C027",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E091",
       "source": "S03",
       "target": "C028",
       "relationship": "GOVERNED_BY",
@@ -1723,7 +1851,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E076",
+      "id": "E092",
+      "source": "R03",
+      "target": "C028",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E093",
       "source": "S03",
       "target": "C029",
       "relationship": "GOVERNED_BY",
@@ -1731,7 +1867,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E077",
+      "id": "E094",
+      "source": "R03",
+      "target": "C029",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E095",
       "source": "E01",
       "target": "C030",
       "relationship": "EVIDENCES",
@@ -1739,7 +1883,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E078",
+      "id": "E096",
+      "source": "RP01",
+      "target": "C030",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E097",
       "source": "E01",
       "target": "C031",
       "relationship": "EVIDENCES",
@@ -1747,7 +1899,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E079",
+      "id": "E098",
+      "source": "RP01",
+      "target": "C031",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E099",
       "source": "E01",
       "target": "C032",
       "relationship": "EVIDENCES",
@@ -1755,7 +1915,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E080",
+      "id": "E100",
+      "source": "RP01",
+      "target": "C032",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E101",
       "source": "E01",
       "target": "C033",
       "relationship": "EVIDENCES",
@@ -1763,7 +1931,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E081",
+      "id": "E102",
+      "source": "RP01",
+      "target": "C033",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E103",
       "source": "E01",
       "target": "C034",
       "relationship": "EVIDENCES",
@@ -1771,7 +1947,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E082",
+      "id": "E104",
+      "source": "RP01",
+      "target": "C034",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E105",
       "source": "E01",
       "target": "C035",
       "relationship": "EVIDENCES",
@@ -1779,7 +1963,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E083",
+      "id": "E106",
+      "source": "RP01",
+      "target": "C035",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E107",
       "source": "E01",
       "target": "C036",
       "relationship": "EVIDENCES",
@@ -1787,7 +1979,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E084",
+      "id": "E108",
+      "source": "RP01",
+      "target": "C036",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E109",
       "source": "E01",
       "target": "C037",
       "relationship": "EVIDENCES",
@@ -1795,7 +1995,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E085",
+      "id": "E110",
+      "source": "RP01",
+      "target": "C037",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E111",
       "source": "E01",
       "target": "C038",
       "relationship": "EVIDENCES",
@@ -1803,7 +2011,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E086",
+      "id": "E112",
+      "source": "RP01",
+      "target": "C038",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E113",
       "source": "S05",
       "target": "C039",
       "relationship": "GOVERNED_BY",
@@ -1811,7 +2027,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E087",
+      "id": "E114",
+      "source": "R02",
+      "target": "C039",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E115",
       "source": "S05",
       "target": "C040",
       "relationship": "GOVERNED_BY",
@@ -1819,7 +2043,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E088",
+      "id": "E116",
+      "source": "R02",
+      "target": "C040",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E117",
       "source": "S05",
       "target": "C041",
       "relationship": "GOVERNED_BY",
@@ -1827,7 +2059,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E089",
+      "id": "E118",
+      "source": "R02",
+      "target": "C041",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E119",
       "source": "S05",
       "target": "C042",
       "relationship": "GOVERNED_BY",
@@ -1835,7 +2075,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E090",
+      "id": "E120",
+      "source": "R02",
+      "target": "C042",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E121",
       "source": "S05",
       "target": "C043",
       "relationship": "GOVERNED_BY",
@@ -1843,7 +2091,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E091",
+      "id": "E122",
+      "source": "R02",
+      "target": "C043",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E123",
       "source": "S05",
       "target": "C044",
       "relationship": "GOVERNED_BY",
@@ -1851,7 +2107,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E092",
+      "id": "E124",
+      "source": "R02",
+      "target": "C044",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E125",
       "source": "S05",
       "target": "C045",
       "relationship": "GOVERNED_BY",
@@ -1859,7 +2123,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E093",
+      "id": "E126",
+      "source": "R02",
+      "target": "C045",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E127",
       "source": "S05",
       "target": "C046",
       "relationship": "GOVERNED_BY",
@@ -1867,7 +2139,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E094",
+      "id": "E128",
+      "source": "R02",
+      "target": "C046",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E129",
       "source": "S05",
       "target": "C047",
       "relationship": "GOVERNED_BY",
@@ -1875,7 +2155,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E095",
+      "id": "E130",
+      "source": "R02",
+      "target": "C047",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E131",
       "source": "E04",
       "target": "C048",
       "relationship": "EVIDENCES",
@@ -1883,7 +2171,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E096",
+      "id": "E132",
+      "source": "RP04",
+      "target": "C048",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E133",
       "source": "E04",
       "target": "C049",
       "relationship": "EVIDENCES",
@@ -1891,7 +2187,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E097",
+      "id": "E134",
+      "source": "RP04",
+      "target": "C049",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E135",
       "source": "E04",
       "target": "C050",
       "relationship": "EVIDENCES",
@@ -1899,7 +2203,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E098",
+      "id": "E136",
+      "source": "RP04",
+      "target": "C050",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E137",
       "source": "E04",
       "target": "C051",
       "relationship": "EVIDENCES",
@@ -1907,7 +2219,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E099",
+      "id": "E138",
+      "source": "RP04",
+      "target": "C051",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E139",
       "source": "E04",
       "target": "C052",
       "relationship": "EVIDENCES",
@@ -1915,7 +2235,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E100",
+      "id": "E140",
+      "source": "RP04",
+      "target": "C052",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E141",
       "source": "E04",
       "target": "C053",
       "relationship": "EVIDENCES",
@@ -1923,7 +2251,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E101",
+      "id": "E142",
+      "source": "RP04",
+      "target": "C053",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E143",
       "source": "E04",
       "target": "C054",
       "relationship": "EVIDENCES",
@@ -1931,7 +2267,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E102",
+      "id": "E144",
+      "source": "RP04",
+      "target": "C054",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E145",
       "source": "E04",
       "target": "C055",
       "relationship": "EVIDENCES",
@@ -1939,7 +2283,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E103",
+      "id": "E146",
+      "source": "RP04",
+      "target": "C055",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E147",
       "source": "E04",
       "target": "C056",
       "relationship": "EVIDENCES",
@@ -1947,7 +2299,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E104",
+      "id": "E148",
+      "source": "RP04",
+      "target": "C056",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E149",
       "source": "S06",
       "target": "C057",
       "relationship": "GOVERNED_BY",
@@ -1955,7 +2315,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E105",
+      "id": "E150",
+      "source": "R04",
+      "target": "C057",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E151",
       "source": "S06",
       "target": "C058",
       "relationship": "GOVERNED_BY",
@@ -1963,7 +2331,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E106",
+      "id": "E152",
+      "source": "R04",
+      "target": "C058",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E153",
       "source": "S06",
       "target": "C059",
       "relationship": "GOVERNED_BY",
@@ -1971,7 +2347,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E107",
+      "id": "E154",
+      "source": "R04",
+      "target": "C059",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E155",
       "source": "S06",
       "target": "C060",
       "relationship": "GOVERNED_BY",
@@ -1979,7 +2363,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E108",
+      "id": "E156",
+      "source": "R04",
+      "target": "C060",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E157",
       "source": "S06",
       "target": "C061",
       "relationship": "GOVERNED_BY",
@@ -1987,7 +2379,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E109",
+      "id": "E158",
+      "source": "R04",
+      "target": "C061",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E159",
       "source": "S06",
       "target": "C062",
       "relationship": "GOVERNED_BY",
@@ -1995,7 +2395,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E110",
+      "id": "E160",
+      "source": "R04",
+      "target": "C062",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E161",
       "source": "S06",
       "target": "C063",
       "relationship": "GOVERNED_BY",
@@ -2003,7 +2411,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E111",
+      "id": "E162",
+      "source": "R04",
+      "target": "C063",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E163",
       "source": "S06",
       "target": "C064",
       "relationship": "GOVERNED_BY",
@@ -2011,7 +2427,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E112",
+      "id": "E164",
+      "source": "R04",
+      "target": "C064",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E165",
       "source": "S06",
       "target": "C065",
       "relationship": "GOVERNED_BY",
@@ -2019,7 +2443,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E113",
+      "id": "E166",
+      "source": "R04",
+      "target": "C065",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E167",
       "source": "E02",
       "target": "C066",
       "relationship": "EVIDENCES",
@@ -2027,7 +2459,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E114",
+      "id": "E168",
+      "source": "RP02",
+      "target": "C066",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E169",
       "source": "E02",
       "target": "C067",
       "relationship": "EVIDENCES",
@@ -2035,7 +2475,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E115",
+      "id": "E170",
+      "source": "RP02",
+      "target": "C067",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E171",
       "source": "E02",
       "target": "C068",
       "relationship": "EVIDENCES",
@@ -2043,7 +2491,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E116",
+      "id": "E172",
+      "source": "RP02",
+      "target": "C068",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E173",
       "source": "E02",
       "target": "C069",
       "relationship": "EVIDENCES",
@@ -2051,7 +2507,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E117",
+      "id": "E174",
+      "source": "RP02",
+      "target": "C069",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E175",
       "source": "E02",
       "target": "C070",
       "relationship": "EVIDENCES",
@@ -2059,7 +2523,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E118",
+      "id": "E176",
+      "source": "RP02",
+      "target": "C070",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E177",
       "source": "E02",
       "target": "C071",
       "relationship": "EVIDENCES",
@@ -2067,7 +2539,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E119",
+      "id": "E178",
+      "source": "RP02",
+      "target": "C071",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E179",
       "source": "E02",
       "target": "C072",
       "relationship": "EVIDENCES",
@@ -2075,7 +2555,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E120",
+      "id": "E180",
+      "source": "RP02",
+      "target": "C072",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E181",
       "source": "E02",
       "target": "C073",
       "relationship": "EVIDENCES",
@@ -2083,7 +2571,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E121",
+      "id": "E182",
+      "source": "RP02",
+      "target": "C073",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E183",
       "source": "E02",
       "target": "C074",
       "relationship": "EVIDENCES",
@@ -2091,7 +2587,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E122",
+      "id": "E184",
+      "source": "RP02",
+      "target": "C074",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E185",
       "source": "E03",
       "target": "C075",
       "relationship": "EVIDENCES",
@@ -2099,7 +2603,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E123",
+      "id": "E186",
+      "source": "RP03",
+      "target": "C075",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E187",
       "source": "E03",
       "target": "C076",
       "relationship": "EVIDENCES",
@@ -2107,7 +2619,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E124",
+      "id": "E188",
+      "source": "RP03",
+      "target": "C076",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E189",
       "source": "E03",
       "target": "C077",
       "relationship": "EVIDENCES",
@@ -2115,7 +2635,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E125",
+      "id": "E190",
+      "source": "RP03",
+      "target": "C077",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E191",
       "source": "E03",
       "target": "C078",
       "relationship": "EVIDENCES",
@@ -2123,7 +2651,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E126",
+      "id": "E192",
+      "source": "RP03",
+      "target": "C078",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E193",
       "source": "E03",
       "target": "C079",
       "relationship": "EVIDENCES",
@@ -2131,7 +2667,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E127",
+      "id": "E194",
+      "source": "RP03",
+      "target": "C079",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E195",
       "source": "E03",
       "target": "C080",
       "relationship": "EVIDENCES",
@@ -2139,7 +2683,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E128",
+      "id": "E196",
+      "source": "RP03",
+      "target": "C080",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E197",
       "source": "E03",
       "target": "C081",
       "relationship": "EVIDENCES",
@@ -2147,7 +2699,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E129",
+      "id": "E198",
+      "source": "RP03",
+      "target": "C081",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E199",
       "source": "E03",
       "target": "C082",
       "relationship": "EVIDENCES",
@@ -2155,7 +2715,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E130",
+      "id": "E200",
+      "source": "RP03",
+      "target": "C082",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E201",
       "source": "E03",
       "target": "C083",
       "relationship": "EVIDENCES",
@@ -2163,7 +2731,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E131",
+      "id": "E202",
+      "source": "RP03",
+      "target": "C083",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E203",
       "source": "E03",
       "target": "C084",
       "relationship": "EVIDENCES",
@@ -2171,7 +2747,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E132",
+      "id": "E204",
+      "source": "RP03",
+      "target": "C084",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E205",
       "source": "E03",
       "target": "C085",
       "relationship": "EVIDENCES",
@@ -2179,7 +2763,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E133",
+      "id": "E206",
+      "source": "RP03",
+      "target": "C085",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E207",
       "source": "E03",
       "target": "C086",
       "relationship": "EVIDENCES",
@@ -2187,7 +2779,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E134",
+      "id": "E208",
+      "source": "RP03",
+      "target": "C086",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E209",
       "source": "E03",
       "target": "C087",
       "relationship": "EVIDENCES",
@@ -2195,7 +2795,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E135",
+      "id": "E210",
+      "source": "RP03",
+      "target": "C087",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E211",
       "source": "E03",
       "target": "C088",
       "relationship": "EVIDENCES",
@@ -2203,7 +2811,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E136",
+      "id": "E212",
+      "source": "RP03",
+      "target": "C088",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E213",
       "source": "E03",
       "target": "C089",
       "relationship": "EVIDENCES",
@@ -2211,7 +2827,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E137",
+      "id": "E214",
+      "source": "RP03",
+      "target": "C089",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E215",
       "source": "E03",
       "target": "C090",
       "relationship": "EVIDENCES",
@@ -2219,7 +2843,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E138",
+      "id": "E216",
+      "source": "RP03",
+      "target": "C090",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E217",
       "source": "E03",
       "target": "C091",
       "relationship": "EVIDENCES",
@@ -2227,7 +2859,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E139",
+      "id": "E218",
+      "source": "RP03",
+      "target": "C091",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E219",
       "source": "E03",
       "target": "C092",
       "relationship": "EVIDENCES",
@@ -2235,7 +2875,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E140",
+      "id": "E220",
+      "source": "RP03",
+      "target": "C092",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E221",
       "source": "S08",
       "target": "C093",
       "relationship": "GOVERNED_BY",
@@ -2243,7 +2891,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E141",
+      "id": "E222",
+      "source": "I04",
+      "target": "C093",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E223",
       "source": "S08",
       "target": "C094",
       "relationship": "GOVERNED_BY",
@@ -2251,7 +2907,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E142",
+      "id": "E224",
+      "source": "I04",
+      "target": "C094",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E225",
       "source": "S08",
       "target": "C095",
       "relationship": "GOVERNED_BY",
@@ -2259,7 +2923,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E143",
+      "id": "E226",
+      "source": "I04",
+      "target": "C095",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E227",
       "source": "S08",
       "target": "C096",
       "relationship": "GOVERNED_BY",
@@ -2267,7 +2939,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E144",
+      "id": "E228",
+      "source": "I04",
+      "target": "C096",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E229",
       "source": "S08",
       "target": "C097",
       "relationship": "GOVERNED_BY",
@@ -2275,7 +2955,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E145",
+      "id": "E230",
+      "source": "I04",
+      "target": "C097",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E231",
       "source": "S08",
       "target": "C098",
       "relationship": "GOVERNED_BY",
@@ -2283,7 +2971,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E146",
+      "id": "E232",
+      "source": "I04",
+      "target": "C098",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E233",
       "source": "S08",
       "target": "C099",
       "relationship": "GOVERNED_BY",
@@ -2291,7 +2987,15 @@
       "metadata_exposable": true
     },
     {
-      "id": "E147",
+      "id": "E234",
+      "source": "I04",
+      "target": "C099",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E235",
       "source": "S08",
       "target": "C100",
       "relationship": "GOVERNED_BY",
@@ -2299,10 +3003,26 @@
       "metadata_exposable": true
     },
     {
-      "id": "E148",
+      "id": "E236",
+      "source": "I04",
+      "target": "C100",
+      "relationship": "DEPENDS_ON",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E237",
       "source": "S08",
       "target": "C101",
       "relationship": "GOVERNED_BY",
+      "direct": true,
+      "metadata_exposable": true
+    },
+    {
+      "id": "E238",
+      "source": "I04",
+      "target": "C101",
+      "relationship": "DEPENDS_ON",
       "direct": true,
       "metadata_exposable": true
     }

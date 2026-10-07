@@ -29,3 +29,25 @@ def test_every_change_has_a_known_changed_node():
     ids={n["id"] for n in graph["nodes"]}
     for c in build_changes():
         assert set(c["changed_node_ids"]) <= ids
+
+
+def test_generated_controls_have_two_distinct_domain_dependencies():
+    graph=build_graph()
+    seed_control_ids={f"C{i:02d}" for i in range(1,12)}
+    generated=[
+        n for n in graph["nodes"]
+        if n["type"]=="CONTROL" and n["id"] not in seed_control_ids
+    ]
+    incoming={}
+    for n in generated:
+        incoming[n["id"]]=[
+            e for e in graph["edges"]
+            if e["target"]==n["id"] and e.get("metadata_exposable",True)
+        ]
+    assert all(len(edges)==2 for edges in incoming.values())
+    assert all(len({e["source"] for e in edges})==2 for edges in incoming.values())
+    assert all(
+        {e["relationship"] for e in edges} & {"GOVERNED_BY","EVIDENCES"}
+        and "DEPENDS_ON" in {e["relationship"] for e in edges}
+        for edges in incoming.values()
+    )

@@ -24,9 +24,21 @@ def build_prompt(case,candidates,baseline_ids):
     return "Assess payment-control impact from observable evidence only. Return JSON only with key recommendations. Each item: control_id, decision (AFFECTED, UNAFFECTED, UNCERTAIN), actions, confidence, reason. Allowed actions: REASSESS_DESIGN, REFRESH_EVIDENCE, OUT_OF_CYCLE_TEST, CONTROL_GAP_REVIEW. Do not invent IDs. Prefer UNCERTAIN when ambiguous. Narrative evidence may recover missing metadata. Do not treat ticket control impact N/A as authoritative.\\nCHANGE TICKET\\n%s\\n%s\\nBASELINE IDS\\n%s\\nCANDIDATES\\n%s"%(case["change_ticket"]["title"],case["change_ticket"]["text"],sorted(baseline_ids),docs)
 
 def parse_recommendations(raw,allowed):
-    raw=raw.strip()
+    raw=(raw or "").strip()
+    if not raw:
+        raise ValueError("empty model response")
     if raw.startswith("```"): raw=re.sub(r"^```(?:json)?\\s*|\\s*```$","",raw,flags=re.I|re.S)
-    obj=json.loads(raw); out=[]; seen=set()
+    try:
+        obj=json.loads(raw)
+    except json.JSONDecodeError:
+        start=raw.find("{"); end=raw.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("model response contained no JSON object")
+        try:
+            obj=json.loads(raw[start:end+1])
+        except json.JSONDecodeError as exc:
+            raise ValueError("model response JSON could not be decoded") from exc
+    out=[]; seen=set()
     decisions={"AFFECTED","UNAFFECTED","UNCERTAIN"}
     valid_actions={"REASSESS_DESIGN","REFRESH_EVIDENCE","OUT_OF_CYCLE_TEST","CONTROL_GAP_REVIEW"}
     for x in obj.get("recommendations",[]):
@@ -39,6 +51,11 @@ def parse_recommendations(raw,allowed):
 def hybrid_rank_controls(case,llm,top_k=20):
     baseline=rank_controls(case); baseline_ids={x["control_id"] for x in baseline}
     retrieved=retrieve_control_documents(case,top_k)
-    recs=parse_recommendations(llm(build_prompt(case,retrieved,baseline_ids)),{d["control_id"] for d in retrieved})
+    raw=llm(build_prompt(case,retrieved,baseline_ids))
+    parse_error=None
+    try:
+        recs=parse_recommendations(raw,{d["control_id"] for d in retrieved})
+    except ValueError as exc:
+        recs=[]; parse_error=str(exc)
     recovered={x["control_id"] for x in recs if x["decision"] in {"AFFECTED","UNCERTAIN"}}
-    return {"baseline":baseline,"retrieved":retrieved,"llm_recommendations":recs,"recommended_control_ids":sorted(baseline_ids|recovered),"uncertain_control_ids":sorted(x["control_id"] for x in recs if x["decision"]=="UNCERTAIN")}
+    return {"baseline":baseline,"retrieved":retrieved,"llm_recommendations":recs,"recommended_control_ids":sorted(baseline_ids|recovered),"uncertain_control_ids":sorted(x["control_id"] for x in recs if x["decision"]=="UNCERTAIN"),"parse_error":parse_error}

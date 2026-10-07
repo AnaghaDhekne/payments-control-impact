@@ -1,0 +1,34 @@
+[
+  {
+    "change_id": "CHG-001",
+    "title": "Introduce structured debtor town and country mapping",
+    "changed_node_ids": ["D03", "D04"],
+    "change_type": "FIELD_MAPPING",
+    "implementation_date": "2026-11-14",
+    "material": true
+  },
+  {
+    "change_id": "CHG-002",
+    "title": "Change screening exception report layout",
+    "changed_node_ids": ["RP01"],
+    "change_type": "REPORT_CHANGE",
+    "implementation_date": "2026-12-01",
+    "material": true
+  },
+  {
+    "change_id": "CHG-003",
+    "title": "Change high-value approval threshold",
+    "changed_node_ids": ["R02"],
+    "change_type": "PARAMETER_CHANGE",
+    "implementation_date": "2026-12-15",
+    "material": true
+  },
+  {
+    "change_id": "CHG-004",
+    "title": "Rename reporting mart without functional change",
+    "changed_node_ids": ["S08"],
+    "change_type": "RENAME",
+    "implementation_date": "2026-12-20",
+    "material": false
+  }
+]

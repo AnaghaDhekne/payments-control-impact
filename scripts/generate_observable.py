@@ -4,7 +4,7 @@ Ground truth stays in data/ground_truth. Outputs here are the only artifacts tha
 baseline/hybrid systems may consume.
 """
 from __future__ import annotations
-import json, random, hashlib
+import json, random, hashlib, math
 from collections import defaultdict, deque
 from pathlib import Path
 
@@ -85,10 +85,54 @@ def degrade_edges(graph,change,level,mode):
             for d in dists:
                 vals.extend([d.get(e["source"],999),d.get(e["target"],999)])
             return min(vals)
+        # Prefer damage near the changed entity, but do not let a global removal
+        # budget erase the entire local frontier. For each changed node, retain
+        # approximately (100-level)% of its exposable incident relationships
+        # (and always at least one when any exist). This models locally stale
+        # lineage rather than complete disconnection.
+        incident_by_changed={
+            nid:[e for e in edges if nid in (e["source"],e["target"])]
+            for nid in change["changed_node_ids"]
+        }
+        max_incident_removals={
+            nid:max(0,len(es)-max(1,math.ceil(len(es)*(100-level)/100)))
+            for nid,es in incident_by_changed.items()
+        }
+        removed_incident={nid:0 for nid in change["changed_node_ids"]}
+
         # deterministic jitter breaks ties without always deleting same edge type.
         scored=[(proximity(e),rng.random(),e) for e in edges]
         scored.sort(key=lambda x:(x[0],x[1]))
-        removed=[x[2] for x in scored[:k]]
+        removed=[]
+        for _,_,e in scored:
+            if len(removed)>=k:
+                break
+            touched=[
+                nid for nid in change["changed_node_ids"]
+                if nid in (e["source"],e["target"])
+            ]
+            if any(removed_incident[nid]>=max_incident_removals[nid] for nid in touched):
+                continue
+            removed.append(e)
+            for nid in touched:
+                removed_incident[nid]+=1
+
+        # The local-frontier guard can force us to skip some high-proximity
+        # edges. Fill the remaining global budget from eligible farther edges.
+        removed_ids={e["id"] for e in removed}
+        for _,_,e in scored:
+            if len(removed)>=k:
+                break
+            if e["id"] in removed_ids:
+                continue
+            touched=[
+                nid for nid in change["changed_node_ids"]
+                if nid in (e["source"],e["target"])
+            ]
+            if touched:
+                continue
+            removed.append(e)
+            removed_ids.add(e["id"])
     gone={e["id"] for e in removed}
     return [e for e in edges if e["id"] not in gone],sorted(gone)
 

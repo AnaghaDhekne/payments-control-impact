@@ -33,16 +33,19 @@ CONTROL_TEMPLATES=[
 # Each domain instance adds a control connected to an existing anchor. This makes
 # expansion realistic enough for impact paths while preserving manual inspectability.
 EXPANSIONS=[
- ("validation","S02","GOVERNED_BY"),
- ("screening","S03","GOVERNED_BY"),
- ("screening_review","E01","EVIDENCES"),
- ("authorization","S05","GOVERNED_BY"),
- ("auth_monitor","E04","EVIDENCES"),
- ("mapping","S06","GOVERNED_BY"),
- ("repair","E02","EVIDENCES"),
- ("reconciliation","E03","EVIDENCES"),
- ("break_review","E03","EVIDENCES"),
- ("reporting","S08","GOVERNED_BY"),
+ # family, primary anchor/relationship, alternate anchor/relationship.
+ # Alternate anchors represent a distinct documented dependency already present
+ # in the same control chain; they are not duplicate edges or arbitrary bypasses.
+ ("validation","S02","GOVERNED_BY","R01","DEPENDS_ON"),
+ ("screening","S03","GOVERNED_BY","R03","DEPENDS_ON"),
+ ("screening_review","E01","EVIDENCES","RP01","DEPENDS_ON"),
+ ("authorization","S05","GOVERNED_BY","R02","DEPENDS_ON"),
+ ("auth_monitor","E04","EVIDENCES","RP04","DEPENDS_ON"),
+ ("mapping","S06","GOVERNED_BY","R04","DEPENDS_ON"),
+ ("repair","E02","EVIDENCES","RP02","DEPENDS_ON"),
+ ("reconciliation","E03","EVIDENCES","RP03","DEPENDS_ON"),
+ ("break_review","E03","EVIDENCES","RP03","DEPENDS_ON"),
+ ("reporting","S08","GOVERNED_BY","I04","DEPENDS_ON"),
 ]
 
 QUALIFIERS=[
@@ -82,7 +85,7 @@ def build_graph():
     next_edge=max(int(e["id"][1:]) for e in graph["edges"])+1
 
     # 10 families x 9 additional controls = 90 + original 11 = 101 controls.
-    for family,anchor,rel in EXPANSIONS:
+    for family,anchor,rel,alternate_anchor,alternate_rel in EXPANSIONS:
         base=next(t for t in CONTROL_TEMPLATES if t[0]==family)
         for i in range(9):
             cid=f"C{next_control:03d}"
@@ -101,7 +104,12 @@ def build_graph():
                 "relationship":rel,"direct":True,"metadata_exposable":True
             })
             next_edge+=1
-    graph["version"]="0.2.0"
+            graph["edges"].append({
+                "id":f"E{next_edge:03d}","source":alternate_anchor,"target":cid,
+                "relationship":alternate_rel,"direct":True,"metadata_exposable":True
+            })
+            next_edge+=1
+    graph["version"]="0.3.0"
     graph["generator_seed"]=SEED
     return graph
 

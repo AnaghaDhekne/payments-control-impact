@@ -16,7 +16,7 @@ At 0%, the two modes are intentionally equivalent in metadata removal. They rema
 
 **Random** removes the requested percentage of exposable dependency edges using a deterministic per-change seed.
 
-**Change-correlated** ranks edges by undirected graph distance to the changed entity and removes nearest relationships first, with deterministic tie-breaking. This simulates the realistic failure mode where documentation/lineage is least mature around newly changed components.
+**Change-correlated** ranks edges by undirected graph distance to the changed entity and preferentially removes nearby relationships with deterministic tie-breaking. A local-frontier guard limits removal around each changed entity to the requested degradation fraction and retains at least one exposable incident relationship when one exists. This prevents 30% degradation from mechanically isolating every changed entity while still making newly changed neighborhoods less reliable than the rest of the graph.
 
 The hidden graph itself is never modified.
 

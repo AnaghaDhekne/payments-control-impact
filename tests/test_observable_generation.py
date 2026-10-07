@@ -31,6 +31,23 @@ def test_correlated_damage_touches_changed_neighborhood():
     incident={e["id"] for e in g["edges"] if "D03" in (e["source"],e["target"]) and e.get("metadata_exposable",True)}
     assert incident & set(removed)
 
+def test_correlated_damage_preserves_local_frontier():
+    g=build_graph()
+    c=next(x for x in build_changes() if x["changed_node_ids"]==["D03"])
+    exposable=[e for e in g["edges"] if e.get("metadata_exposable",True)]
+    incident=[e for e in exposable if "D03" in (e["source"],e["target"])]
+    for level in (30,60):
+        visible,_=degrade_edges(g,c,level,"correlated")
+        visible_ids={e["id"] for e in visible}
+        # Incomplete lineage should not mean total isolation of the changed node.
+        assert any(e["id"] in visible_ids for e in incident)
+
+def test_correlated_damage_is_not_identical_to_random():
+    g=build_graph(); c=next(x for x in build_changes() if x["changed_node_ids"]==["D03"])
+    _,random_removed=degrade_edges(g,c,30,"random")
+    _,correlated_removed=degrade_edges(g,c,30,"correlated")
+    assert random_removed != correlated_removed
+
 def test_ground_truth_fields_are_not_embedded_in_observable_cases():
     g=build_graph(); cs=build_changes()
     payload=build_condition(g,cs,30,"correlated")

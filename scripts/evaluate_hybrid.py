@@ -22,7 +22,7 @@ def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=
             out=hybrid_rank_controls(case,llm,top_k)
             base={x["control_id"] for x in out["baseline"]}; final=set(out["recommended_control_ids"])
             if out.get("parse_error"):
-                parse_failures.append({"change_id":case["change_id"],"error":out["parse_error"]})
+                parse_failures.append({"change_id":case["change_id"],"error":out["parse_error"],"raw_model_response":out.get("raw_model_response")})
             labels=truth[case["change_id"]]
             aff={cid for cid,x in labels.items() if x.affected}
             key={cid for cid,x in labels.items() if x.affected and x.criticality=="KEY"}

@@ -12,10 +12,11 @@ def evaluate_hybrid(llm,level=30,mode="correlated",split="test",runs=1,top_k=20)
     selected=[c for c in obs["cases"] if c["split"]==split]
     run_results=[]
     for run in range(runs):
-        total_key=base_key=final_key=total_aff=final_aff=base_work=final_work=0; decisions={}
+        total_key=base_key=final_key=total_aff=final_aff=base_work=final_work=0; decisions={}; parse_failures=[]
         for case in selected:
             out=hybrid_rank_controls(case,llm,top_k)
             base={x["control_id"] for x in out["baseline"]}; final=set(out["recommended_control_ids"])
+            if out.get("parse_error"): parse_failures.append({"change_id":case["change_id"],"error":out["parse_error"]})
             labels=truth[case["change_id"]]
             aff={cid for cid,x in labels.items() if x.affected}; key={cid for cid,x in labels.items() if x.affected and x.criticality=="KEY"}
             total_key+=len(key); base_key+=len(key&base); final_key+=len(key&final)
@@ -26,7 +27,7 @@ def evaluate_hybrid(llm,level=30,mode="correlated",split="test",runs=1,top_k=20)
           "baseline_key_misses":misses,"recovered_key_misses":recovered,"key_miss_recovery_rate":0 if not misses else recovered/misses,
           "final_key_recall":1 if not total_key else final_key/total_key,"final_affected_recall":1 if not total_aff else final_aff/total_aff,
           "baseline_workload":base_work,"final_workload":final_work,"workload_increase_rate":0 if not base_work else (final_work-base_work)/base_work,
-          "decisions":decisions})
+          "parse_failure_count":len(parse_failures),"parse_failures":parse_failures,"decisions":decisions})
     agreement=1.0
     if runs>1:
         pairs=[]

@@ -1,0 +1,28 @@
+name: POC checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  offline-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run unit tests
+        run: python -m pytest -q
+      - name: Validate seed graph
+        run: python -m scripts.validate_graph
+        continue-on-error: true
+      - name: Evaluate frozen rules baseline
+        run: python -m scripts.evaluate_baseline > baseline_results.json
+      - name: Upload baseline report
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-baseline-results
+          path: baseline_results.json

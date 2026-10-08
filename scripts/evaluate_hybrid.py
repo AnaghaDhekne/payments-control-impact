@@ -15,12 +15,16 @@ def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=
     run_results=[]
     for run in range(runs):
         total_key=base_key=final_key=total_aff=final_aff=base_work=final_work=0
-        decisions={}; parse_failures=[]
+        uncertain_count=excluded_key_misses=false_positives=0
+        decisions={}; parse_failures=[]; all_audit_rows=[]
         for idx,case in enumerate(selected,1):
             if progress:
                 print(f"[run {run+1}/{runs}] case {idx}/{len(selected)}: {case['change_id']}",flush=True)
             out=hybrid_rank_controls(case,llm,top_k)
-            base={x["control_id"] for x in out["baseline"]}; final=set(out["recommended_control_ids"])
+            base={x["control_id"] for x in out["baseline"]}
+            recommended=set(out["recommended_control_ids"])
+            uncertain=set(out.get("uncertain_control_ids",[]))
+            final=recommended|uncertain
             if out.get("parse_error"):
                 parse_failures.append({"change_id":case["change_id"],"error":out["parse_error"],"raw_model_response":out.get("raw_model_response")})
             labels=truth[case["change_id"]]
@@ -28,13 +32,21 @@ def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=
             key={cid for cid,x in labels.items() if x.affected and x.criticality=="KEY"}
             total_key+=len(key); base_key+=len(key&base); final_key+=len(key&final)
             total_aff+=len(aff); final_aff+=len(aff&final); base_work+=len(base); final_work+=len(final)
+            uncertain_count+=len(uncertain)
+            excluded_key_misses+=len(key-final)
+            false_positives+=len(final-aff)
             decisions[case["change_id"]]=sorted(final)
+            for row in out.get("audit_rows",[]):
+                row["change_id"]=case["change_id"]
+                all_audit_rows.append(row)
         misses=total_key-base_key; recovered=final_key-base_key
         run_results.append({"run":run+1,"key_control_pairs":total_key,"baseline_key_hits":base_key,"final_key_hits":final_key,
           "baseline_key_misses":misses,"recovered_key_misses":recovered,"key_miss_recovery_rate":0 if not misses else recovered/misses,
           "final_key_recall":1 if not total_key else final_key/total_key,"final_affected_recall":1 if not total_aff else final_aff/total_aff,
           "baseline_workload":base_work,"final_workload":final_work,"workload_increase_rate":0 if not base_work else (final_work-base_work)/base_work,
-          "parse_failure_count":len(parse_failures),"parse_failures":parse_failures,"decisions":decisions})
+          "parse_failure_count":len(parse_failures),"parse_failures":parse_failures,"decisions":decisions,
+          "uncertain_count":uncertain_count,"excluded_key_misses":excluded_key_misses,"false_positives":false_positives,
+          "audit_rows":all_audit_rows})
     agreement=1.0
     if runs>1:
         pairs=[]

@@ -76,9 +76,13 @@ def hybrid_rank_controls(case, llm, top_k=20, **kwargs):
     Returns:
         Dict with keys:
             baseline: list of baseline-ranked control dicts (each has control_id)
-            recommended_control_ids: sorted list of control IDs (baseline union LLM)
+            recommended_control_ids: sorted list (baseline + LLM AFFECTED only)
+            uncertain_control_ids: sorted list (LLM UNCERTAIN, surfaced for review)
+            unaffected_control_ids: sorted list (LLM UNAFFECTED, not surfaced)
+            llm_recommendations: raw parsed LLM recommendation dicts
             parse_error: error message string if LLM response could not be parsed, else None
-            raw_model_response: the raw string returned by llm(case)
+            raw_model_response: the raw string returned by llm(prompt)
+            audit_rows: per-control audit records for evaluation
     """
     candidates = retrieve_control_documents(case, top_k)
     allowed = {d["control_id"] for d in candidates}
@@ -95,14 +99,54 @@ def hybrid_rank_controls(case, llm, top_k=20, **kwargs):
         recommendations = []
         parse_error = str(exc)
 
-    recommended_ids = set(baseline_ids)
+    # Separate LLM recommendations by decision
+    llm_affected = set()
+    llm_uncertain = set()
+    llm_unaffected = set()
+    rec_by_id = {r["control_id"]: r for r in recommendations}
+
     for r in recommendations:
-        recommended_ids.add(r["control_id"])
+        decision = r.get("decision", "").upper()
+        if decision == "AFFECTED":
+            llm_affected.add(r["control_id"])
+        elif decision == "UNCERTAIN":
+            llm_uncertain.add(r["control_id"])
+        elif decision == "UNAFFECTED":
+            llm_unaffected.add(r["control_id"])
+
+    # Positive recommendations: baseline + LLM AFFECTED only
+    recommended_ids = set(baseline_ids) | llm_affected
+
+    # UNCERTAIN controls surfaced for review but not positive recommendations
+    uncertain_ids = sorted(llm_uncertain - baseline_ids)
+
+    # UNAFFECTED controls not surfaced but tracked for audit
+    unaffected_ids = sorted(llm_unaffected)
+
+    # Build per-control audit rows
+    audit_rows = []
+    all_ids = recommended_ids | set(uncertain_ids) | set(unaffected_ids)
+    for cid in sorted(all_ids):
+        rec = rec_by_id.get(cid, {})
+        audit_rows.append({
+            "control_id": cid,
+            "baseline_flag": cid in baseline_ids,
+            "raw_decision": rec.get("decision"),
+            "confidence": rec.get("confidence"),
+            "actions": rec.get("actions", []),
+            "reason": rec.get("reason", ""),
+            "final_class": "AFFECTED" if cid in recommended_ids else ("UNCERTAIN" if cid in uncertain_ids else "UNAFFECTED"),
+            "surfaced_for_review": cid in recommended_ids or cid in llm_uncertain,
+        })
 
     return {
         "baseline": baseline,
         "recommended_control_ids": sorted(recommended_ids),
+        "uncertain_control_ids": uncertain_ids,
+        "unaffected_control_ids": unaffected_ids,
+        "llm_recommendations": recommendations,
         "parse_error": parse_error,
         "raw_model_response": raw,
+        "audit_rows": audit_rows,
     }
 

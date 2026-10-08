@@ -1,55 +1,80 @@
 ================================================================================
-  PAYMENTS CONTROL IMPACT — RESULT SUMMARY & REQUIRED ACTIONS
-  Generated: 2026-10-07
+  PAYMENTS CONTROL IMPACT — CORRECTED RESULT SUMMARY & REQUIRED ACTIONS
+  Generated: 2026-10-08 (supersedes 2026-10-07 report)
   Model: databricks-llama-4-maverick (temperature=0.0, max_tokens=3000)
-  Benchmark: 101 controls, 54 change scenarios, 18 test-split changes
-  Matrix: 6 conditions (levels 0/30/60 x modes random/correlated)
-  Runs: 3 per condition, 5 cases per condition, top_k=20
+  Benchmark: 101 controls, 54 change scenarios, 36 development-split changes
+  Condition: 30% correlated degradation (PRIMARY POC condition)
+  Runs: 5, top_k=20, 180 LLM calls total
+  Fix applied: UNAFFECTED controls excluded from recommendations (bug fix)
+  Evaluation split: development (per improvement plan: dev first, then test)
 ================================================================================
 
 
-SECTION 1: FULL MATRIX RESULTS (3-RUN AVERAGES)
+SECTION 1: CORRECTED DEVELOPMENT RESULTS — 30% CORRELATED, 36 CASES, 5 RUNS
 ================================================================================
 
-Level    Mode         Baseline   Hybrid    Recovery   Workload      Agreement   Parse
-                      Key Recall Key Recall Rate       Increase                  Failures
+Metric                          Run 1     Run 2     Run 3     Run 4     Run 5     Average
 ----------------------------------------------------------------------------------------
-0%       random       100.0%     100.0%    0.0%       0.0%          1.000       0
-0%       correlated   100.0%     100.0%    0.0%       0.0%          1.000       0
-30%      random        35.3%      63.2%    43.2%      90.4%         1.000       0
-30%      correlated   10.3%      71.6%    68.3%     442.2%         0.947       0
-60%      random       11.8%      44.6%    37.2%     166.7%         0.973       0
-60%      correlated    4.4%      78.9%    77.9%     970.8%         0.947       0
+Key control pairs               276       276       276       276       276       276
+Baseline key hits               51        51        51        51        51        51
+Final key hits (AFFECTED+UNC)   161       162       164       164       161       162.4
+Baseline key misses             225       225       225       225       225       225
+Recovered key misses            110       111       113       113       110       111.4
+Recovery rate                   48.9%     49.3%     50.2%     50.2%     48.9%     49.5%
+Final key recall                58.3%     58.7%     59.4%     59.4%     58.3%     58.8%
+Final affected recall           41.1%     41.4%     42.3%     41.5%     41.8%     41.6%
+Baseline workload               176       176       176       176       176       176
+Final workload (AFFECTED+UNC)   518       516       553       531       535       531
+Workload increase               194.3%    193.2%   214.2%    201.7%    204.0%    201.5%
+Uncertain count                 241       243       253       242       233       242.4
+Excluded key misses             115       114       112       112       115       113.6
+False positives                 152       147       176       161       163       159.8
+Parse failures                  0         0         0         0         0         0
+5-run agreement                 —         —         —         —         —         85.9%
+Audit rows                      608       593       641       598       633       614.6
 
 Notes:
-- Key control pairs per condition: 68 (5 test-split cases)
-- Baseline key recall = controls found by metadata-only graph traversal on degraded graph
-- Hybrid key recall = controls found after merging baseline + LLM narrative analysis
-- Recovery rate = percentage of baseline-missed key controls the LLM recovered
-- Workload increase = how many extra controls the hybrid recommends vs baseline alone
-- Agreement = run-to-run decision consistency (1.0 = perfectly deterministic)
-- Parse failures = number of LLM responses that could not be parsed as valid JSON
+- 36 development-split cases (was 5 in previous report)
+- 5 repeated runs (was 3 in previous report)
+- UNAFFECTED controls now excluded from recommendations (bug fix)
+- UNCERTAIN controls counted toward workload as separate review queue
+- Final workload = AFFECTED + UNCERTAIN controls surfaced for review
+- Excluded key misses = key controls never surfaced at all
+- False positives = surfaced controls not actually affected per ground truth
+- Audit rows = per-control records with decision, confidence, final_class
 
 
-SECTION 2: GO/NO-GO CRITERIA CHECK
+SECTION 2: POC GATE ASSESSMENT (CORRECTED CRITERIA)
 ================================================================================
 
-Criteria (from docs/runbook.md):
-  1. Key miss recovery rate >= 40%
-  2. Workload increase rate < 100%
-  3. Repeated run agreement = 1.0
+Criteria (from docs/evaluation_improvement_plan.md — pre-registered):
+  1. Key miss recovery rate >= 50%
+  2. Workload increase rate <= 25% (AFFECTED + UNCERTAIN counted)
+  3. Five-run key-control decision agreement >= 95%
   4. Zero parse failures
 
-Condition          Recovery>=40%  Workload<100%  Agreement=1.0  Parse=0  VERDICT
---------------------------------------------------------------------------------------
-0% / random        PASS           PASS           PASS           PASS     PASS
-0% / correlated    PASS           PASS           PASS           PASS     PASS
-30% / random       PASS           PASS           PASS           PASS     PASS
-30% / correlated   PASS           FAIL (442%)   FAIL (0.947)   PASS     FAIL
-60% / random       FAIL (37%)    FAIL (167%)   FAIL (0.973)   PASS     FAIL
-60% / correlated   PASS           FAIL (971%)   FAIL (0.947)   PASS     FAIL
+Gate                 Threshold      Result                Pass/Fail
+--------------------------------------------------------------------------------
+Recovery rate        >= 50%        49.5% avg (48.9-50.2%) FAIL (borderline)
+Workload increase    <= 25%        201.5% avg (193-214%)  FAIL (severe)
+5-run agreement     >= 95%        85.9%                  FAIL
+Parse failures       = 0           0                      PASS
 
-Summary: 3 of 6 conditions PASS all criteria. 3 conditions FAIL.
+VERDICT: ALL THREE POC GATES FAIL. Hybrid is NOT ready for pilot.
+
+Previous report used incorrect criteria (40% recovery, <100% workload,
+100% agreement) and incorrect case count (5 test cases, not 36).
+Those results are superseded. See docs/evaluation_improvement_plan.md
+for the pre-registered thresholds and experiment design.
+
+Comparison of old vs corrected metrics at 30% correlated:
+  Metric           Old (buggy, 5 cases)   Corrected (fixed, 36 cases)
+  Recovery rate    68.3%                  49.5%
+  Workload         442.2%                 201.5%
+  Agreement        94.7% (3-run)          85.9% (5-run)
+  Cases            5                      36
+  Runs             3                      5
+  UNAFFECTED bug   Present (inflated)     Fixed (excluded)
 
 
 SECTION 3: DETAILED METRICS BY CONDITION
@@ -239,44 +264,52 @@ Expected: Agreement effectively becomes 1.0 for the final decision set.
 Code:    scripts/evaluate_hybrid.py, evaluate_hybrid() function
 
 
-SECTION 6: PILOT RECOMMENDATION
+SECTION 6: RECOMMENDATION (CORRECTED)
 ================================================================================
 
-The hybrid approach (baseline + LLM) is READY FOR PILOT under these conditions:
+The hybrid approach (baseline + LLM) is NOT READY FOR PILOT.
 
-  DEPLOY WHEN:
-  - Metadata degradation is moderate (approximately 30%)
-  - Degradation pattern is primarily random (uniform data quality decay)
-  - Reviewers can handle up to 2x the baseline workload
+All three POC gates fail on the primary condition (30% correlated):
+  - Recovery 49.5% (borderline, just below 50% threshold)
+  - Workload 201.5% (8x over the 25% threshold)
+  - Agreement 85.9% (below the 95% threshold)
 
-  DO NOT DEPLOY WHEN:
-  - Metadata degradation is severe (60%+)
-  - Degradation is correlated (concentrated near change hotspots)
-  - Perfect run-to-run reproducibility is a hard requirement
+The previous report's claim of READY FOR PILOT was based on incorrect
+criteria, a case-count mismatch (5 vs 18), and the UNAFFECTED bug.
 
-  BEFORE EXPANDING TO HARDER CONDITIONS:
-  1. Implement Priority 1 and 2 (confidence filtering + cap)
-  2. Implement Priority 3 (family-aware retrieval)
-  3. Implement Priority 5 (model testing or 2-call intersection)
-  4. Re-run the full 6-condition matrix with these changes
-  5. Re-evaluate against go/no-go criteria
+NEXT STEPS (per docs/evaluation_improvement_plan.md):
+  1. Experiment D: Rank and cap LLM additions by confidence to reduce
+     workload from 201% toward the 25% threshold.
+  2. Experiment B: Improve candidate retrieval to reduce 114 excluded
+     key misses.
+  3. Experiment F: Lineage repair comparator — determine whether simply
+     fixing metadata recovers as much recall with lower workload.
+  4. Experiment E: Test alternate models or 2-call intersection for
+     stability to improve agreement from 85.9% toward 95%.
+  5. After development experiments, lock the procedure and run the
+     held-out test split ONCE as confirmation.
+
+A pilot requires: zero observed key-control misses in surfaced
+AFFECTED+UNCERTAIN, sampled review of excluded controls, sample size,
+and an uncertainty bound (rule of three: ~3/n when zero misses observed).
 
 
 SECTION 7: ARTIFACTS PRODUCED
 ================================================================================
 
+  output/dev_30_correlated.json       - Corrected dev run (36 cases, 5 runs,
+                                         30% correlated, with audit rows)
   output/baseline_results.json        - Full baseline metrics (6 conditions)
-  output/hybrid_matrix.json            - Hybrid results (0% random, 0% correlated,
-                                         30% random)
-  output/hybrid_matrix_remaining.json  - Hybrid results (30% correlated,
-                                         60% random, 60% correlated)
-  output/endpoints.txt                 - Available Databricks model endpoints
-  output/result_summary_and_actions.txt - This report
+  output/hybrid_matrix.json            - Hybrid results (old, 5 cases, superseded)
+  output/hybrid_matrix_remaining.json  - Hybrid results (old, 5 cases, superseded)
+  output/result_summary_and_actions.txt - This report (corrected)
+  docs/evaluation_improvement_plan.md  - Pre-registered thresholds and experiment design
+  docs/industry_comparison.md          - Vendor-by-vendor comparison with citations
+  docs/novelty_pitch.md                - One-page novelty pitch for stakeholders
   docs/project_reference.md            - Complete project reference document
   docs/runbook.md                      - Kill criteria and go/no-go thresholds
 
-  Test suite: 29/29 passing (pytest -q)
-  LLM calls:  90 total (6 conditions x 5 cases x 3 runs), 0 parse failures
+  LLM calls:  180 total (36 dev cases x 5 runs), 0 parse failures
   Model:      databricks-llama-4-maverick at temperature 0.0
 
 

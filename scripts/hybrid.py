@@ -64,3 +64,45 @@ def parse_recommendations(raw,allowed):
         seen.add(cid)
     return out
 
+def hybrid_rank_controls(case, llm, top_k=20, **kwargs):
+    """
+    Merge baseline and LLM recommendations for a single change scenario.
+
+    Args:
+        case: dict representing synthetic change scenario
+        llm: callable that takes a case dict and returns a raw JSON string
+        top_k: int, number of candidate control documents to retrieve and pass to the LLM
+
+    Returns:
+        Dict with keys:
+            baseline: list of baseline-ranked control dicts (each has control_id)
+            recommended_control_ids: sorted list of control IDs (baseline union LLM)
+            parse_error: error message string if LLM response could not be parsed, else None
+            raw_model_response: the raw string returned by llm(case)
+    """
+    candidates = retrieve_control_documents(case, top_k)
+    allowed = {d["control_id"] for d in candidates}
+    baseline = rank_controls(case)
+    baseline_ids = {x["control_id"] for x in baseline}
+
+    prompt = build_prompt(case, candidates, baseline_ids)
+    raw = llm(prompt) if callable(llm) else str(llm)
+
+    parse_error = None
+    try:
+        recommendations = parse_recommendations(raw, allowed)
+    except (ValueError, json.JSONDecodeError) as exc:
+        recommendations = []
+        parse_error = str(exc)
+
+    recommended_ids = set(baseline_ids)
+    for r in recommendations:
+        recommended_ids.add(r["control_id"])
+
+    return {
+        "baseline": baseline,
+        "recommended_control_ids": sorted(recommended_ids),
+        "parse_error": parse_error,
+        "raw_model_response": raw,
+    }
+

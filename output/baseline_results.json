@@ -4,10 +4,10 @@
     "mode": "random",
     "split": "test",
     "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 390,
-    "reachable_key_control_pairs": 150,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 417,
+    "reachable_key_control_pairs": 162,
     "affected_recall": 1.0,
     "key_control_recall": 1.0,
     "reviewer_workload": 420,
@@ -33,10 +33,10 @@
       },
       {
         "change_id": "CHG-003",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -51,10 +51,10 @@
       },
       {
         "change_id": "CHG-021",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -159,10 +159,10 @@
       },
       {
         "change_id": "CHG-039",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -182,10 +182,10 @@
     "mode": "correlated",
     "split": "test",
     "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 390,
-    "reachable_key_control_pairs": 150,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 417,
+    "reachable_key_control_pairs": 162,
     "affected_recall": 1.0,
     "key_control_recall": 1.0,
     "reviewer_workload": 420,
@@ -211,10 +211,10 @@
       },
       {
         "change_id": "CHG-003",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -229,10 +229,10 @@
       },
       {
         "change_id": "CHG-021",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -337,10 +337,10 @@
       },
       {
         "change_id": "CHG-039",
-        "affected_controls": 40,
-        "reachable_affected": 40,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 49,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 19,
         "recommended_controls": 50,
         "key_control_recall": 1.0
       },
@@ -360,98 +360,80 @@
     "mode": "random",
     "split": "test",
     "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 135,
-    "reachable_key_control_pairs": 51,
-    "affected_recall": 0.34615384615384615,
-    "key_control_recall": 0.34,
-    "reviewer_workload": 140,
-    "unreachable_key_control_pairs": 99,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 195,
+    "reachable_key_control_pairs": 69,
+    "affected_recall": 0.4676258992805755,
+    "key_control_recall": 0.42592592592592593,
+    "reviewer_workload": 195,
+    "unreachable_key_control_pairs": 93,
     "case_results": [
       {
         "change_id": "CHG-051",
         "affected_controls": 20,
-        "reachable_affected": 7,
+        "reachable_affected": 15,
         "affected_key_controls": 10,
-        "reachable_key_controls": 5,
-        "recommended_controls": 7,
-        "key_control_recall": 0.5
+        "reachable_key_controls": 9,
+        "recommended_controls": 15,
+        "key_control_recall": 0.9
       },
       {
         "change_id": "CHG-027",
         "affected_controls": 20,
-        "reachable_affected": 6,
+        "reachable_affected": 15,
         "affected_key_controls": 10,
-        "reachable_key_controls": 3,
-        "recommended_controls": 6,
-        "key_control_recall": 0.3
+        "reachable_key_controls": 7,
+        "recommended_controls": 15,
+        "key_control_recall": 0.7
       },
       {
         "change_id": "CHG-003",
-        "affected_controls": 40,
-        "reachable_affected": 15,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 7,
-        "recommended_controls": 15,
-        "key_control_recall": 0.4666666666666667
+        "affected_controls": 49,
+        "reachable_affected": 8,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 5,
+        "recommended_controls": 8,
+        "key_control_recall": 0.2631578947368421
       },
       {
         "change_id": "CHG-006",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
+        "reachable_key_controls": 3,
+        "recommended_controls": 7,
+        "key_control_recall": 0.3
+      },
+      {
+        "change_id": "CHG-021",
+        "affected_controls": 49,
+        "reachable_affected": 0,
+        "affected_key_controls": 19,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
       },
       {
-        "change_id": "CHG-021",
-        "affected_controls": 40,
-        "reachable_affected": 5,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 2,
-        "recommended_controls": 10,
-        "key_control_recall": 0.13333333333333333
-      },
-      {
         "change_id": "CHG-054",
         "affected_controls": 20,
-        "reachable_affected": 13,
+        "reachable_affected": 15,
         "affected_key_controls": 5,
         "reachable_key_controls": 2,
-        "recommended_controls": 13,
+        "recommended_controls": 15,
         "key_control_recall": 0.4
       },
       {
         "change_id": "CHG-024",
         "affected_controls": 20,
-        "reachable_affected": 14,
+        "reachable_affected": 18,
         "affected_key_controls": 10,
-        "reachable_key_controls": 6,
-        "recommended_controls": 14,
-        "key_control_recall": 0.6
+        "reachable_key_controls": 9,
+        "recommended_controls": 18,
+        "key_control_recall": 0.9
       },
       {
         "change_id": "CHG-030",
-        "affected_controls": 10,
-        "reachable_affected": 10,
-        "affected_key_controls": 0,
-        "reachable_key_controls": 0,
-        "recommended_controls": 10,
-        "key_control_recall": 1.0
-      },
-      {
-        "change_id": "CHG-042",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-012",
         "affected_controls": 10,
         "reachable_affected": 9,
         "affected_key_controls": 0,
@@ -460,12 +442,30 @@
         "key_control_recall": 1.0
       },
       {
-        "change_id": "CHG-048",
+        "change_id": "CHG-042",
+        "affected_controls": 20,
+        "reachable_affected": 5,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 2,
+        "recommended_controls": 5,
+        "key_control_recall": 0.2
+      },
+      {
+        "change_id": "CHG-012",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 4,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 4,
+        "key_control_recall": 1.0
+      },
+      {
+        "change_id": "CHG-048",
+        "affected_controls": 10,
+        "reachable_affected": 10,
+        "affected_key_controls": 0,
+        "reachable_key_controls": 0,
+        "recommended_controls": 10,
         "key_control_recall": 1.0
       },
       {
@@ -480,56 +480,56 @@
       {
         "change_id": "CHG-036",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 18,
         "affected_key_controls": 5,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 4,
+        "recommended_controls": 18,
+        "key_control_recall": 0.8
       },
       {
         "change_id": "CHG-033",
         "affected_controls": 20,
         "reachable_affected": 11,
         "affected_key_controls": 10,
-        "reachable_key_controls": 6,
+        "reachable_key_controls": 5,
         "recommended_controls": 11,
-        "key_control_recall": 0.6
+        "key_control_recall": 0.5
       },
       {
         "change_id": "CHG-009",
         "affected_controls": 20,
-        "reachable_affected": 7,
+        "reachable_affected": 15,
         "affected_key_controls": 10,
-        "reachable_key_controls": 3,
-        "recommended_controls": 7,
-        "key_control_recall": 0.3
+        "reachable_key_controls": 8,
+        "recommended_controls": 15,
+        "key_control_recall": 0.8
       },
       {
         "change_id": "CHG-018",
         "affected_controls": 20,
-        "reachable_affected": 13,
+        "reachable_affected": 12,
         "affected_key_controls": 5,
-        "reachable_key_controls": 4,
-        "recommended_controls": 13,
-        "key_control_recall": 0.8
+        "reachable_key_controls": 2,
+        "recommended_controls": 12,
+        "key_control_recall": 0.4
       },
       {
         "change_id": "CHG-039",
-        "affected_controls": 40,
-        "reachable_affected": 7,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 3,
-        "recommended_controls": 7,
-        "key_control_recall": 0.2
+        "affected_controls": 49,
+        "reachable_affected": 27,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 10,
+        "recommended_controls": 27,
+        "key_control_recall": 0.5263157894736842
       },
       {
         "change_id": "CHG-015",
         "affected_controls": 20,
-        "reachable_affected": 18,
+        "reachable_affected": 6,
         "affected_key_controls": 10,
-        "reachable_key_controls": 10,
-        "recommended_controls": 18,
-        "key_control_recall": 1.0
+        "reachable_key_controls": 3,
+        "recommended_controls": 6,
+        "key_control_recall": 0.3
       }
     ]
   },
@@ -538,23 +538,23 @@
     "mode": "correlated",
     "split": "test",
     "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 0,
-    "reachable_key_control_pairs": 0,
-    "affected_recall": 0.0,
-    "key_control_recall": 0.0,
-    "reviewer_workload": 0,
-    "unreachable_key_control_pairs": 150,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 64,
+    "reachable_key_control_pairs": 18,
+    "affected_recall": 0.15347721822541965,
+    "key_control_recall": 0.1111111111111111,
+    "reviewer_workload": 64,
+    "unreachable_key_control_pairs": 144,
     "case_results": [
       {
         "change_id": "CHG-051",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 8,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 4,
+        "recommended_controls": 8,
+        "key_control_recall": 0.4
       },
       {
         "change_id": "CHG-027",
@@ -567,9 +567,9 @@
       },
       {
         "change_id": "CHG-003",
-        "affected_controls": 40,
+        "affected_controls": 49,
         "reachable_affected": 0,
-        "affected_key_controls": 15,
+        "affected_key_controls": 19,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
@@ -577,17 +577,17 @@
       {
         "change_id": "CHG-006",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 3,
+        "recommended_controls": 7,
+        "key_control_recall": 0.3
       },
       {
         "change_id": "CHG-021",
-        "affected_controls": 40,
+        "affected_controls": 49,
         "reachable_affected": 0,
-        "affected_key_controls": 15,
+        "affected_key_controls": 19,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
@@ -604,46 +604,46 @@
       {
         "change_id": "CHG-024",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 2,
+        "recommended_controls": 7,
+        "key_control_recall": 0.2
       },
       {
         "change_id": "CHG-030",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 7,
         "key_control_recall": 1.0
       },
       {
         "change_id": "CHG-042",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 3,
+        "recommended_controls": 7,
+        "key_control_recall": 0.3
       },
       {
         "change_id": "CHG-012",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 7,
         "key_control_recall": 1.0
       },
       {
         "change_id": "CHG-048",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 7,
         "key_control_recall": 1.0
       },
       {
@@ -667,11 +667,11 @@
       {
         "change_id": "CHG-033",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 3,
+        "recommended_controls": 7,
+        "key_control_recall": 0.3
       },
       {
         "change_id": "CHG-009",
@@ -693,9 +693,9 @@
       },
       {
         "change_id": "CHG-039",
-        "affected_controls": 40,
+        "affected_controls": 49,
         "reachable_affected": 0,
-        "affected_key_controls": 15,
+        "affected_key_controls": 19,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
@@ -703,11 +703,11 @@
       {
         "change_id": "CHG-015",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 7,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 3,
+        "recommended_controls": 7,
+        "key_control_recall": 0.3
       }
     ]
   },
@@ -716,23 +716,23 @@
     "mode": "random",
     "split": "test",
     "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 29,
-    "reachable_key_control_pairs": 10,
-    "affected_recall": 0.07435897435897436,
-    "key_control_recall": 0.06666666666666667,
-    "reviewer_workload": 29,
-    "unreachable_key_control_pairs": 140,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 51,
+    "reachable_key_control_pairs": 18,
+    "affected_recall": 0.1223021582733813,
+    "key_control_recall": 0.1111111111111111,
+    "reviewer_workload": 51,
+    "unreachable_key_control_pairs": 144,
     "case_results": [
       {
         "change_id": "CHG-051",
         "affected_controls": 20,
-        "reachable_affected": 5,
+        "reachable_affected": 3,
         "affected_key_controls": 10,
-        "reachable_key_controls": 3,
-        "recommended_controls": 5,
-        "key_control_recall": 0.3
+        "reachable_key_controls": 1,
+        "recommended_controls": 3,
+        "key_control_recall": 0.1
       },
       {
         "change_id": "CHG-027",
@@ -745,30 +745,30 @@
       },
       {
         "change_id": "CHG-003",
-        "affected_controls": 40,
-        "reachable_affected": 0,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "affected_controls": 49,
+        "reachable_affected": 5,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 2,
+        "recommended_controls": 5,
+        "key_control_recall": 0.10526315789473684
       },
       {
         "change_id": "CHG-006",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 5,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 2,
+        "recommended_controls": 5,
+        "key_control_recall": 0.2
       },
       {
         "change_id": "CHG-021",
-        "affected_controls": 40,
-        "reachable_affected": 5,
-        "affected_key_controls": 15,
+        "affected_controls": 49,
+        "reachable_affected": 7,
+        "affected_key_controls": 19,
         "reachable_key_controls": 3,
-        "recommended_controls": 5,
-        "key_control_recall": 0.2
+        "recommended_controls": 7,
+        "key_control_recall": 0.15789473684210525
       },
       {
         "change_id": "CHG-054",
@@ -782,29 +782,207 @@
       {
         "change_id": "CHG-024",
         "affected_controls": 20,
-        "reachable_affected": 0,
+        "reachable_affected": 2,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 1,
+        "recommended_controls": 2,
+        "key_control_recall": 0.1
       },
       {
         "change_id": "CHG-030",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 1,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 1,
         "key_control_recall": 1.0
       },
       {
         "change_id": "CHG-042",
+        "affected_controls": 20,
+        "reachable_affected": 4,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 1,
+        "recommended_controls": 4,
+        "key_control_recall": 0.1
+      },
+      {
+        "change_id": "CHG-012",
+        "affected_controls": 10,
+        "reachable_affected": 7,
+        "affected_key_controls": 0,
+        "reachable_key_controls": 0,
+        "recommended_controls": 7,
+        "key_control_recall": 1.0
+      },
+      {
+        "change_id": "CHG-048",
+        "affected_controls": 10,
+        "reachable_affected": 2,
+        "affected_key_controls": 0,
+        "reachable_key_controls": 0,
+        "recommended_controls": 2,
+        "key_control_recall": 1.0
+      },
+      {
+        "change_id": "CHG-045",
         "affected_controls": 20,
         "reachable_affected": 0,
         "affected_key_controls": 10,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-036",
+        "affected_controls": 20,
+        "reachable_affected": 0,
+        "affected_key_controls": 5,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-033",
+        "affected_controls": 20,
+        "reachable_affected": 5,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 3,
+        "recommended_controls": 5,
+        "key_control_recall": 0.3
+      },
+      {
+        "change_id": "CHG-009",
+        "affected_controls": 20,
+        "reachable_affected": 0,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-018",
+        "affected_controls": 20,
+        "reachable_affected": 0,
+        "affected_key_controls": 5,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-039",
+        "affected_controls": 49,
+        "reachable_affected": 7,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 4,
+        "recommended_controls": 7,
+        "key_control_recall": 0.21052631578947367
+      },
+      {
+        "change_id": "CHG-015",
+        "affected_controls": 20,
+        "reachable_affected": 3,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 1,
+        "recommended_controls": 3,
+        "key_control_recall": 0.1
+      }
+    ]
+  },
+  {
+    "level": 60,
+    "mode": "correlated",
+    "split": "test",
+    "cases": 18,
+    "affected_pairs": 417,
+    "key_control_pairs": 162,
+    "reachable_affected_pairs": 34,
+    "reachable_key_control_pairs": 12,
+    "affected_recall": 0.0815347721822542,
+    "key_control_recall": 0.07407407407407407,
+    "reviewer_workload": 34,
+    "unreachable_key_control_pairs": 150,
+    "case_results": [
+      {
+        "change_id": "CHG-051",
+        "affected_controls": 20,
+        "reachable_affected": 4,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 1,
+        "recommended_controls": 4,
+        "key_control_recall": 0.1
+      },
+      {
+        "change_id": "CHG-027",
+        "affected_controls": 20,
+        "reachable_affected": 0,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-003",
+        "affected_controls": 49,
+        "reachable_affected": 0,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-006",
+        "affected_controls": 20,
+        "reachable_affected": 4,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 2,
+        "recommended_controls": 4,
+        "key_control_recall": 0.2
+      },
+      {
+        "change_id": "CHG-021",
+        "affected_controls": 49,
+        "reachable_affected": 0,
+        "affected_key_controls": 19,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-054",
+        "affected_controls": 20,
+        "reachable_affected": 0,
+        "affected_key_controls": 5,
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
+      },
+      {
+        "change_id": "CHG-024",
+        "affected_controls": 20,
+        "reachable_affected": 5,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 3,
+        "recommended_controls": 5,
+        "key_control_recall": 0.3
+      },
+      {
+        "change_id": "CHG-030",
+        "affected_controls": 10,
+        "reachable_affected": 4,
+        "affected_key_controls": 0,
+        "reachable_key_controls": 0,
+        "recommended_controls": 4,
+        "key_control_recall": 1.0
+      },
+      {
+        "change_id": "CHG-042",
+        "affected_controls": 20,
+        "reachable_affected": 2,
+        "affected_key_controls": 10,
+        "reachable_key_controls": 1,
+        "recommended_controls": 2,
+        "key_control_recall": 0.1
       },
       {
         "change_id": "CHG-012",
@@ -818,20 +996,20 @@
       {
         "change_id": "CHG-048",
         "affected_controls": 10,
-        "reachable_affected": 0,
+        "reachable_affected": 4,
         "affected_key_controls": 0,
         "reachable_key_controls": 0,
-        "recommended_controls": 0,
+        "recommended_controls": 4,
         "key_control_recall": 1.0
       },
       {
         "change_id": "CHG-045",
         "affected_controls": 20,
-        "reachable_affected": 5,
+        "reachable_affected": 0,
         "affected_key_controls": 10,
-        "reachable_key_controls": 1,
-        "recommended_controls": 5,
-        "key_control_recall": 0.1
+        "reachable_key_controls": 0,
+        "recommended_controls": 0,
+        "key_control_recall": 0.0
       },
       {
         "change_id": "CHG-036",
@@ -845,10 +1023,10 @@
       {
         "change_id": "CHG-033",
         "affected_controls": 20,
-        "reachable_affected": 9,
+        "reachable_affected": 4,
         "affected_key_controls": 10,
         "reachable_key_controls": 3,
-        "recommended_controls": 9,
+        "recommended_controls": 4,
         "key_control_recall": 0.3
       },
       {
@@ -871,9 +1049,9 @@
       },
       {
         "change_id": "CHG-039",
-        "affected_controls": 40,
+        "affected_controls": 49,
         "reachable_affected": 0,
-        "affected_key_controls": 15,
+        "affected_key_controls": 19,
         "reachable_key_controls": 0,
         "recommended_controls": 0,
         "key_control_recall": 0.0
@@ -881,189 +1059,11 @@
       {
         "change_id": "CHG-015",
         "affected_controls": 20,
-        "reachable_affected": 2,
+        "reachable_affected": 4,
         "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 2,
-        "key_control_recall": 0.0
-      }
-    ]
-  },
-  {
-    "level": 60,
-    "mode": "correlated",
-    "split": "test",
-    "cases": 18,
-    "affected_pairs": 390,
-    "key_control_pairs": 150,
-    "reachable_affected_pairs": 0,
-    "reachable_key_control_pairs": 0,
-    "affected_recall": 0.0,
-    "key_control_recall": 0.0,
-    "reviewer_workload": 0,
-    "unreachable_key_control_pairs": 150,
-    "case_results": [
-      {
-        "change_id": "CHG-051",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-027",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-003",
-        "affected_controls": 40,
-        "reachable_affected": 0,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-006",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-021",
-        "affected_controls": 40,
-        "reachable_affected": 0,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-054",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 5,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-024",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-030",
-        "affected_controls": 10,
-        "reachable_affected": 0,
-        "affected_key_controls": 0,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 1.0
-      },
-      {
-        "change_id": "CHG-042",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-012",
-        "affected_controls": 10,
-        "reachable_affected": 0,
-        "affected_key_controls": 0,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 1.0
-      },
-      {
-        "change_id": "CHG-048",
-        "affected_controls": 10,
-        "reachable_affected": 0,
-        "affected_key_controls": 0,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 1.0
-      },
-      {
-        "change_id": "CHG-045",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-036",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 5,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-033",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-009",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-018",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 5,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-039",
-        "affected_controls": 40,
-        "reachable_affected": 0,
-        "affected_key_controls": 15,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
-      },
-      {
-        "change_id": "CHG-015",
-        "affected_controls": 20,
-        "reachable_affected": 0,
-        "affected_key_controls": 10,
-        "reachable_key_controls": 0,
-        "recommended_controls": 0,
-        "key_control_recall": 0.0
+        "reachable_key_controls": 2,
+        "recommended_controls": 4,
+        "key_control_recall": 0.2
       }
     ]
   }

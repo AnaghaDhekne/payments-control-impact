@@ -17,8 +17,15 @@ def test_parser_rejects_unknown_control_ids():
     assert out[0]["actions"]==["REFRESH_EVIDENCE"]
 
 def test_hybrid_preserves_baseline_and_adds_recovery():
-    c=sample_case(); chosen=retrieve_control_documents(c,20)[0]["control_id"]
-    def fake_llm(_): return json.dumps({"recommendations":[{"control_id":chosen,"decision":"AFFECTED","actions":["REASSESS_DESIGN"],"confidence":.8,"reason":"narrative dependency"}]})
-    out=hybrid_rank_controls(c,fake_llm,20); baseline={x["control_id"] for x in out["baseline"]}
+    c = sample_case()
+    chosen = retrieve_control_documents(c, 20)[0]["control_id"]
+    def fake_llm(_):
+        return json.dumps({
+            "recommendations": [
+                {"control_id": chosen, "decision": "AFFECTED", "actions": ["REASSESS_DESIGN"], "confidence": .8, "reason": "narrative dependency"}
+            ]
+        })
+    out = hybrid_rank_controls(c, fake_llm, 20)
+    baseline = {x["control_id"] for x in out["baseline"]}
     assert baseline <= set(out["recommended_control_ids"])
     assert chosen in out["recommended_control_ids"]

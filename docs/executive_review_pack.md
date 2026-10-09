@@ -1,8 +1,8 @@
 # Change Impact Review Pack — Payments Control Impact
 
-Date: 2026-10-08
-Source: output/dev_30_correlated.json (36 development cases, 5 runs, 30% correlated degradation)
-Status: Development benchmark data — not production findings. Use for methodology evaluation only.
+Date: 2026-10-09  
+Source: 5-run stability test (36 development cases, 30% correlated degradation, top_k=30 field-aware)  
+Status: POC complete: 2 of 4 gates pass. Not recommended for AI pilot. See executive_summary_final.md.
 
 ## 1. Change Summary
 
@@ -43,17 +43,18 @@ confirmed misses — the controls may still be affected.
 
 ## 3. Additional Potential Impacts (LLM-Suggested)
 
-The hybrid approach sends the change ticket, baseline hits, and top-20
-candidate control documents to the LLM for narrative reasoning.
+The hybrid approach sends the change ticket, baseline hits, and top-30
+field-aware candidate control documents to the LLM for narrative reasoning.
 
 | Metric | Value (5-run average) |
 | --- | --- |
-| Final key hits (AFFECTED + UNCERTAIN) | 162 (58.8%) |
-| Recovered key misses | 111 (49.5% of 225) |
-| AFFECTED + UNCERTAIN workload | 531 controls |
-| UNCERTAIN queue | 242 controls |
-| False positives | 160 controls |
+| Final key hits (AFFECTED + UNCERTAIN) | ~182 (65.6%) |
+| Recovered key misses | ~131 (58.0% of 225) |
+| AFFECTED + UNCERTAIN workload | ~477 controls |
+| UNCERTAIN queue | 136 controls |
+| False positives | 144 controls |
 | Parse failures | 0 |
+| 5-run key-decision agreement | 84.0% |
 
 Output classification:
 - AFFECTED: LLM identified narrative evidence of impact. Included in
@@ -69,9 +70,10 @@ review before any compliance action is taken.
 
 | Gap Type | Count | Description |
 | --- | --- | --- |
-| Excluded key misses | 114 | Key controls never surfaced by baseline or LLM. 41% residual miss rate. |
-| False positives | 160 | Controls surfaced as AFFECTED/UNCERTAIN but not actually affected per ground truth. |
-| UNCERTAIN queue | 242 | Controls with ambiguous evidence requiring manual investigation. |
+| Excluded key misses | 94 | Key controls never surfaced by baseline or LLM. 34% residual miss rate. |
+| False positives | 144 | Controls surfaced as AFFECTED/UNCERTAIN but not actually affected per ground truth. |
+| UNCERTAIN queue | 136 | Controls with ambiguous evidence requiring manual investigation. |
+| 5-run disagreements | 173 | Key-control decisions that change across repeated runs at temperature 0. |
 | Graph degradation | 30% | Edges removed near changed entities. Missing lineage is the root cause of baseline misses. |
 
 Key distinction: A missing graph edge is NOT proof that a control is
@@ -100,9 +102,11 @@ Priority ordering for reviewers:
 
 Review burden:
 - Baseline only: 176 controls
-- Hybrid (AFFECTED + UNCERTAIN): 531 controls (3.0x baseline)
-- POC gate threshold: <= 220 controls (25% increase over 176)
-- Current workload is 2.4x over the gate threshold
+- Hybrid (AFFECTED + UNCERTAIN): ~477 controls (2.7x baseline)
+- POC gate threshold: 220 controls (25% increase over 176)
+- Current workload is 2.2x over the gate threshold
+- Lineage repair at 50%: 452 controls, 45.8% recovery, 2 false positives
+- Lineage repair at 70%: 640 controls, 67.6% recovery, 4 false positives
 
 ## 6. Decision Note
 
@@ -110,51 +114,46 @@ Review burden:
 
 | Gate | Threshold | Result | Status |
 | --- | --- | --- | --- |
-| Recovery | >= 50% | 49.5% | FAIL (borderline) |
-| Workload | <= 25% | 201.5% | FAIL (severe) |
-| Agreement | >= 95% | 85.9% | FAIL |
-| Parse failures | = 0 | 0 | PASS |
+| Recovery | >= 50% | 58.0% avg | **PASS** |
+| Workload | <= 25% | +170.9% avg | **FAIL** (structural mismatch) |
+| Agreement | >= 95% | 84.0% | **FAIL** (173 disagreements) |
+| Parse failures | = 0 | 0 | **PASS** |
 
-**Verdict: NOT ready for pilot under current design.**
+**Verdict: 2 of 4 gates pass. NOT ready for AI pilot under current design.**
+
+### Lineage Repair Comparison (Experiment F)
+
+At the same reviewer workload (452 controls), lineage repair at 50%
+recovers 45.8% of missed key controls with only 2 false positives
+(precision 99.6%). The AI recovers 58.0% but with 144 false positives
+(precision 72%).
+
+At 70% lineage repair, recovery exceeds AI (67.6% vs 58.0%) with 4 false
+positives (vs 144) and perfect determinism (vs 84% agreement).
+
+**Recommendation: invest in lineage repair as the primary strategy.**
+Use AI only for cases where lineage cannot be repaired (new entities,
+undocumented edges, narrative-only controls).
 
 ### What to Investigate
 
-1. Why are 114 key controls never surfaced? Candidate retrieval (Jaccard
-token overlap) is not finding them in the top-20. Field-aware retrieval
-(changed entity name matching) has been implemented but not yet evaluated.
+1. **Workload gate feasibility**: The 25% gate is arithmetically
+infeasible at this baseline sparsity. Stakeholders should consider
+alternative formulations (see findings_and_gate_review.md).
 
-2. Why are 160 false positives generated? The LLM may be over-classifying
-controls as AFFECTED when narrative evidence is weak. Evidence-grounded
-classification (requiring cited fragments) may reduce this.
+2. **Model non-determinism**: The LLM gives different answers on 16%
+of key-control decisions across runs, even at temperature 0.
 
-3. Why is agreement only 85.9%? The LLM gives different answers on 14% of
-key-control decisions across runs, even at temperature 0. Alternate models
-or 2-call intersection may improve stability.
-
-### What Metadata to Repair
-
-The root cause of baseline misses is degraded lineage. Repairing observable
-dependency edges near changed entities would directly improve baseline recall
-without adding LLM workload. The lineage repair comparator (Experiment F)
-will quantify whether fixing metadata is more effective than adding AI.
-
-### Does AI-Assisted Review Offer Net Value?
-
-At current configuration: **marginal, not sufficient.** The LLM recovers
-111 key controls but at the cost of 355 additional controls to review.
-The recovery rate (49.5%) is borderline. The workload (201.5%) is
-unsustainable. However, the review pack itself is useful regardless —
-it surfaces known impacts, potential impacts, and evidence gaps that a
-reviewer can act on even when the LLM performance gates fail.
+3. **Lineage repair priorities**: Which edges to repair first -
+concentrate on frequently changed entities and their incident
+relationships.
 
 ### Next Steps
 
-1. Evaluate field-aware retrieval (implemented, not yet tested)
-2. Run Experiment D: rank/cap LLM additions by confidence
-3. Run Experiment F: lineage repair comparator
-4. Run Experiment E: alternate models for stability
-5. Lock best development configuration
-6. Run held-out test split ONCE as confirmation
+1. Present findings to stakeholders for workload gate review
+2. If gate revised: run locked held-out test evaluation
+3. If gate not revised: report POC no-go and invest in lineage repair
+4. See executive_summary_final.md for the stakeholder summary
 
 ## Acceptance Criteria Check
 
@@ -173,5 +172,4 @@ reviewer can act on even when the LLM performance gates fail.
 - [Project Reference](project_reference.md) — plain-language summary of all components
 - [Result Summary & Actions](../output/result_summary_and_actions.txt) — full metrics report
 
-Source: development benchmark data from output/dev_30_correlated.json, 2026-10-08.
-This is synthetic benchmark data, not production findings.
+Source: 5-run stability test, 2026-10-09. Synthetic benchmark data.

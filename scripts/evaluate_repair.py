@@ -13,14 +13,23 @@ from scripts.evaluate_baseline import _truth_by_change
 from scripts.generate_benchmark import build_graph, build_changes
 from scripts.generate_observable import build_condition, stable_seed
 
-def evaluate_repair(level=30, mode="correlated", split="development", repair_fractions=(0.0, 0.1, 0.2, 0.3, 0.5, 1.0)):
+def evaluate_repair(level=30, mode="correlated", split="development", repair_fractions=(0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0)):
     graph=build_graph(); changes=build_changes(); truth=_truth_by_change(graph,changes)
     obs=build_condition(graph,changes,level,mode)
     selected=[c for c in obs["cases"] if c["split"]==split]
     all_edges={e["id"]:e for e in graph["edges"] if e.get("metadata_exposable",True)}
+    # Compute degraded baseline (0% repair) for recovery calculation
+    base_key_hits_0=0; base_work_0=0; base_total_key=0
+    for case in selected:
+        baseline=rank_controls(case)
+        base={x["control_id"] for x in baseline}
+        labels=truth[case["change_id"]]
+        key={cid for cid,x in labels.items() if x.affected and x.criticality=="KEY"}
+        base_key_hits_0+=len(key&base); base_work_0+=len(base); base_total_key+=len(key)
+    base_misses_0=base_total_key-base_key_hits_0
     results=[]
     for frac in repair_fractions:
-        total_key=base_key=base_work=0
+        total_key=found_key=base_work=total_aff=found_aff=false_pos=0
         for case in selected:
             repaired_edges=[e.copy() for e in case["visible_metadata"]["edges"]]
             if frac>0:
@@ -37,17 +46,32 @@ def evaluate_repair(level=30, mode="correlated", split="development", repair_fra
             base={x["control_id"] for x in baseline}
             labels=truth[case["change_id"]]
             key={cid for cid,x in labels.items() if x.affected and x.criticality=="KEY"}
-            total_key+=len(key); base_key+=len(key&base); base_work+=len(base)
-        misses=total_key-base_key
+            aff={cid for cid,x in labels.items() if x.affected}
+            total_key+=len(key); found_key+=len(key&base); base_work+=len(base)
+            total_aff+=len(aff); found_aff+=len(aff&base); false_pos+=len(base-aff)
+        misses=total_key-found_key
+        recovery=0 if not base_misses_0 else (found_key-base_key_hits_0)/base_misses_0
+        workload_inc=0 if not base_work_0 else (base_work-base_work_0)/base_work_0
+        precision=1.0 if not base_work else found_aff/base_work
         results.append({
             "repair_fraction":frac,
             "key_control_pairs":total_key,
-            "baseline_key_hits":base_key,
+            "baseline_key_hits":found_key,
             "baseline_key_misses":misses,
-            "baseline_key_recall":1 if not total_key else base_key/total_key,
+            "baseline_key_recall":1 if not total_key else found_key/total_key,
+            "key_miss_recovery_rate":recovery,
             "baseline_workload":base_work,
+            "workload_increase_rate":workload_inc,
+            "affected_pairs":total_aff,
+            "affected_found":found_aff,
+            "false_positives":false_pos,
+            "precision":precision,
         })
-    return {"level":level,"mode":mode,"split":split,"cases":len(selected),"repair_results":results}
+    return {"level":level,"mode":mode,"split":split,"cases":len(selected),
+            "degraded_baseline_key_hits":base_key_hits_0,
+            "degraded_baseline_misses":base_misses_0,
+            "degraded_baseline_workload":base_work_0,
+            "repair_results":results}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()

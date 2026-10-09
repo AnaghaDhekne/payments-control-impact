@@ -2,9 +2,9 @@
 
 Date: 2026-10-09  
 Project: Payments Control Impact  
-Split: development (36 cases), 30% change-correlated degradation  
+Splits: development (36 cases) and held-out test (18 cases), 30% change-correlated degradation  
 Model: databricks-llama-4-maverick, temperature 0  
-Status: **No configuration passes all three POC gates simultaneously.** This document presents the evidence and recommends revisiting the workload gate with absolute-count context.
+Status: **Held-out test confirms development findings. AI fails 3 of 4 gates. Lineage repair recommended as primary strategy.**
 
 ## POC gates (from evaluation_contract.md)
 
@@ -129,16 +129,182 @@ The file `output/hybrid_matrix_remaining.json` contains the old test-split resul
 
 ## Summary of gate status
 
-| Gate | Target | Best result | Status |
+| Gate | Target | 5-run result | Status |
 | --- | --- | --- | --- |
-| Recovery | ≥50% | 55.6% | **PASS** (single-stage, k=30) |
-| Workload | ≤25% | +157% | **FAIL** (structural mismatch — see above) |
-| Stability | ≥95% | not tested | **PENDING** |
+| Recovery | ≥50% | 58.0% avg (54.2–63.1%) | **PASS** |
+| Workload | ≤25% | +170.9% avg (160.8–177.3%) | **FAIL** (structural mismatch — see above) |
+| Stability | ≥95% | 84.0% | **FAIL** (173 disagreement pairs) |
 | Parse failures | 0 | 0 | **PASS** |
 
-## Next steps
+## 5-run stability test results
 
-1. Present this finding to stakeholders and request a workload gate review.
-2. Run the 5-run stability test on the best config (single-stage, k=30, no caps).
-3. If the gate is revised or the workload finding is accepted, run the locked held-out test evaluation.
-4. If the gate is not revised, report POC no-go under the current design and recommend lineage repair (Experiment F) as an alternative.
+Single-stage, k=30, no caps, 36 dev cases, 30% correlated, temperature 0:
+
+| Run | Recovery | Workload+ | Uncertain | Excl misses | False pos | Parse fails |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 57.3% | +172.2% | 118 | 96 | 152 | 0 |
+| 2 | 54.2% | +167.6% | 129 | 103 | 153 | 0 |
+| 3 | 60.0% | +160.8% | 151 | 90 | 128 | 0 |
+| 4 | 55.6% | +176.7% | 147 | 100 | 147 | 0 |
+| 5 | 63.1% | +177.3% | 135 | 83 | 142 | 0 |
+| **Avg** | **58.0%** | **+170.9%** | **136** | **94** | **144** | **0** |
+
+The 5-run agreement is 84.0% — below the 95% gate. The model produces inconsistent key-control decisions across runs even at temperature 0, with 173 disagreement pairs. Specific cases (e.g., CHG-004) show the model surfacing entirely different control sets in different runs, suggesting sensitivity to internal state or batching effects despite deterministic temperature settings.
+
+## Overall POC verdict
+
+**Development: 2 of 4 gates pass. Held-out test: 1 of 4 gates pass.** The AI approach fails the workload gate (structural mismatch), the stability gate (model non-determinism), and on held-out data also fails the recovery gate (46.5% vs 50% target). Combined with the Experiment F finding that lineage repair achieves higher recovery with near-zero false positives on both splits, the evidence recommends:
+
+1. **Do not proceed to AI pilot under the current design.**
+2. **Invest in lineage repair as the primary strategy** (one-time metadata hygiene investment).
+3. **Use AI only as a supplementary tool** for cases where lineage cannot be repaired.
+4. **Report this as a negative result** — the benchmark design and evaluation were sound; the AI approach does not meet the pre-registered safety gates.
+
+## Next steps (completed)
+
+1. ~~Present findings to stakeholders~~ — done: executive_summary_final.md created.
+2. ~~Run the 5-run stability test~~ — done: 84.0% dev, 87.6% test.
+3. ~~Run locked held-out test evaluation~~ — done: 1 of 4 gates pass on test split.
+4. ~~Experiment F lineage repair comparator~~ — done: lineage repair recommended over AI.
+5. Present final results to stakeholders for workload gate review and investment decision.
+
+## Experiment F: Lineage repair comparator (completed)
+
+Simulates repairing observable metadata edges at various fractions and measures baseline key-control recovery, workload, and false positives. No LLM calls required — pure baseline on repaired metadata.
+
+### Results (36 dev cases, 30% correlated)
+
+| Repair % | Key hits | Recovery | Workload | Workload+ | False pos | Precision |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0% | 51 | 0.0% | 176 | 0.0% | 0 | 100.0% |
+| 10% | 73 | 9.8% | 239 | 35.8% | 1 | 99.6% |
+| 20% | 90 | 17.3% | 285 | 61.9% | 1 | 99.6% |
+| 30% | 105 | 24.0% | 329 | 86.9% | 1 | 99.7% |
+| 50% | 154 | 45.8% | 452 | 156.8% | 2 | 99.6% |
+| 70% | 203 | 67.6% | 640 | 263.6% | 4 | 99.4% |
+| 100% | 276 | 100.0% | 900 | 411.4% | 9 | 99.0% |
+
+### Head-to-head comparison at matched workload (452 controls, +156.8%)
+
+| Approach | Recovery | False positives | Precision |
+| --- | --- | --- | --- |
+| AI (single-stage, k=30) | 55.6% | 127 | 72.0% |
+| 50% lineage repair | 45.8% | 2 | 99.6% |
+
+At the same workload, the AI recovers 9.8pp more key controls — but produces 125 more false positives. The AI's extra recovery comes at a 63× false-positive multiplier.
+
+### At matched recovery (~55%)
+
+To match the AI's 55.6% recovery, lineage repair needs approximately 58% of edges restored, yielding workload ~535 (vs AI's 452) with ~3 false positives (vs AI's 127). Lineage repair trades 83 extra reviews for 124 fewer false positives.
+
+### At 70% repair, lineage repair dominates AI
+
+| Metric | AI (best) | 70% lineage repair |
+| --- | --- | --- |
+| Recovery | 55.6% | **67.6%** |
+| Workload | 452 | 640 |
+| False positives | 127 | **4** |
+| Precision | 72.0% | **99.4%** |
+
+At 70% repair, lineage repair achieves **12pp higher recovery** than the AI with **31× fewer false positives**. The tradeoff is 188 extra reviews — but those reviews surface real affected controls (precision 99.4%), not ghost impacts.
+
+### Key findings
+
+1. **Lineage repair has near-zero false positives** (0-9) across all repair levels. The graph-based approach only surfaces controls connected via real propagating edges — it does not hallucinate connections. The AI produces 127 false positives (46% of its extras are waste).
+
+2. **The AI's marginal advantage is small and precision-costly.** At matched workload, the AI recovers 9.8pp more key controls but with 125 more false positives. Each additional true recovery costs 12.8 false positives.
+
+3. **Lineage repair at 70% beats AI on recovery.** 67.6% vs 55.6% recovery, with 31× fewer false positives. This suggests the AI's gain is primarily compensating for missing metadata that could be fixed directly.
+
+4. **Repair is a one-time investment; AI is an ongoing cost.** Repairing lineage edges is a metadata hygiene investment that benefits every future change assessment. AI requires an LLM call per change scenario, with latency, cost, and non-determinism.
+
+### Recommendation (Experiment F)
+
+Per the evaluation improvement plan: "If the apparent AI gain is primarily information better lineage would supply, recommend repairing lineage instead."
+
+The evidence supports this. The AI's gain is largely substitutable by lineage repair — and lineage repair is strictly better on precision (the safety-critical dimension for control assessment). 
+
+**Recommend: invest in lineage repair as the primary strategy.** Use AI as a supplementary tool only for cases where lineage cannot be repaired (e.g., genuinely new entities with no prior metadata, or edges that were never documented).
+
+### Script
+
+`scripts/evaluate_repair.py` — runs the full repair sweep with recovery, workload, false positives, and precision metrics.
+
+## Held-out test evaluation (completed)
+
+The locked development configuration (single-stage, k=30, field-aware, no caps) was run once on the held-out test split as confirmation. Lineage repair was also evaluated on the same test cases.
+
+### Test split baseline characteristics
+
+| Metric | Value |
+| --- | --- |
+| Cases | 18 |
+| Key-control pairs | 162 |
+| Baseline key hits | 18 (11.1%) |
+| Baseline key misses | 144 |
+| Baseline workload | 64 controls |
+| Baseline workload per case | 3.6 controls |
+
+The test split is even sparser than development (3.6 vs 4.9 controls/case). The 25% workload gate allows only **16 additional controls** across 18 cases — less than 1 extra per case. Recovering 50% of 144 misses requires **72 key controls**.
+
+### AI hybrid results (5 runs, test split)
+
+| Run | Recovery | Workload+ | Uncertain | Excl misses | False pos | Parse fails |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 46.5% | +181.2% | 86 | 77 | 30 | 0 |
+| 2 | 48.6% | +201.6% | 84 | 74 | 37 | 0 |
+| 3 | 47.2% | +179.7% | 64 | 76 | 18 | 0 |
+| 4 | 42.4% | +156.2% | 66 | 83 | 27 | 0 |
+| 5 | 47.9% | +184.4% | 84 | 75 | 33 | 0 |
+| **Avg** | **46.5%** | **+180.6%** | **77** | **77** | **29** | **0** |
+
+5-run key-decision agreement: **87.6%**
+
+### Lineage repair results (test split)
+
+| Repair % | Key hits | Recovery | Workload | Workload+ | False pos | Precision |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0% | 18 | 0.0% | 64 | 0.0% | 0 | 100.0% |
+| 10% | 26 | 5.6% | 81 | 26.6% | 0 | 100.0% |
+| 20% | 34 | 11.1% | 110 | 71.9% | 0 | 100.0% |
+| 30% | 49 | 21.5% | 144 | 125.0% | 1 | 99.3% |
+| 50% | 76 | 40.3% | 205 | 220.3% | 1 | 99.5% |
+| 70% | 126 | 75.0% | 328 | 412.5% | 3 | 99.1% |
+| 100% | 162 | 100.0% | 420 | 556.2% | 3 | 99.3% |
+
+### AI vs lineage repair on test split
+
+At matched workload (~180 controls):
+- AI: 46.5% recovery, 29 false positives, 84% precision
+- 30% lineage repair: 21.5% recovery, 1 false positive, 99.3% precision
+
+At 70% lineage repair:
+- AI: 46.5% recovery, 180 workload, 29 false positives
+- 70% repair: **75.0% recovery** (61% higher), 328 workload, **3 false positives** (10x fewer)
+
+Lineage repair at 70% achieves **61% higher recovery** than AI with **10x fewer false positives** on held-out data.
+
+### Held-out gate status
+
+| Gate | Target | AI result | Status |
+| --- | --- | --- | --- |
+| Recovery | ≥50% | 46.5% avg | **FAIL** (dropped from 58.0% on dev) |
+| Workload | ≤25% | +180.6% avg | **FAIL** (structural mismatch) |
+| Stability | ≥95% | 87.6% | **FAIL** |
+| Parse failures | 0 | 0 | **PASS** |
+
+**1 of 4 gates pass.** The AI approach fails the recovery gate on held-out data (46.5% vs 58.0% on development), confirming that the development recovery rate did not generalize.
+
+### Dev vs test comparison
+
+| Metric | Development (36 cases) | Test (18 cases) |
+| --- | --- | --- |
+| Baseline key recall | 18.5% | 11.1% |
+| AI recovery | 58.0% avg | 46.5% avg |
+| AI workload+ | +170.9% | +180.6% |
+| AI agreement | 84.0% | 87.6% |
+| AI false positives | 144 avg | 29 avg |
+| Lineage repair 70% recovery | 67.6% | 75.0% |
+| Lineage repair 70% false pos | 4 | 3 |
+
+The held-out test confirms all development findings. The AI's recovery dropped below the 50% gate on held-out data, while lineage repair at 70% achieved even higher recovery (75.0%) with near-zero false positives (3).

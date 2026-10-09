@@ -77,138 +77,80 @@ Comparison of old vs corrected metrics at 30% correlated:
   UNAFFECTED bug   Present (inflated)     Fixed (excluded)
 
 
-SECTION 3: DETAILED METRICS BY CONDITION
+SECTION 3: NOTE ON OLD MATRIX RESULTS (SUPERSEDED)
 ================================================================================
 
---- Condition: 0% / random ---
-  Baseline key hits:  68 / 68 (100.0%)
-  Hybrid key hits:    68 / 68 (100.0%)
-  Key miss recovery:  0.0% (nothing to recover - baseline perfect)
-  Affected recall:    100.0%
-  Workload:           baseline=68, hybrid=68, increase=0.0%
-  Agreement:          1.000
-  Parse failures:     0
-  Interpretation:     When metadata is perfect, the LLM adds nothing.
-                      The baseline already finds all key controls.
+The detailed per-condition metrics from the previous report (6 conditions,
+5 test cases, 3 runs, with the UNAFFECTED bug) are superseded.
+Those results used incorrect criteria (40% recovery, <100% workload,
+100% agreement) and are not comparable to the corrected development
+results in Section 1.
 
---- Condition: 0% / correlated ---
-  Same as 0% / random. At zero degradation, mode does not matter.
+The old data is preserved in output/hybrid_matrix.json and
+output/hybrid_matrix_remaining.json for audit purposes but should
+not be cited for decision-making.
 
---- Condition: 30% / random ---
-  Baseline key hits:  24 / 68 (35.3%)
-  Hybrid key hits:    43 / 68 (63.2%)
-  Key miss recovery:  43.2% (19 of 44 missed key controls recovered)
-  Affected recall:    46.8% baseline -> 63.2% hybrid
-  Workload:           baseline=24, hybrid=45, increase=90.4%
-  Agreement:          1.000 (perfectly deterministic)
-  Parse failures:     0
-  Interpretation:     THE SWEET SPOT. Moderate uniform metadata loss.
-                      LLM recovers 43% of missed key controls.
-                      Workload increase 90% - within 100% threshold.
-                      ALL GO/NO-GO CRITERIA PASS.
-
---- Condition: 30% / correlated ---
-  Baseline key hits:  7 / 68 (10.3%)
-  Hybrid key hits:    46 / 68 (71.6%) (runs: 46, 49, 51)
-  Key miss recovery:  68.3% (runs: 63.9%, 68.9%, 72.1%)
-  Affected recall:    47.5% baseline -> 49.2% hybrid
-  Workload:           baseline=15, hybrid=76-86, increase=442.2%
-  Agreement:          0.947 (not perfectly deterministic)
-  Parse failures:     0
-  Interpretation:     Correlated degradation concentrates edge removal near
-                      the changed node, devastating baseline recall (10%).
-                      LLM recovers 68% of misses - its best at 30%.
-                      But recommends 5x more controls (442% workload).
-                      Agreement drops to 94.7%.
-                      FAILS on workload and agreement.
-
---- Condition: 60% / random ---
-  Baseline key hits:  8 / 68 (11.8%)
-  Hybrid key hits:    31 / 68 (44.6%) (runs: 31, 31, 29)
-  Key miss recovery:  37.2% (runs: 38.3%, 38.3%, 35.0%)
-  Affected recall:    ~33% hybrid
-  Workload:           baseline=20, hybrid=44-64, increase=166.7%
-  Agreement:          0.973
-  Parse failures:     0
-  Interpretation:     Severe uniform loss cripples baseline (12%).
-                      LLM recovers 37% - just below 40% threshold.
-                      At 60% random, control document text is also degraded
-                      (missing sentences, legacy aliases), giving the LLM
-                      weaker narrative evidence.
-                      FAILS on recovery, workload, and agreement.
-
---- Condition: 60% / correlated ---
-  Baseline key hits:  3 / 68 (4.4%)
-  Hybrid key hits:    55 / 68 (78.9%) (runs: 55, 55, 51)
-  Key miss recovery:  77.9% (runs: 80.0%, 80.0%, 73.8%)
-  Affected recall:    ~48% hybrid
-  Workload:           baseline=8, hybrid=81-90, increase=970.8%
-  Agreement:          0.947
-  Parse failures:     0
-  Interpretation:     Most extreme condition. Baseline catches only 4%.
-                      LLM recovers 78% of misses - highest absolute recovery.
-                      But recommends 10x more controls (971% workload).
-                      Unsustainable for human reviewers.
-                      FAILS on workload and agreement, but LLM value is very high.
+Only the corrected development results (Section 1) and the POC gate
+assessment (Section 2) are current. The full 6-condition test matrix
+will be re-run after development experiments B-F are complete.
 
 
-SECTION 4: KEY FINDINGS
+SECTION 4: CORRECTED KEY FINDINGS (36-CASE, 5-RUN DEVELOPMENT)
 ================================================================================
 
-1. LLM RECOVERY VALUE INCREASES WITH DEGRADATION SEVERITY
-   The worse the baseline performs, the more the LLM recovers:
-   - 30% random:     recovers 43% of misses (19 controls)
-   - 30% correlated: recovers 68% of misses (39 controls)
-   - 60% random:     recovers 37% of misses (23 controls)
-   - 60% correlated: recovers 78% of misses (52 controls)
-   The LLM is most valuable when metadata is worst.
+1. RECOVERY IS BORDERLINE — 49.5% (gate: 50%)
+   The hybrid recovers 111 of 225 missed key controls on average.
+   Runs 3-4 individually pass (50.2%); runs 1, 2, 5 fail (48.9-49.3%).
+   This is not robust — the system is right at the threshold.
 
-2. WORKLOAD INFLATION IS THE BIGGEST BLOCKER
-   The hybrid recommends far too many controls beyond the baseline.
-   At 60% correlated, it recommends 10x more.
-   Root cause: hybrid_rank_controls() merges ALL LLM recommendations
-   regardless of confidence level or decision type. Even UNCERTAIN
-   recommendations with low confidence are added.
+2. WORKLOAD IS THE PRIMARY BLOCKER — 201.5% (gate: 25%)
+   The hybrid surfaces 531 controls for review vs 176 baseline.
+   The UNCERTAIN queue alone (242 controls) exceeds the entire
+   baseline workload. The 25% gate allows only ~44 extra controls;
+   the system surfaces 355 extra. This is 8x over the threshold.
 
-3. RUN-TO-RUN AGREEMENT IS NOT PERFECT UNDER CORRELATED DEGRADATION
-   At 0% and 30% random: agreement = 1.0 (perfect).
-   Under correlated degradation: agreement drops to 94.7%.
-   Approximately 3-4 key-control decisions out of 68 vary across runs.
+3. 114 KEY CONTROLS NEVER SURFACED AT ALL
+   114 key-control pairs across 36 cases are never surfaced by
+   either baseline or LLM. This is a 41% residual miss rate.
+   Candidate retrieval (Jaccard token overlap) is not finding
+   these controls in the top-20 candidates.
+
+4. 160 FALSE POSITIVES PER RUN
+   ~160 controls are surfaced as AFFECTED or UNCERTAIN but are
+   not actually affected per ground truth. This contributes
+   significantly to workload inflation.
+
+5. RUN-TO-RUN AGREEMENT: 85.9% (gate: 95%)
+   14% of key-control decisions vary across 5 runs.
+   The LLM is not sufficiently deterministic at temperature 0.
    Concern for audit/compliance where reproducibility is required.
 
-4. ZERO PARSE FAILURES ACROSS ALL 90 LLM CALLS
-   The structured JSON response contract held perfectly.
-   Prompt design (explicit JSON instructions, allowed values,
-   fenced-code handling) is robust.
+6. ZERO PARSE FAILURES ACROSS 180 LLM CALLS
+   The structured JSON response contract held perfectly across
+   all 36 cases x 5 runs. Prompt design is robust.
 
-5. CORRELATED DEGRADATION IS HARDER THAN RANDOM
-   At every level, correlated degradation produces worse baseline recall
-   than random (damage concentrates near the changed node).
-   However, the LLM recovers MORE under correlated degradation because
-   narrative documents remain available even when graph edges are lost.
-
-6. THE SWEET SPOT IS 30% RANDOM DEGRADATION
-   The only degraded condition where all 4 go/no-go criteria pass.
-   Represents moderate, uniform metadata loss - the most common
-   real-world data quality scenario.
+7. THE UNAFFECTED BUG FIX CHANGED EVERYTHING
+   Previous report (with bug): 68.3% recovery, 442% workload.
+   Corrected (bug fixed): 49.5% recovery, 201.5% workload.
+   The bug was inflating both metrics by including UNAFFECTED
+   controls in recommendations. All previous claims are superseded.
 
 
-SECTION 5: REQUIRED ACTIONS TO IMPROVE RESULTS
+SECTION 5: DEVELOPMENT EXPERIMENTS (NEXT STEPS)
 ================================================================================
 
-PRIORITY 1: FILTER LLM ADDITIONS BY CONFIDENCE AND DECISION (HIGH IMPACT)
+EXPERIMENT D: RANK AND CAP LLM ADDITIONS (HIGHEST PRIORITY)
 --------------------------------------------------------------------------------
-Problem:  Workload inflation (442% to 971% at correlated/high degradation)
-Root cause: scripts/hybrid.py, hybrid_rank_controls(), lines 98-100:
-          ALL LLM recommendations are merged regardless of confidence
-          or decision.
-Action:  Add filtering so only AFFECTED controls with confidence >= 0.8
-          are added to the recommended set. Exclude UNCERTAIN and
-          UNAFFECTED. Optionally cap LLM-only additions to top 10 by
-          confidence.
-Expected: Workload increase drops from 442-971% to approximately 50-150%.
-          Would likely flip 30%/correlated from FAIL to PASS on workload.
-Code:    scripts/hybrid.py, hybrid_rank_controls() function
+Problem:  Workload is 201.5% (8x over the 25% gate). The LLM surfaces
+          531 controls when baseline surfaces 176.
+Status:   The UNAFFECTED bug is already fixed. But 201.5% still exceeds
+          the 25% gate by 8x.
+Action:   Rank LLM-only AFFECTED by confidence + evidence quality.
+          Keep UNCERTAIN in a separate counted queue. Test multiple
+          reviewer-budget operating points. Show a recall-workload frontier.
+          Do not cap solely to meet the target if key misses rise.
+Note:     A 25% increase over 176 baseline allows only ~44 extra controls.
+Ref:      docs/evaluation_improvement_plan.md, Experiment D
 
 PRIORITY 2: CAP LLM ADDITIONS TO TOP N BY CONFIDENCE (MEDIUM IMPACT)
 --------------------------------------------------------------------------------

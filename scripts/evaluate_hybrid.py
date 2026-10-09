@@ -6,7 +6,7 @@ from scripts.evaluate_baseline import _truth_by_change
 from scripts.generate_benchmark import build_graph, build_changes
 from scripts.generate_observable import build_condition
 
-def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=1, top_k=20, max_cases=None, progress=False):
+def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=1, top_k=20, max_cases=None, progress=False, min_confidence=0.0, cap=None, uncertain_cap=None):
     graph=build_graph(); changes=build_changes(); truth=_truth_by_change(graph,changes)
     obs=build_condition(graph,changes,level,mode)
     selected=[c for c in obs["cases"] if c["split"]==split]
@@ -20,7 +20,7 @@ def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=
         for idx,case in enumerate(selected,1):
             if progress:
                 print(f"[run {run+1}/{runs}] case {idx}/{len(selected)}: {case['change_id']}",flush=True)
-            out=hybrid_rank_controls(case,llm,top_k)
+            out=hybrid_rank_controls(case,llm,top_k,min_confidence=min_confidence,cap=cap,uncertain_cap=uncertain_cap)
             base={x["control_id"] for x in out["baseline"]}
             recommended=set(out["recommended_control_ids"])
             uncertain=set(out.get("uncertain_control_ids",[]))
@@ -57,6 +57,7 @@ def evaluate_hybrid(llm, level=30, mode="correlated", split="development", runs=
                 pairs.append(1.0 if all(v==vals[0] for v in vals) else 0.0)
         agreement=sum(pairs)/len(pairs) if pairs else 1.0
     return {"level":level,"mode":mode,"split":split,"cases":len(selected),"runs":runs,"top_k":top_k,
+            "min_confidence":min_confidence,"cap":cap,"uncertain_cap":uncertain_cap,
             "key_prediction_exact_agreement":agreement,"repeated_run_agreement":agreement,"runs_detail":run_results}
 
 if __name__=="__main__":
@@ -67,7 +68,10 @@ if __name__=="__main__":
     p.add_argument("--level",type=int,choices=[0,30,60],default=30)
     p.add_argument("--mode",choices=["random","correlated"],default="correlated")
     p.add_argument("--max-cases",type=int)
+    p.add_argument("--min-confidence",type=float,default=0.0)
+    p.add_argument("--cap",type=int,default=None)
+    p.add_argument("--uncertain-cap",type=int,default=None)
     a=p.parse_args()
     from scripts.databricks_llm import DatabricksChatLLM
-    result=evaluate_hybrid(DatabricksChatLLM(a.model),level=a.level,mode=a.mode,split=a.split,runs=a.runs,top_k=a.top_k,max_cases=a.max_cases,progress=True)
+    result=evaluate_hybrid(DatabricksChatLLM(a.model),level=a.level,mode=a.mode,split=a.split,runs=a.runs,top_k=a.top_k,max_cases=a.max_cases,progress=True,min_confidence=a.min_confidence,cap=a.cap,uncertain_cap=a.uncertain_cap)
     print(json.dumps(result,indent=2))

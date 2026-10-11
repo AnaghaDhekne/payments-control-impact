@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Change Impact Review Pack — Payments Control Impact
 
 Date: 2026-10-09  
@@ -170,6 +172,6 @@ relationships.
 - [Industry Comparison](industry_comparison.md) — vendor-by-vendor comparison with citations
 - [Novelty Pitch](novelty_pitch.md) — one-page stakeholder pitch
 - [Project Reference](project_reference.md) — plain-language summary of all components
-- [Result Summary & Actions](../output/result_summary_and_actions.txt) — full metrics report
+- [Result Summary & Actions](../../output/archive/result_summary_and_actions.txt) — full metrics report
 
 Source: 5-run stability test, 2026-10-09. Synthetic benchmark data.

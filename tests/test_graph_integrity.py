@@ -1,5 +1,6 @@
 from scripts.validate_graph import validate
 
+
 def test_hidden_graph_is_structurally_valid():
     result = validate()
     assert result["valid"], result["errors"]

@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Industry Comparison — Existing Systems for Control Impact Analysis
 
 Date: 2026-10-08

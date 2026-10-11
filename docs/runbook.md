@@ -1,32 +1,65 @@
-# Reproducible POC runbook
+# Runbook
 
-## What GitHub can validate without Databricks
-The GitHub Actions **POC checks** workflow runs unit tests and the deterministic rules baseline on Python 3.12. It uploads the baseline result as a workflow artifact. No Databricks account, model serving endpoint, token, or secret is required. This is not a hybrid LLM evaluation.
+Run from the repository root with Python 3.12. Tests, benchmark generation, rules, and the offline demo do not require Databricks.
 
-## Running locally
+## Offline checks and demo
+
 ```bash
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
-python -m scripts.evaluate_baseline > baseline_results.json
+python -m scripts.validate_graph
+python -m scripts.run_dependency_review demo --output output/dependency_review_demo.json
+python -m scripts.evaluate_baseline > output/baseline_results.json
 ```
 
-## Databricks hybrid evaluation (when access is available)
-Install `databricks-sdk` and `openai` in the Databricks environment, and use an authenticated workspace with the `databricks-llama-4-maverick` serving endpoint.
+The demo contains a hand-authored proposal and simulated approval. It is not a model evaluation.
 
-Iterate only on development:
+## Export a development case
+
 ```bash
-python -u -m scripts.evaluate_hybrid --split development --level 30 --mode correlated --runs 1 --top-k 20 > hybrid_development.json 2>&1
+python -m scripts.export_case --change-id CHG-001 --output output/runs/development/case.json
 ```
 
-Once prompt, retrieval and parsing are locked, run held-out test explicitly:
+This command removes the damage manifest. Do not include hidden labels in model inputs.
+
+## Generate and review proposals
+
+Install requirements-llm.txt and configure Databricks SDK authentication in your environment. The default endpoint is databricks-llama-4-maverick; confirm availability in your workspace. No credentials belong in this repository.
+
 ```bash
-python -u -m scripts.evaluate_hybrid --split test --level 30 --mode correlated --runs 5 --top-k 20 > hybrid_test.json 2>&1
+python -m pip install -r requirements-llm.txt
+python -m scripts.run_dependency_review propose --case output/runs/development/case.json --output output/runs/development/proposals.json
 ```
 
-The five-run stability metric is meaningful only with `--runs 5`. Never report a single-run placeholder as demonstrated stability. Inspect `parse_failure_count` in every run; a nonzero count invalidates an unqualified performance claim.
+For a saved response add `--response response.json`. Inspect exact quotations and whether each claimed DIRECT dependency follows from them. Write reviews.json as a list:
 
-## Decision rule
-At 30% correlated degradation: key-control miss recovery >=50%, incremental reviewer workload <=25%, and exact key-control prediction agreement >=95% over five runs. If the LLM does not beat the deterministic baseline within these constraints, recommend improving metadata/lineage rather than deploying GenAI.
+```json
+[{"proposal_id": "copy-from-batch", "decision": "APPROVE", "reviewer": "your-name", "reviewed_at": "2026-10-11T23:00:00Z", "reason": "Explain why the documents establish this direct dependency"}]
+```
 
-## Limits
-All entities and payment cases are synthetic. The repository does not contain real bank records, and no client deployment or financial benefit is demonstrated. A shadow-mode client pilot is required before making commercial claims.
+Use REJECT or UNCERTAIN when appropriate. Pending proposals never alter the graph.
+
+```bash
+python -m scripts.run_dependency_review review --case output/runs/development/case.json --batch output/runs/development/proposals.json --reviews reviews.json --output output/runs/development/result.json
+```
+
+## Offline scoring
+
+Independent labels must contain affected_control_ids, key_control_ids, and correct_proposal_ids. Do not show labels to the model or impact reviewer.
+
+```bash
+python -m scripts.score_dependency_review --result output/runs/development/result.json --labels labels.json --output output/runs/development/metrics.json
+```
+
+See [Phase 2 evaluation](dependency_review_phase2.md) for reviewer effort, proposal precision, recovery, provisional targets, and fresh-test requirements.
+
+## Reproduce Phase 1
+
+```bash
+python -m scripts.generate_benchmark
+python -m scripts.generate_observable
+python -m scripts.evaluate_repair --split test
+python -m scripts.evaluate_hybrid --split development --level 30 --mode correlated --runs 5 --top-k 30
+```
+
+Hybrid console output includes progress lines before JSON. Preserve raw output and configuration. Five runs are required to measure repeated-run agreement; single-run agreement is a placeholder. Existing test scenarios are historical and must not be treated as fresh Phase 2 validation.

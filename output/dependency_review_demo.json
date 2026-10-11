@@ -1,0 +1,136 @@
+{
+  "status": "OFFLINE FIXTURE ONLY \u2014 no live LLM or real human review",
+  "case": {
+    "change_id": "DEMO-ADDRESS",
+    "change_ticket": {
+      "title": "Structured address validation update",
+      "text": "Update structured address validation rule.",
+      "changed_entity_ids": [
+        "R-ADDRESS"
+      ]
+    },
+    "visible_metadata": {
+      "nodes": [
+        {
+          "id": "R-ADDRESS",
+          "name": "Structured address validation rule",
+          "type": "RULE"
+        },
+        {
+          "id": "C-ADDRESS",
+          "name": "Address validation control",
+          "type": "CONTROL",
+          "criticality": "KEY"
+        }
+      ],
+      "edges": []
+    },
+    "control_documents": [
+      {
+        "control_id": "C-ADDRESS",
+        "title": "Address validation",
+        "text": "The address validation control depends directly on the structured address validation rule."
+      }
+    ]
+  },
+  "batch": {
+    "change_id": "DEMO-ADDRESS",
+    "case_digest": "07e041bc30877f0c95d7db755b9a90c7bf8e704bb7d643bb0af2e8654194e289",
+    "proposals": [
+      {
+        "source": "R-ADDRESS",
+        "target": "C-ADDRESS",
+        "relationship": "DEPENDS_ON",
+        "ticket_quote": "Update structured address validation rule.",
+        "control_quote": "The address validation control depends directly on the structured address validation rule.",
+        "reason": "The control document states this direct dependency.",
+        "proposal_id": "f43041cce304f6f6cc7d",
+        "status": "PENDING"
+      }
+    ],
+    "validation_rejections": [],
+    "raw_response": "{\"proposals\": [{\"source\": \"R-ADDRESS\", \"target\": \"C-ADDRESS\", \"relationship\": \"DEPENDS_ON\", \"ticket_quote\": \"Update structured address validation rule.\", \"control_quote\": \"The address validation control depends directly on the structured address validation rule.\", \"reason\": \"The control document states this direct dependency.\"}]}",
+    "warning": "Quote validation checks provenance, not dependency correctness. Human review required."
+  },
+  "result": {
+    "change_id": "DEMO-ADDRESS",
+    "baseline": [],
+    "final": [
+      {
+        "control_id": "C-ADDRESS",
+        "distance": 1,
+        "path": [
+          "R-ADDRESS",
+          "C-ADDRESS"
+        ],
+        "criticality": "KEY"
+      }
+    ],
+    "review_audit": [
+      {
+        "source": "R-ADDRESS",
+        "target": "C-ADDRESS",
+        "relationship": "DEPENDS_ON",
+        "ticket_quote": "Update structured address validation rule.",
+        "control_quote": "The address validation control depends directly on the structured address validation rule.",
+        "reason": "Fixture document explicitly states direct dependency.",
+        "proposal_id": "f43041cce304f6f6cc7d",
+        "status": "PENDING",
+        "decision": "APPROVE",
+        "reviewer": "SIMULATED-DEMO-REVIEWER",
+        "reviewed_at": "2026-10-11T00:00:00Z"
+      }
+    ],
+    "proposals_reviewed": 1,
+    "pending_proposals": [],
+    "repaired_case": {
+      "change_id": "DEMO-ADDRESS",
+      "change_ticket": {
+        "title": "Structured address validation update",
+        "text": "Update structured address validation rule.",
+        "changed_entity_ids": [
+          "R-ADDRESS"
+        ]
+      },
+      "visible_metadata": {
+        "nodes": [
+          {
+            "id": "R-ADDRESS",
+            "name": "Structured address validation rule",
+            "type": "RULE"
+          },
+          {
+            "id": "C-ADDRESS",
+            "name": "Address validation control",
+            "type": "CONTROL",
+            "criticality": "KEY"
+          }
+        ],
+        "edges": [
+          {
+            "id": "APPROVED-f43041cce304f6f6cc7d",
+            "source": "R-ADDRESS",
+            "target": "C-ADDRESS",
+            "relationship": "DEPENDS_ON",
+            "direct": true,
+            "provenance": {
+              "change_id": "DEMO-ADDRESS",
+              "proposal_id": "f43041cce304f6f6cc7d",
+              "decision": "APPROVE",
+              "reviewer": "SIMULATED-DEMO-REVIEWER",
+              "reviewed_at": "2026-10-11T00:00:00Z",
+              "reason": "Fixture document explicitly states direct dependency."
+            }
+          }
+        ]
+      },
+      "control_documents": [
+        {
+          "control_id": "C-ADDRESS",
+          "title": "Address validation",
+          "text": "The address validation control depends directly on the structured address validation rule."
+        }
+      ]
+    }
+  }
+}

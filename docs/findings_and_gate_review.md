@@ -1,3 +1,5 @@
+> Phase 1 reported results. Final five-run raw artifacts are not present in this checkout; metrics require artifact reconciliation before external claims. Repair restores known synthetic edges and does not measure practical discoverability or effort.
+
 # Development findings and workload gate review
 
 Date: 2026-10-09  
@@ -119,13 +121,9 @@ At the best operating point (single-stage, k=30, no caps):
 
 3. **Accept the recovery gate and report workload honestly.** Proceed with the single-stage config (55.6% recovery), report the absolute workload (276 extras, 127 false positives, 149 true recoveries), and let stakeholders decide whether 7.7 extra reviews per change is acceptable for recovering 3.1 key controls per change.
 
-## Stability gate (not yet tested)
-
-The 5-run agreement gate (≥95%) has not been re-tested with the top_k=30 field-aware config. The old 5-run test on the dev split (top_k=20, pre-fix) showed 85.9% agreement. The old test split (this file, 5 cases, 3 runs, top_k=20) showed 94.7% agreement at 30% correlated. A proper 5-run test on the full 36-case dev split with top_k=30 is needed before the stability gate can be assessed.
-
 ## Note on old test split
 
-The file `output/hybrid_matrix_remaining.json` contains the old test-split results: 5 test cases, 3 runs, top_k=20, pre-field-aware, pre-UNAFFECTED-fix. These results are **superseded** and should not be used for gate decisions. The corrected evaluation uses 36 development cases with top_k=30 field-aware retrieval.
+The file `output/archive/hybrid_matrix_remaining.json` contains the old test-split results: 5 test cases, 3 runs, top_k=20, pre-field-aware, pre-UNAFFECTED-fix. These results are **superseded** and should not be used for gate decisions. The corrected evaluation uses 36 development cases with top_k=30 field-aware retrieval.
 
 ## Summary of gate status
 
@@ -160,13 +158,9 @@ The 5-run agreement is 84.0% — below the 95% gate. The model produces inconsis
 3. **Use AI only as a supplementary tool** for cases where lineage cannot be repaired.
 4. **Report this as a negative result** — the benchmark design and evaluation were sound; the AI approach does not meet the pre-registered safety gates.
 
-## Next steps (completed)
+## Follow-up
 
-1. ~~Present findings to stakeholders~~ — done: executive_summary_final.md created.
-2. ~~Run the 5-run stability test~~ — done: 84.0% dev, 87.6% test.
-3. ~~Run locked held-out test evaluation~~ — done: 1 of 4 gates pass on test split.
-4. ~~Experiment F lineage repair comparator~~ — done: lineage repair recommended over AI.
-5. Present final results to stakeholders for workload gate review and investment decision.
+Five-run and repair results are reported below. Stakeholder delivery has not been independently verified. Phase 2 is described in [dependency_review_phase2.md](dependency_review_phase2.md).
 
 ## Experiment F: Lineage repair comparator (completed)
 
@@ -232,7 +226,7 @@ The evidence supports this. The AI's gain is largely substitutable by lineage re
 
 ## Held-out test evaluation (completed)
 
-The locked development configuration (single-stage, k=30, field-aware, no caps) was run once on the held-out test split as confirmation. Lineage repair was also evaluated on the same test cases.
+The locked development configuration (single-stage, k=30, field-aware, no caps) was evaluated across five runs on the held-out test split. Lineage repair was also evaluated on the same test cases.
 
 ### Test split baseline characteristics
 

@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Evaluation improvement plan — development first
 
 Date: 2026-10-08  
@@ -12,7 +14,7 @@ Improve the existing graph + LLM approach toward the **pre-registered** gate at 
 
 ## What is actually observed
 
-Source: `output/result_summary_and_actions.txt`, generated 2026-10-07; model `databricks-llama-4-maverick`, temperature 0, `top_k=20`. The hybrid was evaluated on **five** test scenarios and **three** repeated runs, whereas the baseline JSON contains **18** test scenarios. Its 30%-correlated condition has **68 affected key-control pairs** across those five scenarios: baseline recall **10.3%**, hybrid recall **71.6%**, recovered misses **68.3%**, workload **+442.2%**, agreement **94.7%**, zero parsing failures. These are preliminary and **do not pass** the agreed workload gate; stability is not yet a valid five-run result. The existing report's alternate gates (40% recovery, <100% workload, 100% agreement) are **not** the approved criteria.
+Source: `output/archive/result_summary_and_actions.txt`, generated 2026-10-07; model `databricks-llama-4-maverick`, temperature 0, `top_k=20`. The hybrid was evaluated on **five** test scenarios and **three** repeated runs, whereas the baseline JSON contains **18** test scenarios. Its 30%-correlated condition has **68 affected key-control pairs** across those five scenarios: baseline recall **10.3%**, hybrid recall **71.6%**, recovered misses **68.3%**, workload **+442.2%**, agreement **94.7%**, zero parsing failures. These are preliminary and **do not pass** the agreed workload gate; stability is not yet a valid five-run result. The existing report's alternate gates (40% recovery, <100% workload, 100% agreement) are **not** the approved criteria.
 
 At 30% random degradation, the report shows 43.2% recovery and +90.4% workload; at 60% correlated, 77.9% recovery and +970.8% workload. The apparent recovery/workload tradeoff is the research question, not evidence of readiness.
 
@@ -22,7 +24,7 @@ At 30% random degradation, the report shows 43.2% recovery and +90.4% workload; 
 2. Keep separate output classes: `AFFECTED` (with action), `UNAFFECTED`, `UNCERTAIN`, and `POSSIBLE_CONTROL_GAP` (flag for human review; do not invent control IDs). Baseline IDs remain included. Affected and uncertain are **both** surfaced and count toward workload; possible gaps also need an explicitly accounted review queue.
 3. Add per-change, per-control audit rows: change_id, control_id, baseline_flag, retrieved_flag, raw_decision, confidence, action, final_class, surfaced_for_review, evidence/reason, ground_truth_key_affected (evaluation only), run_id, degradation mode/level, split, model identifier, prompt version.
 4. Recompute the metrics from those rows, not from a prose report. Measure false positives, uncertain rate, excluded key misses, and retrieval coverage. Validate that the ground truth never enters prompts or candidate retrieval.
-5. The summary's `output/baseline_results.json` is 18-case while hybrid files are five-case. Match **the exact same case IDs** before comparing baseline/hybrid recall or workload. At 0% degradation, recovery is **N/A**, not a pass due to a 0/0 placeholder.
+5. The summary's `output/archive/baseline_results.json` is 18-case while hybrid files are five-case. Match **the exact same case IDs** before comparing baseline/hybrid recall or workload. At 0% degradation, recovery is **N/A**, not a pass due to a 0/0 placeholder.
 
 ## Development experiments (one change at a time)
 

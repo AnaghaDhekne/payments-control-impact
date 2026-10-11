@@ -4,6 +4,7 @@ Measures candidate-set recall of truly affected key controls and false
 candidate count at top_k=20 and top_k=30 on the development split.
 Ground truth is loaded only here, never in hybrid.py.
 """
+
 from __future__ import annotations
 import json
 from scripts.hybrid import retrieve_control_documents, tokens
@@ -20,7 +21,13 @@ def retrieve_jaccard_only(case, top_k=20):
         dt = tokens(d["title"] + " " + d["text"])
         jaccard = len(q & dt) / (len(q | dt) or 1)
         rows.append({**d, "jaccard_score": jaccard})
-    rows.sort(key=lambda x: (-x["jaccard_score"], 0 if x.get("criticality") == "KEY" else 1, x["control_id"]))
+    rows.sort(
+        key=lambda x: (
+            -x["jaccard_score"],
+            0 if x.get("criticality") == "KEY" else 1,
+            x["control_id"],
+        )
+    )
     return rows[:top_k]
 
 
@@ -43,7 +50,9 @@ def evaluate_retrieval(retrieve_fn, case, truth, top_k):
         "key_recall": 1.0 if not key else len(key_in_candidates) / len(key),
         "affected_pairs": len(affected),
         "affected_in_candidates": len(affected_in_candidates),
-        "affected_recall": 1.0 if not affected else len(affected_in_candidates) / len(affected),
+        "affected_recall": (
+            1.0 if not affected else len(affected_in_candidates) / len(affected)
+        ),
         "false_candidates": len(false_candidates),
         "missed_key_ids": sorted(key - candidate_ids),
     }
@@ -91,7 +100,9 @@ def compare(level=30, mode="correlated", split="development"):
                 "key_candidate_recall": 1.0 if not total_key else key_found / total_key,
                 "total_affected_pairs": total_aff,
                 "affected_in_candidates": aff_found,
-                "affected_candidate_recall": 1.0 if not total_aff else aff_found / total_aff,
+                "affected_candidate_recall": (
+                    1.0 if not total_aff else aff_found / total_aff
+                ),
                 "total_false_candidates": total_false,
                 "avg_false_per_case": total_false / len(cases) if cases else 0,
                 "missed_key_ids": all_missed,
@@ -104,15 +115,21 @@ def compare(level=30, mode="correlated", split="development"):
 if __name__ == "__main__":
     r = compare()
     # Print summary table
-    print(f"{'Method':<20} {'k':>3} {'Key Pairs':>10} {'Key Found':>10} {'Key Recall':>10} {'Aff Recall':>10} {'False/Case':>10}")
+    print(
+        f"{'Method':<20} {'k':>3} {'Key Pairs':>10} {'Key Found':>10} {'Key Recall':>10} {'Aff Recall':>10} {'False/Case':>10}"
+    )
     print("-" * 80)
     for key, v in r.items():
-        print(f"{v['method']:<20} {v['top_k']:>3} {v['total_key_pairs']:>10} {v['key_in_candidates']:>10} "
-              f"{v['key_candidate_recall']:>10.1%} {v['affected_candidate_recall']:>10.1%} {v['avg_false_per_case']:>10.1f}")
+        print(
+            f"{v['method']:<20} {v['top_k']:>3} {v['total_key_pairs']:>10} {v['key_in_candidates']:>10} "
+            f"{v['key_candidate_recall']:>10.1%} {v['affected_candidate_recall']:>10.1%} {v['avg_false_per_case']:>10.1f}"
+        )
     print()
     # Show missed key IDs for each method
     for key, v in r.items():
         missed = v["missed_key_ids"]
-        print(f"{v['method']} k={v['top_k']}: missed {len(missed)} key controls: {missed}")
+        print(
+            f"{v['method']} k={v['top_k']}: missed {len(missed)} key controls: {missed}"
+        )
     print()
     print(json.dumps(r, indent=2))

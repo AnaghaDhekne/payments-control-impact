@@ -39,3 +39,9 @@ At 30% **change-correlated** degradation, proceed only if the hybrid:
 Ground truth is created before narratives: design hidden dependency graph → derive affected controls in code → assign actions using frozen rules → generate imperfect documents → create degraded views. The evaluated workflow never receives the complete hidden graph.
 
 Synthetic data can show the mechanism works under controlled conditions; it cannot establish client value. A successful POC justifies a shadow-mode pilot.
+
+## Current status and Phase 2
+
+The original configuration failed three held-out gates; see [final findings](docs/findings_and_gate_review.md). We are continuing with **evidence-backed dependency proposals, human approval, and deterministic impact reruns**. The new workflow and offline fixture are implemented; live model performance has not yet been evaluated. The fixture is not a successful AI benchmark.
+
+Start with the [Phase 2 workflow and evaluation guide](docs/dependency_review_phase2.md).

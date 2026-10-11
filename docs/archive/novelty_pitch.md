@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Novelty Pitch — Why This Project Matters
 
 Date: 2026-10-08

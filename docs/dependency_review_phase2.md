@@ -38,7 +38,7 @@ not AI accuracy or benchmark success.
 ## Live development run
 
 Export one development observable case into case.json, excluding the degradation
-manifest and any hidden labels. Install databricks-sdk and openai and authenticate
+manifest and any hidden labels. Install requirements-llm.txt and authenticate
 to the workspace as in docs/runbook.md. Then:
 
 ```bash

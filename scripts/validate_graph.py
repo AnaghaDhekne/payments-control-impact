@@ -3,6 +3,7 @@
 This validator checks graph mechanics only. It does not implement impact semantics;
 those are intentionally added separately after the graph is manually reviewed.
 """
+
 from __future__ import annotations
 import json
 from collections import Counter
@@ -11,8 +12,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GRAPH = ROOT / "data" / "ground_truth" / "payment_graph_v0_1.json"
 
-NODE_TYPES = {"PROCESS","SYSTEM","INTERFACE","DATA_ELEMENT","RULE","REPORT","EVIDENCE","CONTROL"}
-EDGE_TYPES = {"USES","PRODUCES","FEEDS","TRANSFORMS","VALIDATES","SCREENS","EVIDENCES","GOVERNED_BY","DEPENDS_ON","COMPENSATED_BY"}
+NODE_TYPES = {
+    "PROCESS",
+    "SYSTEM",
+    "INTERFACE",
+    "DATA_ELEMENT",
+    "RULE",
+    "REPORT",
+    "EVIDENCE",
+    "CONTROL",
+}
+EDGE_TYPES = {
+    "USES",
+    "PRODUCES",
+    "FEEDS",
+    "TRANSFORMS",
+    "VALIDATES",
+    "SCREENS",
+    "EVIDENCES",
+    "GOVERNED_BY",
+    "DEPENDS_ON",
+    "COMPENSATED_BY",
+}
+
 
 def validate(path: Path = GRAPH) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -22,10 +44,12 @@ def validate(path: Path = GRAPH) -> dict:
     edge_ids = [e["id"] for e in edges]
 
     errors = []
-    duplicate_nodes = [k for k,v in Counter(node_ids).items() if v > 1]
-    duplicate_edges = [k for k,v in Counter(edge_ids).items() if v > 1]
-    if duplicate_nodes: errors.append(f"duplicate node IDs: {duplicate_nodes}")
-    if duplicate_edges: errors.append(f"duplicate edge IDs: {duplicate_edges}")
+    duplicate_nodes = [k for k, v in Counter(node_ids).items() if v > 1]
+    duplicate_edges = [k for k, v in Counter(edge_ids).items() if v > 1]
+    if duplicate_nodes:
+        errors.append(f"duplicate node IDs: {duplicate_nodes}")
+    if duplicate_edges:
+        errors.append(f"duplicate edge IDs: {duplicate_edges}")
 
     known = set(node_ids)
     for n in nodes:
@@ -56,6 +80,7 @@ def validate(path: Path = GRAPH) -> dict:
         "node_types": dict(sorted(Counter(n["type"] for n in nodes).items())),
         "edge_types": dict(sorted(Counter(e["relationship"] for e in edges).items())),
     }
+
 
 if __name__ == "__main__":
     result = validate()

@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Stakeholder Brief — Payments Control Impact POC Results
 
 **Subject: POC complete — AI approach does not meet safety gates; lineage repair recommended**
@@ -42,7 +44,7 @@ Lineage repair achieves **61% higher recovery** with **10x fewer false positives
 | --- | --- | --- |
 | `docs/executive_summary_final.md` | Leadership | One-page summary with recommendation |
 | `docs/findings_and_gate_review.md` | Technical team | Full report: all experiments, gate analysis, held-out test |
-| `docs/executive_review_pack.md` | Reviewers | Change Impact Review Pack template |
+| `docs/archive/executive_review_pack.md` | Reviewers | Change Impact Review Pack template |
 | `docs/evaluation_contract.md` | Audit | Pre-registered thresholds and benchmark design |
 
 ## Key numbers

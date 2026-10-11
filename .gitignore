@@ -1,5 +1,12 @@
 __pycache__/
-.pytest_cache/
 *.py[cod]
+.pytest_cache/
 .venv/
 .env
+.env.*
+!.env.example
+data/observable/*.json
+output/runs/
+output/*.json
+!output/dependency_review_demo.json
+baseline_results.json

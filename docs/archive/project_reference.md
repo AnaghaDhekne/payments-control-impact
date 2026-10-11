@@ -1,3 +1,5 @@
+> Historical Phase 1 document. Assumptions and plans may be superseded. Start with [the current README](../../README.md).
+
 # Payments Control Impact — Complete Project Reference
 
 A one-stop guide for everyone — technical and non-technical readers alike.

@@ -1,3 +1,5 @@
+> Historical Phase 1 summary. See [current status](../README.md). Reported final metrics are not independently reconstructed from saved raw artifacts; simulated repair is an oracle comparator.
+
 # Executive Summary — Payments Control Impact POC
 
 Date: 2026-10-09  
@@ -91,9 +93,9 @@ In these cases, AI-assisted narrative reasoning can surface candidates that grap
 | Document | Contents |
 | --- | --- |
 | [findings_and_gate_review.md](findings_and_gate_review.md) | Full technical findings, all experiments, gate analysis |
-| [executive_delivery_focus.md](executive_delivery_focus.md) | Project positioning and implementation path |
+| [executive_delivery_focus.md](archive/executive_delivery_focus.md) | Project positioning and implementation path |
 | [evaluation_contract.md](evaluation_contract.md) | Pre-registered thresholds and benchmark design |
-| [evaluation_improvement_plan.md](evaluation_improvement_plan.md) | Experiment plan (A–F) |
-| [executive_review_pack.md](executive_review_pack.md) | Change Impact Review Pack template |
+| [evaluation_improvement_plan.md](archive/evaluation_improvement_plan.md) | Experiment plan (A–F) |
+| [executive_review_pack.md](archive/executive_review_pack.md) | Change Impact Review Pack template |
 
 All results are from a synthetic benchmark (development + held-out test split). This is not production data.

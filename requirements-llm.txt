@@ -1,0 +1,2 @@
+# Optional dependency for live Databricks WorkspaceClient calls.
+databricks-sdk>=0.30,<1

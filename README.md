@@ -1,47 +1,61 @@
 # Payments Control Impact
 
-Consulting-oriented POC for **control-impact assurance during outbound cross-border payments modernization**.
+An experimental workflow for identifying payment controls affected by changes when dependency metadata is incomplete. All scenarios and records are synthetic.
 
-## Business question
-When a payments system, rule, interface, report, or data flow changes, can a governed hybrid workflow identify affected key controls when dependency metadata is incomplete or stale—without unacceptable reviewer workload?
+## Current status
 
-The POC does not assume GenAI is the answer. It compares a deterministic metadata/graph baseline with a hybrid approach and pre-registers conditions under which the GenAI layer should be rejected.
+**Phase 2 is implemented; live development evaluation is next.** The LLM proposes missing direct dependencies with quoted evidence. A human reviews each proposal, approved links enter the graph, and rules rerun the impact list. The offline fixture demonstrates wiring, not AI accuracy.
 
-## Scope
-One fictional bank's outbound cross-border payment flow: initiation/validation, sanctions screening, fraud/limit checks, authorization, message transformation, dispatch, exceptions, reconciliation, reporting, and relevant technology controls.
+Phase 1 did not meet the original held-out gates. Its [reported findings](docs/findings_and_gate_review.md) remain available, but final five-run raw artifacts need reconciliation before external claims. Phase 2 has no performance success claim yet.
 
-Planned benchmark:
-- 80–150 controls and 50–60 change scenarios
-- held-out evaluation set
-- 0%, 30%, 60% metadata degradation
-- random and change-correlated degradation
-- narrative degradation in parallel with metadata
+## Quick start — Python 3.12
 
-## Outcomes
-Controls can receive multiple actions: `REASSESS_DESIGN`, `REFRESH_EVIDENCE`, `OUT_OF_CYCLE_TEST`. The workflow may also flag `CONTROL_GAP_REVIEW` or `UNCERTAIN`. Primary evaluation is affected vs. unaffected; action selection is secondary.
+Run from the repository root:
 
-## Comparison
-**Rules baseline:** explicit metadata/dependency traversal ranked by graph distance.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+python -m scripts.run_dependency_review demo --output output/dependency_review_demo.json
+```
 
-**Hybrid:** deterministic candidates + semantic retrieval over imperfect narratives + structured LLM control-level assessment.
+On Windows use `.venv/Scripts/Activate.ps1` in PowerShell. Open the demo JSON to compare the baseline, proposal evidence, simulated approval, and final impact path. No Databricks access is needed.
 
-At 0% degradation, recall parity is expected because the hybrid contains the deterministic step; the useful question is whether semantic expansion adds false positives/workload.
+## Reading order
 
-## Pre-registered decision criteria
-At 30% **change-correlated** degradation, proceed only if the hybrid:
-1. recovers at least 50% of key-control misses made by rules;
-2. uses no more than 25% additional reviewer workload versus rules at the same degradation level; and
-3. achieves at least 95% affected/unaffected agreement for key controls across five repeated runs.
+1. [Architecture](docs/architecture.md): components and data boundaries.
+2. [Runbook](docs/runbook.md): runnable commands and file formats.
+3. [Phase 2 evaluation](docs/dependency_review_phase2.md): assumptions and provisional gates.
+4. [Domain model](docs/domain_model.md) and [ground-truth rules](docs/ground_truth_rules.md).
+5. [Contributing](CONTRIBUTING.md): maintenance and validation.
 
-`reviewer_workload = recommended_controls + uncertain_controls`.
+## Repository map
 
-## Benchmark integrity
-Ground truth is created before narratives: design hidden dependency graph → derive affected controls in code → assign actions using frozen rules → generate imperfect documents → create degraded views. The evaluated workflow never receives the complete hidden graph.
+| Location | Purpose |
+| --- | --- |
+| scripts/dependency_proposals.py | Observable-only prompt, validation, approval, impact rerun |
+| scripts/run_dependency_review.py | Demo and file-based commands |
+| scripts/score_dependency_review.py | Offline scoring against independent labels |
+| scripts/baseline.py | Directed metadata traversal shared by both phases |
+| scripts/hybrid.py and evaluate_*.py | Phase 1 methods and comparisons |
+| scripts/generate_*.py | Reproducible synthetic benchmark generation |
+| scripts/ground_truth.py | Hidden answer-key engine; evaluation only |
+| data/ground_truth/ | Seed fixtures and frozen benchmark snapshots |
+| data/observable/ | Generated inputs, recreated locally |
+| tests/ | Graph, evaluation, parsing, and approval checks |
+| docs/archive/ and output/archive/ | Historical plans and evidence |
 
-Synthetic data can show the mechanism works under controlled conditions; it cannot establish client value. A successful POC justifies a shadow-mode pilot.
+## Benchmark and evidence
 
-## Current status and Phase 2
+The original benchmark contains 101 controls and 54 scenarios, with 0%, 30%, and 60% metadata degradation under random and change-correlated damage. Phase 2 requires fresh scenario families for final evaluation. Matching a quote verifies provenance, not dependency correctness. Every reviewed proposal counts as work.
 
-The original configuration failed three held-out gates; see [final findings](docs/findings_and_gate_review.md). We are continuing with **evidence-backed dependency proposals, human approval, and deterministic impact reruns**. The new workflow and offline fixture are implemented; live model performance has not yet been evaluated. The fixture is not a successful AI benchmark.
+Generated observable datasets are excluded from version control. Recreate them with:
 
-Start with the [Phase 2 workflow and evaluation guide](docs/dependency_review_phase2.md).
+```bash
+python -m scripts.generate_benchmark
+python -m scripts.generate_observable
+python -m scripts.evaluate_baseline > output/baseline_results.json
+```
+
+See the [output inventory](output/README.md) for artifact status. For live model calls install requirements-llm.txt and follow the runbook. Never commit credentials.

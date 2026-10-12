@@ -289,6 +289,83 @@ def rule_based_precision_filter(case, proposals):
     return approved, rejected
 
 
+def graph_impact_filter(case, edges, sorted_by_priority=None, key_only=False):
+    """Deterministic filter that keeps only edges that change the recommendation set.
+
+    For each edge (in priority order), adds it to the graph and checks whether
+    rank_controls produces a different result. If the edge does not change
+    which controls are recommended (because the target is already reachable
+    through other paths), the edge is redundant and removed.
+
+    When key_only=True, additionally requires that the edge makes at least one
+    KEY control newly recommended. This uses the visible 'criticality' field
+    on control documents (not hidden ground truth) to filter out edges that
+    only add non-KEY controls to the recommendation set.
+
+    This filter is ground-truth-free: it uses only the visible graph, the
+    baseline ranking, and the visible criticality field.
+
+    Args:
+        case: the observable case dict.
+        edges: iterable of (source, target, relationship) tuples.
+        sorted_by_priority: optional ordering; highest-priority edges first.
+        key_only: if True, only keep edges that add a KEY control.
+
+    Returns (kept_edges, removed_edges) as lists of tuples.
+    """
+    if sorted_by_priority is None:
+        sorted_by_priority = list(edges)
+
+    docs_by_id = {d["control_id"]: d for d in case.get("control_documents", [])}
+    repaired = deepcopy(case)
+    kept = []
+    removed = []
+
+    for edge in sorted_by_priority:
+        trial = deepcopy(repaired)
+        trial["visible_metadata"]["edges"].append({
+            "id": f"TRIAL-{edge[0]}-{edge[1]}",
+            "source": edge[0], "target": edge[1],
+            "relationship": edge[2], "direct": True,
+        })
+        prev_controls = {r["control_id"] for r in rank_controls(repaired)}
+        trial_controls = {r["control_id"] for r in rank_controls(trial)}
+        new_controls = trial_controls - prev_controls
+
+        if not new_controls:
+            # No change in recommendation set — redundant edge
+            removed.append(edge)
+            continue
+
+        if key_only:
+            # Only keep if newly-added controls include at least one KEY control
+            new_key = {
+                c for c in new_controls
+                if docs_by_id.get(c, {}).get("criticality") == "KEY"
+            }
+            if not new_key:
+                # Only adds non-KEY controls — not worth the false positive risk
+                removed.append(edge)
+                continue
+            # Also check: are there non-KEY controls added? If so, skip this edge
+            # to avoid introducing false positives along with true positives.
+            new_nonkey = new_controls - new_key
+            if new_nonkey:
+                # This edge adds non-KEY controls too — reject to keep precision high
+                removed.append(edge)
+                continue
+
+        # This edge adds meaningful new controls — keep it
+        repaired["visible_metadata"]["edges"].append({
+            "id": f"KEPT-{edge[0]}-{edge[1]}",
+            "source": edge[0], "target": edge[1],
+            "relationship": edge[2], "direct": True,
+        })
+        kept.append(edge)
+
+    return kept, removed
+
+
 def apply_reviews(case, batch, reviews):
     """Apply explicit decisions bound to this case and proposal version.
 

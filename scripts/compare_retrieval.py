@@ -58,6 +58,69 @@ def evaluate_retrieval(retrieve_fn, case, truth, top_k):
     }
 
 
+def retrieve_graph_aware(case, top_k=20):
+    """Graph-aware retrieval: lexical + graph-neighbor expansion.
+
+    Starts with field-aware lexical retrieval, then expands to include
+    controls within 2 hops of changed entities in the visible graph.
+    This catches controls connected structurally (e.g. C06 'Outbound
+    message transformation' for a 'Creditor country code' change) that
+    have zero lexical overlap with the ticket text.
+    """
+    # Step 1: lexical retrieval (field-aware)
+    lexical = retrieve_control_documents(case, top_k=top_k)
+    candidate_ids = {r["control_id"] for r in lexical}
+
+    # Step 2: graph-neighbor expansion (2-hop)
+    vnodes = {n["id"]: n for n in case.get("visible_metadata", {}).get("nodes", [])}
+    vis_edges = case.get("visible_metadata", {}).get("edges", [])
+    changed_ids = set(case["change_ticket"].get("changed_entity_ids", []))
+
+    # 1-hop neighbors
+    hop1 = set(changed_ids)
+    for e in vis_edges:
+        if e["source"] in changed_ids or e["target"] in changed_ids:
+            hop1.add(e["source"])
+            hop1.add(e["target"])
+
+    # 2-hop neighbors
+    hop2 = set(hop1)
+    for e in vis_edges:
+        if e["source"] in hop1 or e["target"] in hop1:
+            hop2.add(e["source"])
+            hop2.add(e["target"])
+
+    # Controls reachable within 2 hops that are NOT already in lexical results
+    graph_controls = {
+        nid for nid in hop2
+        if vnodes.get(nid, {}).get("type") == "CONTROL" and nid not in candidate_ids
+    }
+
+    # Add graph-neighbor controls with a small score boost
+    docs_by_id = {d["control_id"]: d for d in case["control_documents"]}
+    rows = list(lexical)
+    for cid in sorted(graph_controls):
+        if cid in docs_by_id:
+            d = docs_by_id[cid]
+            rows.append({
+                **d,
+                "retrieval_score": 0.0,  # graph neighbor, no lexical score
+                "jaccard_score": 0.0,
+                "name_overlap": 0.0,
+                "graph_neighbor": True,
+            })
+
+    # Sort: lexical results first (by retrieval_score), then graph neighbors (by criticality)
+    rows.sort(
+        key=lambda x: (
+            -x.get("retrieval_score", 0.0),
+            0 if x.get("criticality") == "KEY" else 1,
+            x["control_id"],
+        )
+    )
+    return rows[:top_k]
+
+
 def compare(level=30, mode="correlated", split="development"):
     """Run the full comparison and return aggregate results."""
     graph = build_graph()
@@ -69,8 +132,9 @@ def compare(level=30, mode="correlated", split="development"):
     methods = {
         "jaccard_only": retrieve_jaccard_only,
         "field_aware": retrieve_control_documents,
+        "graph_aware": retrieve_graph_aware,
     }
-    top_ks = [20, 30]
+    top_ks = [20, 30, 50]
     results = {}
 
     for method_name, fn in methods.items():

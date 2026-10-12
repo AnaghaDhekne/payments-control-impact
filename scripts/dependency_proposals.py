@@ -6,6 +6,7 @@ Runtime consumes observable data only, never hidden graphs or damage manifests.
 from copy import deepcopy
 import hashlib
 import json
+import re
 from scripts.baseline import PROPAGATING, rank_controls
 
 
@@ -116,9 +117,176 @@ def validate_proposals(case, raw):
     }
 
 
+def extract_json(raw):
+    """Extract JSON from a model response that may include prose or markdown."""
+    try:
+        json.loads(raw)
+        return raw
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', raw, re.DOTALL)
+    if match:
+        candidate = match.group(1).strip()
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass
+    start = raw.find('{')
+    end = raw.rfind('}')
+    if start != -1 and end > start:
+        candidate = raw[start : end + 1]
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass
+    return raw
+
+
 def propose(case, llm):
-    """Call the supplied model adapter and validate its raw JSON response."""
-    return validate_proposals(case, llm(build_prompt(case)))
+    """Call the supplied model adapter, extract JSON, and validate proposals."""
+    return validate_proposals(case, extract_json(llm(build_prompt(case))))
+
+
+def build_precision_review_prompt(case, proposals):
+    """Build a prompt for the LLM to semantically review each proposal.
+
+    The mechanical validation already checked entity IDs, quote provenance,
+    and relationship type. This pass asks whether the dependency is
+    *semantically correct*: does the ticket text actually support the claim
+    that the control depends on / is governed by / is evidenced by the entity?
+    """
+    ticket = case["change_ticket"]["title"] + "\n" + case["change_ticket"]["text"]
+    docs = {d["control_id"]: d for d in case["control_documents"]}
+    nodes = {n["id"]: n for n in case["visible_metadata"]["nodes"]}
+    vis_edges = case["visible_metadata"]["edges"]
+    edge_lines = "\n".join(
+        f"  {e['source']} -> {e['target']} ({e['relationship']})"
+        for e in vis_edges
+    )
+    prop_lines = []
+    for i, p in enumerate(proposals):
+        src_name = nodes.get(p["source"], {}).get("name", p["source"])
+        tgt_name = docs.get(p["target"], {}).get("title", p["target"])
+        prop_lines.append(
+            f"PROPOSAL {i}:\n"
+            f"  source: {p['source']} ({src_name})\n"
+            f"  target: {p['target']} ({tgt_name})\n"
+            f"  relationship: {p['relationship']}\n"
+            f"  ticket_quote: \"{p['ticket_quote']}\"\n"
+            f"  control_quote: \"{p['control_quote']}\"\n"
+            f"  reason: {p.get('reason', '')}\n"
+        )
+    return (
+        "You are a precision reviewer for dependency-edge proposals.\n"
+        "Each proposal claims a missing dependency edge between an entity and a control.\n"
+        "Your job is to APPROVE or REJECT each proposal based on whether the evidence\n"
+        "actually supports the claimed dependency relationship.\n\n"
+        "CHANGE TICKET:\n" + ticket + "\n\n"
+        "EXISTING GRAPH EDGES:\n" + edge_lines + "\n\n"
+        "PROPOSALS TO REVIEW:\n" + "\n".join(prop_lines) + "\n"
+"REVIEW CRITERIA (be LENIENT — only REJECT clearly wrong proposals):\n"
+        "1. REJECT only if the ticket_quote is clearly about a completely different\n"
+"   entity than the source.\n"
+        "2. REJECT only if the relationship type is clearly wrong (e.g. a report\n"
+"   proposed as DEPENDS_ON when reports evidence controls).\n"
+        "3. REJECT only if the dependency is clearly INDIRECT (requires 2+ hops).\n"
+        "4. Otherwise APPROVE. When in doubt, APPROVE.\n\n"
+        "Return JSON: {\"reviews\": [{\"index\": 0, \"decision\": \"APPROVE\" or \"REJECT\", "
+        "\"reason\": \"brief explanation\"}]}"
+    )
+
+
+def precision_review(case, proposals, llm):
+    """LLM-based semantic review of mechanically-validated proposals.
+
+    Returns (approved_proposals, rejected_proposals) where each rejected
+    proposal includes the LLM's reason.
+    """
+    if not proposals:
+        return [], []
+    raw = llm(build_precision_review_prompt(case, proposals))
+    extracted = extract_json(raw)
+    try:
+        obj = json.loads(extracted)
+        reviews = obj.get("reviews", []) if isinstance(obj, dict) else []
+    except (json.JSONDecodeError, TypeError):
+        reviews = []
+    approved, rejected = [], []
+    review_map = {r.get("index"): r for r in reviews if isinstance(r, dict)}
+    for i, p in enumerate(proposals):
+        r = review_map.get(i)
+        if r and r.get("decision") == "APPROVE":
+            approved.append(p)
+        else:
+            reason = r.get("reason", "no review or rejected") if r else "no review"
+            rejected.append({**p, "precision_rejection": reason})
+    return approved, rejected
+
+
+def rule_based_precision_filter(case, proposals):
+    """Deterministic precision filter that removes likely-incorrect proposals.
+
+    Targets three observed error patterns:
+    1. Wrong relationship type for entity type (e.g. REPORT as DEPENDS_ON).
+    2. Proposals to controls already reachable via a direct 1-hop edge from
+       the same source entity (redundant / indirect).
+    3. Proposals where the source entity type is incompatible with the
+       claimed relationship.
+
+    Returns (approved, rejected) lists.
+    """
+    nodes = {n["id"]: n for n in case["visible_metadata"]["nodes"]}
+    docs = {d["control_id"]: d for d in case["control_documents"]}
+    existing = case["visible_metadata"]["edges"]
+
+    # Build adjacency: for each source entity, which controls are already
+    # directly connected (1-hop) regardless of relationship type.
+    direct_targets = {}  # {entity_id: set of control_ids}
+    for e in existing:
+        direct_targets.setdefault(e["source"], set()).add(e["target"])
+
+    # Entity type -> compatible relationship types.
+    # REPORT and SYSTEM nodes evidence/validate controls, they don't have
+    # dependencies.  DATA_FIELD, RULE, INTERFACE, PROCESS nodes can depend
+    # on or be governed by controls.
+    TYPE_COMPAT = {
+        "REPORT": {"EVIDENCES", "VALIDATES"},
+        "SYSTEM": {"EVIDENCES", "VALIDATES", "GOVERNED_BY"},
+        "DATA_FIELD": PROPAGATING,
+        "RULE": PROPAGATING,
+        "INTERFACE": {"DEPENDS_ON", "GOVERNED_BY"},
+        "PROCESS": PROPAGATING,
+        "EXTERNAL": PROPAGATING,
+        "ORGANISATION": {"GOVERNED_BY"},
+    }
+
+    approved, rejected = [], []
+    for p in proposals:
+        src = p.get("source")
+        tgt = p.get("target")
+        rel = p.get("relationship", "")
+        src_node = nodes.get(src, {})
+        src_type = src_node.get("type", "")
+
+        reason = None
+
+        # Rule 1: entity type vs relationship compatibility
+        compat = TYPE_COMPAT.get(src_type)
+        if compat is not None and rel not in compat:
+            reason = f"{src_type} entity {src} incompatible with {rel}"
+
+        # Rule 2: control already directly connected from same source
+        elif tgt in direct_targets.get(src, set()):
+            reason = f"{src} already has a direct edge to {tgt}"
+
+        if reason:
+            rejected.append({**p, "precision_rejection": reason})
+        else:
+            approved.append(p)
+
+    return approved, rejected
 
 
 def apply_reviews(case, batch, reviews):

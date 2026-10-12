@@ -1,8 +1,10 @@
 # Phase 2: evidence-backed dependency proposals
 
-Status: implemented workflow and offline demonstration; live model performance
-and human review have NOT yet been evaluated. Original negative results remain
-valid for the original configuration. This phase has no success claim yet.
+Status: development evaluation completed 2026-10-11. Live model proposals run
+on all 36 dev cases with oracle-adjudicated reviews. System fails 3 of 4
+gates (recovery 3.6%, precision 21.3%, stability 20.6%). Human review and
+test-split evaluation remain pending. See docs/phase2_results.md for details.
+Original negative results remain valid. This phase has no success claim.
 
 ## Workflow
 
@@ -86,8 +88,32 @@ The simulated repair comparator restores known edges from the hidden graph.
 It estimates the benefit of correct repair, not discoverability or repair cost.
 Do not compare it to this workflow as though it were a deployed repair method.
 
-## Immediate next action
+## Development evaluation results (2026-10-11)
 
-Run one live development proposal, review it manually, and save the response,
-proposal batch, review decisions, and scored result. Then expand development
-evaluation. No live LLM access or actual human review was part of implementation.
+Model: databricks-llama-4-maverick, temperature=0, max_tokens=6000.
+36 development cases, 30% correlated degradation, oracle-adjudicated reviews.
+
+| Gate | Threshold | Result | Status |
+| --- | --- | --- | --- |
+| Key-miss recovery | >= 50% | 3.6% | FAIL |
+| Reviewed proposal precision | >= 80% | 21.3% | FAIL |
+| Zero incorrect approved edges | 0 | 0 | PASS |
+| Reviews per recovered key | <= 3 | 9.4 | FAIL |
+
+5-run proposal agreement: 20.6%. The model is highly non-deterministic even at
+temperature 0. Only 5 of 36 cases produced any correct proposals. Full results
+in docs/phase2_results.md.
+
+Key failure modes: prompt biases toward DEPENDS_ON (misses GOVERNED_BY and
+EVIDENCES edges), model abstains too aggressively (~2 proposals/case when
+~7 needed), low precision (21.3%), and high non-determinism (20.6% agreement).
+
+## Remaining steps
+
+1. Human review of proposals (without consulting hidden labels) to measure
+   real reviewer precision and compare against AI-assisted workflow.
+2. Test-split evaluation with frozen documents, labels, model, prompt, and
+   thresholds.
+3. Consider prompt improvements: remove DEPENDS_ON bias, target document
+   selection, and explicit guidance on all allowed relationship types.
+4. Compare against Phase 1 ranking approach as a baseline for the same cases.

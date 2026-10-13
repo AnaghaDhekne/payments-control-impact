@@ -59,8 +59,8 @@ Scope: Payments Control Impact, Phase 1 + Phase 2, synthetic benchmark. This is 
 **Done when:** immutable raw outputs, a reproducible scorer, and an unambiguous held-out gate table are committed or linked.
 
 ## 5. Validate practical safety and human workload
-- [ ] Have reviewers assess proposed edges using only visible evidence; capture APPROVE / REJECT / UNCERTAIN, rationale, time per review, and disagreements. Do not treat oracle decisions as real reviewer accuracy.
-- [ ] Sample excluded controls and rejected edges to measure silent misses; track especially high-criticality controls.
+- [x] Have reviewers assess proposed edges using only visible evidence; capture APPROVE / REJECT / UNCERTAIN, rationale, time per review, and disagreements. Do not treat oracle decisions as real reviewer accuracy.
+- [x] Sample excluded controls and rejected edges to measure silent misses; track especially high-criticality controls.
 - [ ] Test cases with stale narratives, legacy names, no lexical overlap, conflicting evidence, unsupported relationship types, new entities, and ambiguous controls.
 - [ ] Check approval audit trails, case-version integrity, replay behavior, rollback of mistaken edges, least privilege, and handling of sensitive data (synthetic-only in this repo).
 - [ ] Establish a pilot stop rule, escalation path for uncertain controls, and explicit human sign-off. Zero observed misses is not a production guarantee.

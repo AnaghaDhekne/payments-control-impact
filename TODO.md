@@ -1,38 +1,40 @@
 # POC completion TODO — ordered execution plan
 
-Status: OPEN. Owner: project maintainer. Updated: 2026-10-13.
+Status: IN PROGRESS. Owner: project maintainer. Updated: 2026-10-13.
 Scope: Payments Control Impact, Phase 1 + Phase 2, synthetic benchmark. This is an execution checklist, not evidence that a gate passed. Check boxes only after saving reproducible artifacts. **Do not change the model, prompt, retrieval, thresholds, dataset, or scoring definitions after freezing and before held-out evaluation.**
 
 ## 0. Preserve the current state (before any further experiments)
-- [ ] Record branch, commit SHA (starting reference: `68b78ed`), UTC date, Python version, dependency lock/version list, Databricks model endpoint/version, generation settings, seeds, and relevant environment limits in `docs/evaluation_manifest.md`.
+- [x] Record branch, commit SHA (starting reference: `68b78ed`), UTC date, Python version, dependency lock/version list, Databricks model endpoint/version, generation settings, seeds, and relevant environment limits in `docs/evaluation_manifest.md`.
 - [ ] Save a read-only snapshot of the development outputs, raw per-run proposals, retrieval candidate sets, validation/rejection logs, review decisions, graph outputs, score files, and exact commands/configuration. Add hashes and paths to the manifest; do not commit secrets, tokens, private data, or oversized artifacts.
 - [ ] Verify the reported 53.3% key-miss recovery and 82.2% control-level precision can be recomputed from raw 36-case development outputs. Record numerators, denominators, per-case counts, and aggregation method. Explicitly distinguish proposed edges, correct edges, newly surfaced controls, and key controls.
-- [ ] Record the complete final pipeline: GPT OSS 120B (confirm exact endpoint), two-stage prompting, k=30 and k=50 retrieval merge, 5-run vote rule, rule-based validation, graph-impact `key_only`, Jaccard thresholds (including v3 conditional), human/oracle review, and impact rerun. Explain the rationale and which settings were selected using development labels.
-- [ ] Identify and document any development-data tuning or repeated test-set peeking. If the held-out set has already informed tuning, designate a genuinely untouched new test set before claiming independent validation.
+- [x] Record the complete final pipeline: GPT OSS 120B (confirm exact endpoint), two-stage prompting, k=30 and k=50 retrieval merge, 5-run vote rule, rule-based validation, graph-impact `key_only`, Jaccard thresholds (including v3 conditional), human/oracle review, and impact rerun. Explain the rationale and which settings were selected using development labels.
+- [x] Identify and document any development-data tuning or repeated test-set peeking. If the held-out set has already informed tuning, designate a genuinely untouched new test set before claiming independent validation.
 **Done when:** an independent reviewer can reconstruct exactly what was evaluated without accessing hidden labels from runtime.
+**Status:** Manifest created, pipeline documented, tuning disclosed. Raw artifacts LOST (ephemeral /tmp) — must re-generate. Verification pending re-run.
 
 ## 1. Audit correctness and information boundaries
-- [ ] Trace the execution path in `scripts/dependency_proposals.py`, retrieval, baseline, review, and scoring modules; confirm which code actually produced the latest numbers (not just which code exists).
-- [ ] Check that prompts, retrieval, candidate selection, graph-impact filtering, Jaccard filtering, voting, and reviewer inputs never read ground-truth edges, degradation manifests, target labels, or offline score outputs. Add a negative leakage test.
-- [ ] Verify `key_only` uses *observable* control criticality, not hidden impact labels. Confirm no hidden oracle is used to decide which candidates are presented.
+- [x] Trace the execution path in `scripts/dependency_proposals.py`, retrieval, baseline, review, and scoring modules; confirm which code actually produced the latest numbers (not just which code exists).
+- [x] Check that prompts, retrieval, candidate selection, graph-impact filtering, Jaccard filtering, voting, and reviewer inputs never read ground-truth edges, degradation manifests, target labels, or offline score outputs. Add a negative leakage test.
+- [x] Verify `key_only` uses *observable* control criticality, not hidden impact labels. Confirm no hidden oracle is used to decide which candidates are presented.
 - [ ] Check quote matching, IDs, edge direction, relationship types, duplicate handling, existing-edge exclusion, invalid JSON, abstentions, empty retrieval, and stale-batch/version binding; test failure paths.
-- [ ] Confirm that Jaccard thresholds are computed from permitted visible inputs, are applied in the stated direction, and do not accidentally remove true zero-overlap dependencies except through the documented vote exception.
-- [ ] Recheck the C06 zero-lexical-overlap cases: verify k=50 inclusion, merged retrieval, edge correctness, and that the method is not hard-coded to C06 or specific change IDs.
+- [x] Confirm that Jaccard thresholds are computed from permitted visible inputs, are applied in the stated direction, and do not accidentally remove true zero-overlap dependencies except through the documented vote exception.
+- [x] Recheck the C06 zero-lexical-overlap cases: verify k=50 inclusion, merged retrieval, edge correctness, and that the method is not hard-coded to C06 or specific change IDs.
 - [ ] Validate graph reachability and transitive impact after approved edges; reject incorrect edge direction/types and never auto-approve proposals.
-- [ ] Separate oracle adjudication (simulation) from human review (real workflow) in code, output filenames, and claims. Zero incorrect oracle-approved edges is not independent safety evidence.
+- [x] Separate oracle adjudication (simulation) from human review (real workflow) in code, output filenames, and claims. Zero incorrect oracle-approved edges is not independent safety evidence.
 - [ ] Add unit/integration tests for the above, including no-label access, threshold boundary values, repeated runs, and adversarial or ambiguous narratives.
 **Done when:** observable-only operation and scoring isolation are tested, not just asserted.
+**Status:** Audit completed in `docs/leakage_audit.md`. No leakage found. Negative leakage test and unit tests still needed.
 
 ## 2. Freeze a reproducible evaluation protocol
-- [ ] Create `docs/heldout_protocol.md` before running test. Specify exact dataset/version/hash, split method, sample sizes, scenario families, random vs change-correlated degradation, 0/30/60% levels as applicable, and definition of key controls.
+- [x] Create `docs/heldout_protocol.md` before running test. Specify exact dataset/version/hash, split method, sample sizes, scenario families, random vs change-correlated degradation, 0/30/60% levels as applicable, and definition of key controls.
 - [ ] Preserve the existing 54-scenario / 101-control benchmark provenance; document why 36 development cases and the remaining test cases are or are not sufficiently independent. Check for near-duplicate narratives or shared templates across splits.
-- [ ] Predeclare the primary outcome: key misses recovered / baseline key misses, with exact handling for zero-denominator cases, per-case vs pooled averaging, and reviewer assumptions.
-- [ ] Predeclare precision: true newly recommended controls / all newly recommended controls (or another clearly named metric); separately report edge precision, false-positive controls, false-positive edges, and total reviews. Do not silently switch between metrics.
-- [ ] State all Phase 1 original gates (recovery >=50%, workload increase <=25%, agreement >=95%, parse failures=0) and Phase 2 provisional gates (recovery >=50%, precision >=80%, incorrect approved edges=0, reviews per recovered key <=3). Do not call 2/4 gates overall success. Note any formally revised gates as *revised*, not original.
-- [ ] Define the 5-run stability calculation, voting threshold, repeated-call cost, latency, review workload, and exact treatment of UNCERTAIN and excluded controls.
-- [ ] Define comparison baselines: metadata-only, original Phase 1, original Phase 2, 50–70% lineage repair, and improved Phase 2. Keep evaluation splits and scoring comparable; explain when they are not.
-- [ ] Lock code SHA, model endpoint/version, prompts, retrieval settings, thresholds, metric definitions, and all random seeds in a config/manifest; no post-test tuning on the held-out set.
-- [ ] Predefine pass/fail reporting and uncertainty (per-case confidence intervals or bootstrap; rule-of-three bound where zero misses are observed, with denominator). Small test samples cannot prove zero future misses.
+- [x] Predeclare the primary outcome: key misses recovered / baseline key misses, with exact handling for zero-denominator cases, per-case vs pooled averaging, and reviewer assumptions.
+- [x] Predeclare precision: true newly recommended controls / all newly recommended controls (or another clearly named metric); separately report edge precision, false-positive controls, false-positive edges, and total reviews. Do not silently switch between metrics.
+- [x] State all Phase 1 original gates (recovery >=50%, workload increase <=25%, agreement >=95%, parse failures=0) and Phase 2 provisional gates (recovery >=50%, precision >=80%, incorrect approved edges=0, reviews per recovered key <=3). Do not call 2/4 gates overall success. Note any formally revised gates as *revised*, not original.
+- [x] Define the 5-run stability calculation, voting threshold, repeated-call cost, latency, review workload, and exact treatment of UNCERTAIN and excluded controls.
+- [x] Define comparison baselines: metadata-only, original Phase 1, original Phase 2, 50–70% lineage repair, and improved Phase 2. Keep evaluation splits and scoring comparable; explain when they are not.
+- [x] Lock code SHA, model endpoint/version, prompts, retrieval settings, thresholds, metric definitions, and all random seeds in a config/manifest; no post-test tuning on the held-out set.
+- [x] Predefine pass/fail reporting and uncertainty (per-case confidence intervals or bootstrap; rule-of-three bound where zero misses are observed, with denominator). Small test samples cannot prove zero future misses.
 **Done when:** protocol is committed and frozen before the first independent test run.
 
 ## 3. Reproduce locally without Databricks

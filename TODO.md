@@ -39,11 +39,12 @@ Scope: Payments Control Impact, Phase 1 + Phase 2, synthetic benchmark. This is 
 
 ## 3. Reproduce locally without Databricks
 - [ ] Create a fresh Python 3.12 environment, install pinned requirements, and run `python -m pytest -q`; save the full output and failures.
-- [ ] Run benchmark and observable-input generation using the documented commands; verify counts, hashes, seeds, and split isolation.
-- [ ] Run baseline, graph repair comparator, offline scoring, and review demo using saved proposals; ensure all work without live model access.
-- [ ] Confirm deterministic scoring on identical saved artifacts and verify results agree with the reported development metrics.
+- [x] Run benchmark and observable-input generation using the documented commands; verify counts, hashes, seeds, and split isolation.
+- [x] Run baseline, graph repair comparator, offline scoring, and review demo using saved proposals; ensure all work without live model access.
+- [x] Confirm deterministic scoring on identical saved artifacts and verify results agree with the reported development metrics.
 - [ ] Add or fix a one-command offline replay and document exact inputs/outputs; make the script fail loudly if artifacts are missing.
 **Done when:** a new contributor can replay scoring without Databricks or secrets.
+**Status:** Deterministic scoring verified (18.5% dev, 11.1% test baseline). 11 unit tests pass. One-command replay and pinned requirements still needed.
 
 ## 4. Run the frozen held-out evaluation (when Databricks is available)
 - [ ] Confirm model serving access, quotas, permissions, endpoint identity, context/token limits, and projected cost. Never silently substitute a different model.
@@ -65,34 +66,37 @@ Scope: Payments Control Impact, Phase 1 + Phase 2, synthetic benchmark. This is 
 
 ## 6. Reconcile documentation and claims
 - [ ] Update `README.md` current status: development gates passed for improved Phase 2; held-out result pending until independently measured. Remove outdated 'live evaluation is next' and 'no performance success claim' wording.
-- [ ] Rewrite `docs/executive_summary_phase1_phase2.md` so opening, bottom line, results tables, Phase 2 gates, limitations, and conclusion all describe the same version and distinguish old failures from the improved dev result.
-- [ ] Correct model labels: initial Llama 4 Maverick vs later GPT OSS 120B, exact endpoints, experiments, and dates. Never attribute later results to the earlier model.
-- [ ] Update `docs/phase2_results.md` and `docs/dependency_review_phase2.md` with clearly dated historical vs current results; preserve negative findings as history.
+- [x] Rewrite `docs/executive_summary_phase1_phase2.md` so opening, bottom line, results tables, Phase 2 gates, limitations, and conclusion all describe the same version and distinguish old failures from the improved dev result.
+- [x] Correct model labels: initial Llama 4 Maverick vs later GPT OSS 120B, exact endpoints, experiments, and dates. Never attribute later results to the earlier model.
+- [x] Update `docs/phase2_results.md` and `docs/dependency_review_phase2.md` with clearly dated historical vs current results; preserve negative findings as history.
 - [ ] Audit `docs/findings_and_gate_review.md`, `docs/executive_summary_final.md`, `docs/executive_review_pack.md`, `docs/stakeholder_brief.md`, `docs/runbook.md`, and `output/README.md` for stale or contradictory numbers.
-- [ ] Explain why 53.3% recovery / 82.2% precision (dev) do not imply all four original or provisional gates pass. Explicitly show that lineage repair remains stronger on its reported comparison and note any split mismatch.
+- [x] Explain why 53.3% recovery / 82.2% precision (dev) do not imply all four original or provisional gates pass. Explicitly show that lineage repair remains stronger on its reported comparison and note any split mismatch.
 - [ ] Add a results provenance table mapping each claim to commit, config, dataset split, command, artifact path, scorer, and review mode.
-- [ ] Document architecture, rationale, known limitations, failure modes, operating assumptions, and Databricks setup/teardown steps for a future maintainer.
+- [x] Document architecture, rationale, known limitations, failure modes, operating assumptions, and Databricks setup/teardown steps for a future maintainer.
 **Done when:** a reader cannot confuse development success, held-out success, oracle simulation, or production readiness.
+**Status:** Executive summary and final report updated. Phase 2 docs dated. Legacy docs not yet audited. Provenance table needed.
 
 ## 7. Maintainability, quality, and handoff
 - [ ] Review repository tree for duplicated/obsolete scripts, accidental generated files, unused outputs, and temporary experiments. Archive with an index rather than deleting evidence needed to reproduce claims.
 - [ ] Ensure scripts have module docstrings, clear functions/types, comments explaining non-obvious decisions, meaningful errors, and no hard-coded case-specific shortcuts.
 - [ ] Pin runtime/development/LLM dependencies; add configuration examples and safe secret handling; check .gitignore and tracked files for credentials.
-- [ ] Add tests for pipeline orchestration, graph impact, filters, voting, scoring, reviewer approvals, and regression fixtures for the breakthrough cases.
+- [x] Add tests for pipeline orchestration, graph impact, filters, voting, scoring, reviewer approvals, and regression fixtures for the breakthrough cases.
 - [ ] Set up CI for tests, formatting/linting, and static checks that require no Databricks access.
 - [ ] Update architecture diagram, runbook, contribution guide, artifact inventory, and troubleshooting for quota limits, endpoint errors, malformed JSON, and missing packages.
 - [ ] Run a clean-clone setup and offline replay from the README; fix any command or path that fails.
 **Done when:** another engineer can understand, run, audit, and extend the project independently.
+**Status:** 11 unit tests created and passing (test_pipeline.py). CI, pinned deps, code cleanup still needed.
 
 ## 8. Final presentation and decision
-- [ ] Prepare a concise executive narrative: business problem -> missing lineage -> baseline -> AI proposal workflow -> measured result -> comparison -> safeguards -> decision.
-- [ ] Create one results table separating dev and held-out splits, original and improved configurations, recovery, precision, workload, stability, parse failures, and review mode. No invented or mixed metrics.
+- [x] Prepare a concise executive narrative: business problem -> missing lineage -> baseline -> AI proposal workflow -> measured result -> comparison -> safeguards -> decision.
+- [x] Create one results table separating dev and held-out splits, original and improved configurations, recovery, precision, workload, stability, parse failures, and review mode. No invented or mixed metrics.
 - [ ] Demonstrate one correct recovered key control, one rejected incorrect edge, and one UNCERTAIN/excluded case with traceable evidence and a graph before/after.
-- [ ] Present lineage repair as primary where feasible and AI as a supplementary evidence-backed discovery mechanism unless new independent results justify a stronger claim.
-- [ ] Include reproducibility manifest, limitations, risks, cost/latency, reviewer requirements, and next pilot criteria. Mark any untested criterion clearly.
+- [x] Present lineage repair as primary where feasible and AI as a supplementary evidence-backed discovery mechanism unless new independent results justify a stronger claim.
+- [x] Include reproducibility manifest, limitations, risks, cost/latency, reviewer requirements, and next pilot criteria. Mark any untested criterion clearly.
 - [ ] Run a final evidence audit: every number in slides, docs, and demo matches a saved scored artifact.
-- [ ] Decide outcome honestly: development proof, independently validated POC, pilot candidate, or further research. Do not label production-ready without operational validation.
+- [x] Decide outcome honestly: development proof, independently validated POC, pilot candidate, or further research. Do not label production-ready without operational validation.
 **Done when:** the POC can be presented without overstating results and the audience can reproduce the key claims.
+**Status:** Final report created (docs/final_report.md). Outcome: development proof — gates met on dev data, held-out evaluation pending. Not production-ready.
 
 ## Stop/go sequence
 1. **Now, offline:** Sections 0–3. Do not use the held-out labels to tune.

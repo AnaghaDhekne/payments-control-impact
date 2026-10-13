@@ -1,0 +1,520 @@
+{
+  "evaluation": "Held-out test (18 cases, 30% correlated degradation)",
+  "pipeline": "GPT OSS 120B, k=30+k=50 merged, 5-run union ensemble, Jaccard>=0.05, graph_impact key_only, rule filter",
+  "fix_quotes_version": "v3 (aggressive first/last 3 words quote correction)",
+  "gates": {
+    "recovery": {
+      "target": ">=50%",
+      "actual": "57.6%",
+      "status": "PASS"
+    },
+    "precision": {
+      "target": ">=80%",
+      "actual": "91.2%",
+      "status": "PASS"
+    }
+  },
+  "summary": {
+    "total_key_misses": 144,
+    "total_key_recovered": 83,
+    "recovery": "57.6%",
+    "total_new_controls": 91,
+    "total_true_new": 83,
+    "control_precision": "91.2%",
+    "total_edges": 91,
+    "correct_edges": 23,
+    "edge_precision": "25.3%"
+  },
+  "per_case": [
+    {
+      "change_id": "CHG-051",
+      "key_misses": 6,
+      "key_recovered": 6,
+      "recovery": "100.0%",
+      "new_controls": 6,
+      "true_new": 6,
+      "precision": "100.0%",
+      "total_edges": 6,
+      "correct_edges": 1,
+      "key_miss_controls": [
+        "C022",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C022",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ]
+    },
+    {
+      "change_id": "CHG-027",
+      "key_misses": 10,
+      "key_recovered": 6,
+      "recovery": "60.0%",
+      "new_controls": 6,
+      "true_new": 6,
+      "precision": "100.0%",
+      "total_edges": 6,
+      "correct_edges": 4,
+      "key_miss_controls": [
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C03"
+      ]
+    },
+    {
+      "change_id": "CHG-003",
+      "key_misses": 19,
+      "key_recovered": 6,
+      "recovery": "31.6%",
+      "new_controls": 6,
+      "true_new": 6,
+      "precision": "100.0%",
+      "total_edges": 6,
+      "correct_edges": 2,
+      "key_miss_controls": [
+        "C01",
+        "C012",
+        "C013",
+        "C014",
+        "C015",
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C030",
+        "C031",
+        "C032",
+        "C033",
+        "C057",
+        "C058",
+        "C059",
+        "C06",
+        "C060"
+      ],
+      "recovered_controls": [
+        "C01",
+        "C02",
+        "C057",
+        "C058",
+        "C059",
+        "C060"
+      ]
+    },
+    {
+      "change_id": "CHG-006",
+      "key_misses": 7,
+      "key_recovered": 0,
+      "recovery": "0.0%",
+      "new_controls": 0,
+      "true_new": 0,
+      "precision": "N/A",
+      "total_edges": 0,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C02",
+        "C023",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": []
+    },
+    {
+      "change_id": "CHG-021",
+      "key_misses": 19,
+      "key_recovered": 9,
+      "recovery": "47.4%",
+      "new_controls": 9,
+      "true_new": 9,
+      "precision": "100.0%",
+      "total_edges": 9,
+      "correct_edges": 4,
+      "key_miss_controls": [
+        "C01",
+        "C012",
+        "C013",
+        "C014",
+        "C015",
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C030",
+        "C031",
+        "C032",
+        "C033",
+        "C057",
+        "C058",
+        "C059",
+        "C06",
+        "C060"
+      ],
+      "recovered_controls": [
+        "C012",
+        "C013",
+        "C014",
+        "C015",
+        "C02",
+        "C057",
+        "C058",
+        "C059",
+        "C060"
+      ]
+    },
+    {
+      "change_id": "CHG-054",
+      "key_misses": 5,
+      "key_recovered": 5,
+      "recovery": "100.0%",
+      "new_controls": 5,
+      "true_new": 5,
+      "precision": "100.0%",
+      "total_edges": 5,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ],
+      "recovered_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ]
+    },
+    {
+      "change_id": "CHG-024",
+      "key_misses": 8,
+      "key_recovered": 3,
+      "recovery": "37.5%",
+      "new_controls": 6,
+      "true_new": 3,
+      "precision": "50.0%",
+      "total_edges": 6,
+      "correct_edges": 1,
+      "key_miss_controls": [
+        "C02",
+        "C021",
+        "C023",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C02",
+        "C021",
+        "C023"
+      ]
+    },
+    {
+      "change_id": "CHG-030",
+      "key_misses": 0,
+      "key_recovered": 0,
+      "recovery": "N/A",
+      "new_controls": 0,
+      "true_new": 0,
+      "precision": "N/A",
+      "total_edges": 0,
+      "correct_edges": 0,
+      "key_miss_controls": [],
+      "recovered_controls": []
+    },
+    {
+      "change_id": "CHG-042",
+      "key_misses": 7,
+      "key_recovered": 1,
+      "recovery": "14.3%",
+      "new_controls": 5,
+      "true_new": 1,
+      "precision": "20.0%",
+      "total_edges": 5,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C02",
+        "C022",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C022"
+      ]
+    },
+    {
+      "change_id": "CHG-012",
+      "key_misses": 0,
+      "key_recovered": 0,
+      "recovery": "N/A",
+      "new_controls": 0,
+      "true_new": 0,
+      "precision": "N/A",
+      "total_edges": 0,
+      "correct_edges": 0,
+      "key_miss_controls": [],
+      "recovered_controls": []
+    },
+    {
+      "change_id": "CHG-048",
+      "key_misses": 0,
+      "key_recovered": 0,
+      "recovery": "N/A",
+      "new_controls": 0,
+      "true_new": 0,
+      "precision": "N/A",
+      "total_edges": 0,
+      "correct_edges": 0,
+      "key_miss_controls": [],
+      "recovered_controls": []
+    },
+    {
+      "change_id": "CHG-045",
+      "key_misses": 10,
+      "key_recovered": 4,
+      "recovery": "40.0%",
+      "new_controls": 4,
+      "true_new": 4,
+      "precision": "100.0%",
+      "total_edges": 4,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C021",
+        "C022",
+        "C023",
+        "C024"
+      ]
+    },
+    {
+      "change_id": "CHG-036",
+      "key_misses": 5,
+      "key_recovered": 5,
+      "recovery": "100.0%",
+      "new_controls": 6,
+      "true_new": 5,
+      "precision": "83.3%",
+      "total_edges": 6,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ],
+      "recovered_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ]
+    },
+    {
+      "change_id": "CHG-033",
+      "key_misses": 7,
+      "key_recovered": 7,
+      "recovery": "100.0%",
+      "new_controls": 7,
+      "true_new": 7,
+      "precision": "100.0%",
+      "total_edges": 7,
+      "correct_edges": 1,
+      "key_miss_controls": [
+        "C02",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C02",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ]
+    },
+    {
+      "change_id": "CHG-009",
+      "key_misses": 10,
+      "key_recovered": 10,
+      "recovery": "100.0%",
+      "new_controls": 10,
+      "true_new": 10,
+      "precision": "100.0%",
+      "total_edges": 10,
+      "correct_edges": 4,
+      "key_miss_controls": [
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ]
+    },
+    {
+      "change_id": "CHG-018",
+      "key_misses": 5,
+      "key_recovered": 5,
+      "recovery": "100.0%",
+      "new_controls": 5,
+      "true_new": 5,
+      "precision": "100.0%",
+      "total_edges": 5,
+      "correct_edges": 0,
+      "key_miss_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ],
+      "recovered_controls": [
+        "C075",
+        "C076",
+        "C077",
+        "C078",
+        "C08"
+      ]
+    },
+    {
+      "change_id": "CHG-039",
+      "key_misses": 19,
+      "key_recovered": 9,
+      "recovery": "47.4%",
+      "new_controls": 9,
+      "true_new": 9,
+      "precision": "100.0%",
+      "total_edges": 9,
+      "correct_edges": 4,
+      "key_miss_controls": [
+        "C01",
+        "C012",
+        "C013",
+        "C014",
+        "C015",
+        "C02",
+        "C021",
+        "C022",
+        "C023",
+        "C024",
+        "C030",
+        "C031",
+        "C032",
+        "C033",
+        "C057",
+        "C058",
+        "C059",
+        "C06",
+        "C060"
+      ],
+      "recovered_controls": [
+        "C012",
+        "C013",
+        "C014",
+        "C015",
+        "C02",
+        "C057",
+        "C058",
+        "C059",
+        "C060"
+      ]
+    },
+    {
+      "change_id": "CHG-015",
+      "key_misses": 7,
+      "key_recovered": 7,
+      "recovery": "100.0%",
+      "new_controls": 7,
+      "true_new": 7,
+      "precision": "100.0%",
+      "total_edges": 7,
+      "correct_edges": 2,
+      "key_miss_controls": [
+        "C02",
+        "C021",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ],
+      "recovered_controls": [
+        "C02",
+        "C021",
+        "C03",
+        "C030",
+        "C031",
+        "C032",
+        "C033"
+      ]
+    }
+  ]
+}

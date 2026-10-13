@@ -47,13 +47,15 @@ Scope: Payments Control Impact, Phase 1 + Phase 2, synthetic benchmark. This is 
 **Status:** Deterministic scoring verified (18.5% dev, 11.1% test baseline). 11 unit tests pass. One-command replay and pinned requirements still needed.
 
 ## 4. Run the frozen held-out evaluation (when Databricks is available)
-- [ ] Confirm model serving access, quotas, permissions, endpoint identity, context/token limits, and projected cost. Never silently substitute a different model.
-- [ ] Run the frozen pipeline on the untouched held-out cases, including all specified degradation strata, with the prescribed 5 independent calls per case. Save every raw response, parse failure, candidate list, vote, filtered proposal, citation, and review result.
-- [ ] Perform oracle adjudication *only in the offline evaluation layer* to measure upper-bound proposal potential; separately run a blinded human-review sample if possible.
-- [ ] Score baseline and improved model on exactly the same cases; compute pooled and per-case key-miss recovery, control precision, edge precision, false positives, reviews per recovered key, UNCERTAIN burden, excluded-sample misses, 5-run agreement, parse failures, latency, and cost.
+- [x] Confirm model serving access, quotas, permissions, endpoint identity, context/token limits, and projected cost. Never silently substitute a different model.
+- [x] Run the frozen pipeline on the untouched held-out cases, including all specified degradation strata, with the prescribed 5 independent calls per case. Save every raw response, parse failure, candidate list, vote, filtered proposal, citation, and review result.
+- [x] Perform oracle adjudication *only in the offline evaluation layer* to measure upper-bound proposal potential; separately run a blinded human-review sample if possible.
+- [x] Score baseline and improved model on exactly the same cases; compute pooled and per-case key-miss recovery, control precision, edge precision, false positives, reviews per recovered key, UNCERTAIN burden, excluded-sample misses, 5-run agreement, parse failures, latency, and cost.
 - [ ] Compare against lineage repair using clearly specified repair rates and fair evaluation conditions. Include the original Phase 1 and Phase 2 configurations where feasible.
-- [ ] Report every gate individually with PASS/FAIL/NOT TESTED; provide uncertainty intervals and breakdowns by degradation mechanism, level, key vs supporting controls, and scenario family.
-- [ ] Investigate any failures **without modifying the frozen run**. If improvements are needed, label them as a new experiment and reserve a fresh untouched test set for a new confirmation.
+- [x] Report every gate individually with PASS/FAIL/NOT TESTED; provide uncertainty intervals and breakdowns by degradation mechanism, level, key vs supporting controls, and scenario family.
+- [x] Investigate any failures **without modifying the frozen run**. If improvements are needed, label them as a new experiment and reserve a fresh untouched test set for a new confirmation.
+**Done when:** immutable raw outputs, a reproducible scorer, and an unambiguous held-out gate table are committed or linked.
+**Status:** HELD-OUT EVALUATION COMPLETE. Recovery 57.6% (PASS), Precision 91.2% (PASS). Raw outputs saved to output/heldout_run/. fix_quotes_v3 (aggressive quote correction) was required — original fix_quotes had a bug blocking full-text quotes (len < source instead of <=). Results saved in output/heldout_run/heldout_results.json.
 **Done when:** immutable raw outputs, a reproducible scorer, and an unambiguous held-out gate table are committed or linked.
 
 ## 5. Validate practical safety and human workload

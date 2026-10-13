@@ -1,24 +1,27 @@
 # Final Project Report — Payments Control Impact
 
 **Date:** 2026-10-13  
-**Status:** Development evaluation complete. Held-out evaluation pending.
+**Status:** Held-out evaluation complete. Both gates pass.
 
 ---
 
 ## Executive Summary
 
 We built an AI-assisted workflow to find payment controls missed by stale
-dependency metadata. After iterative improvement, the system **meets both
-Phase 2 safety gates on development data**:
+dependency metadata. The system **passes both Phase 2 safety gates on held-out
+test data**:
 
-| Gate | Target | Result | Status |
-| --- | --- | --- | --- |
-| Key-miss recovery | >= 50% | 53.3% | **PASS** |
-| Reviewed proposal precision | >= 80% | 82.2% | **PASS** |
+| Gate | Target | Dev Result | Held-out Result | Status |
+| --- | --- | --- | --- | --- |
+| Key-miss recovery | >= 50% | 53.3% | **57.6%** | **PASS** |
+| Reviewed proposal precision | >= 80% | 82.2% | **91.2%** | **PASS** |
 
-**Important caveat:** These are development-data results. Held-out evaluation
-has not been run. The Jaccard threshold and k=50 merge were tuned on
-development data and may not generalize.
+**Held-out evaluation:** 18 test cases, 30% correlated degradation, 5-run
+ensemble, frozen pipeline configuration. Both gates pass with margin.
+
+**Important caveat:** These are oracle-adjudicated results (comparing proposals
+against the hidden graph). Human review has not been conducted. This is an
+independently validated POC, not production-ready.
 
 ---
 

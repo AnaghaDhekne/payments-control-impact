@@ -788,7 +788,7 @@
                   },
                   {
                     "fieldName": "pct",
-                    "displayName": "Achv %"
+                    "displayName": "Achievement %"
                   },
                   {
                     "fieldName": "target",
@@ -818,7 +818,7 @@
             "x": 0,
             "y": 16,
             "width": 12,
-            "height": 6
+            "height": 9
           }
         },
         {
@@ -900,7 +900,7 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Impr pp"
+                    "displayName": "Improvement (pp)"
                   },
                   {
                     "fieldName": "precision_pct",
@@ -913,12 +913,12 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Prec %"
+                    "displayName": "Precision %"
                   },
                   {
                     "fieldName": "false_positives",
                     "headerAlignment": "right",
-                    "displayName": "False +"
+                    "displayName": "False Positives"
                   },
                   {
                     "fieldName": "workload_increase",
@@ -931,7 +931,7 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Work %"
+                    "displayName": "Workload %"
                   }
                 ]
               },
@@ -942,9 +942,9 @@
           },
           "position": {
             "x": 0,
-            "y": 22,
+            "y": 25,
             "width": 12,
-            "height": 14
+            "height": 18
           }
         }
       ],
@@ -1036,7 +1036,7 @@
           },
           "position": {
             "x": 0,
-            "y": 41,
+            "y": 48,
             "width": 12,
             "height": 14
           }
@@ -1144,14 +1144,6 @@
                       "expression": "`precision`"
                     },
                     {
-                      "name": "total_edges",
-                      "expression": "`total_edges`"
-                    },
-                    {
-                      "name": "correct_edges",
-                      "expression": "`correct_edges`"
-                    },
-                    {
                       "name": "degradation",
                       "expression": "`degradation`"
                     }
@@ -1175,52 +1167,42 @@
                   {
                     "fieldName": "change_id",
                     "headerAlignment": "left",
-                    "displayName": "Chg"
+                    "displayName": "Change ID"
                   },
                   {
                     "fieldName": "key_misses",
                     "headerAlignment": "right",
-                    "displayName": "Miss"
+                    "displayName": "Key Misses"
                   },
                   {
                     "fieldName": "key_recovered",
                     "headerAlignment": "right",
-                    "displayName": "Rec"
+                    "displayName": "Key Recovered"
                   },
                   {
                     "fieldName": "recovery",
                     "headerAlignment": "right",
-                    "displayName": "Rec%"
+                    "displayName": "Recovery %"
                   },
                   {
                     "fieldName": "new_controls",
                     "headerAlignment": "right",
-                    "displayName": "New"
+                    "displayName": "New Controls"
                   },
                   {
                     "fieldName": "true_new",
                     "headerAlignment": "right",
-                    "displayName": "True"
+                    "displayName": "True Positives"
                   },
                   {
                     "fieldName": "precision",
                     "headerAlignment": "right",
-                    "displayName": "Pre%"
-                  },
-                  {
-                    "fieldName": "total_edges",
-                    "headerAlignment": "right",
-                    "displayName": "Edge"
-                  },
-                  {
-                    "fieldName": "correct_edges",
-                    "headerAlignment": "right",
-                    "displayName": "Cor"
+                    "displayName": "Precision %"
                   },
                   {
                     "fieldName": "degradation",
                     "headerAlignment": "center",
-                    "displayName": "Mode"
+                    "displayName": "Degradation Mode"
                   }
                 ]
               },
@@ -1233,7 +1215,7 @@
             "x": 0,
             "y": 16,
             "width": 12,
-            "height": 25
+            "height": 32
           }
         },
         {
@@ -1395,7 +1377,7 @@
           },
           "position": {
             "x": 0,
-            "y": 55,
+            "y": 62,
             "width": 12,
             "height": 14
           }

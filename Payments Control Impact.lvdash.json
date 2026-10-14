@@ -788,7 +788,7 @@
                   },
                   {
                     "fieldName": "pct",
-                    "displayName": "Achievement (%)"
+                    "displayName": "Achv %"
                   },
                   {
                     "fieldName": "target",
@@ -887,7 +887,7 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Recall (%)"
+                    "displayName": "Recall %"
                   },
                   {
                     "fieldName": "improvement_pp",
@@ -900,7 +900,7 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Improvement (Percentage Points)"
+                    "displayName": "Impr pp"
                   },
                   {
                     "fieldName": "precision_pct",
@@ -913,12 +913,12 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Precision (%)"
+                    "displayName": "Prec %"
                   },
                   {
                     "fieldName": "false_positives",
                     "headerAlignment": "right",
-                    "displayName": "False Positives"
+                    "displayName": "False +"
                   },
                   {
                     "fieldName": "workload_increase",
@@ -931,7 +931,7 @@
                       "type": "number-plain"
                     },
                     "headerAlignment": "right",
-                    "displayName": "Workload Increase (%)"
+                    "displayName": "Work %"
                   }
                 ]
               },
@@ -1036,7 +1036,7 @@
           },
           "position": {
             "x": 0,
-            "y": 16,
+            "y": 41,
             "width": 12,
             "height": 14
           }
@@ -1104,6 +1104,136 @@
             "y": 2,
             "width": 12,
             "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "case_detail_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cases",
+                  "fields": [
+                    {
+                      "name": "change_id",
+                      "expression": "`change_id`"
+                    },
+                    {
+                      "name": "key_misses",
+                      "expression": "`key_misses`"
+                    },
+                    {
+                      "name": "key_recovered",
+                      "expression": "`key_recovered`"
+                    },
+                    {
+                      "name": "recovery",
+                      "expression": "`recovery`"
+                    },
+                    {
+                      "name": "new_controls",
+                      "expression": "`new_controls`"
+                    },
+                    {
+                      "name": "true_new",
+                      "expression": "`true_new`"
+                    },
+                    {
+                      "name": "precision",
+                      "expression": "`precision`"
+                    },
+                    {
+                      "name": "total_edges",
+                      "expression": "`total_edges`"
+                    },
+                    {
+                      "name": "correct_edges",
+                      "expression": "`correct_edges`"
+                    },
+                    {
+                      "name": "degradation",
+                      "expression": "`degradation`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Per-Case Results Detail",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "change_id",
+                    "headerAlignment": "left",
+                    "displayName": "Chg"
+                  },
+                  {
+                    "fieldName": "key_misses",
+                    "headerAlignment": "right",
+                    "displayName": "Miss"
+                  },
+                  {
+                    "fieldName": "key_recovered",
+                    "headerAlignment": "right",
+                    "displayName": "Rec"
+                  },
+                  {
+                    "fieldName": "recovery",
+                    "headerAlignment": "right",
+                    "displayName": "Rec%"
+                  },
+                  {
+                    "fieldName": "new_controls",
+                    "headerAlignment": "right",
+                    "displayName": "New"
+                  },
+                  {
+                    "fieldName": "true_new",
+                    "headerAlignment": "right",
+                    "displayName": "True"
+                  },
+                  {
+                    "fieldName": "precision",
+                    "headerAlignment": "right",
+                    "displayName": "Pre%"
+                  },
+                  {
+                    "fieldName": "total_edges",
+                    "headerAlignment": "right",
+                    "displayName": "Edge"
+                  },
+                  {
+                    "fieldName": "correct_edges",
+                    "headerAlignment": "right",
+                    "displayName": "Cor"
+                  },
+                  {
+                    "fieldName": "degradation",
+                    "headerAlignment": "center",
+                    "displayName": "Mode"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 25
           }
         },
         {
@@ -1265,7 +1395,7 @@
           },
           "position": {
             "x": 0,
-            "y": 30,
+            "y": 55,
             "width": 12,
             "height": 14
           }

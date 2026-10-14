@@ -4,7 +4,16 @@ An experimental workflow for identifying payment controls affected by changes wh
 
 ## Current status
 
-**Phase 2 held-out evaluation complete — both gates pass.** The AI system
+**Detective recovery path implemented; live evaluation pending.** See
+[the diagnosis and Databricks run commands](docs/detective_recovery.md).
+The saved impact-discovery run reports 57.6% recovery and 91.2% new-control
+precision, but only 25.3% direct-edge precision. The separate simulated LLM
+review reports 5.6% recovery and 27.3% approval precision. These studies measure
+different decisions; the passing impact result does not establish successful
+reviewed dependency reconstruction. The new tool-using detective investigates
+control impact without inserting invented direct edges.
+
+**Historical Phase 2 impact results:** The AI system
 proposes missing dependency edges with cited evidence, mechanically validates
 them, and supports human review. On 18 held-out test cases (30% correlated
 degradation, 5-run ensemble), it achieves 57.6% key-miss recovery (gate: 50%)

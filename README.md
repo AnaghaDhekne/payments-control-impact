@@ -4,9 +4,16 @@ An experimental workflow for identifying payment controls affected by changes wh
 
 ## Current status
 
-**Phase 2 is implemented; live development evaluation is next.** The LLM proposes missing direct dependencies with quoted evidence. A human reviews each proposal, approved links enter the graph, and rules rerun the impact list. The offline fixture demonstrates wiring, not AI accuracy.
+**Phase 2 held-out evaluation complete — both gates pass.** The AI system
+proposes missing dependency edges with cited evidence, mechanically validates
+them, and supports human review. On 18 held-out test cases (30% correlated
+degradation, 5-run ensemble), it achieves 57.6% key-miss recovery (gate: 50%)
+and 91.2% precision (gate: 80%). Results are oracle-adjudicated; human review
+has not been conducted. See the [final report](docs/final_report.md).
 
-Phase 1 did not meet the original held-out gates. Its [reported findings](docs/findings_and_gate_review.md) remain available, but final five-run raw artifacts need reconciliation before external claims. Phase 2 has no performance success claim yet.
+Phase 1 did not meet the original held-out gates. Its [reported findings](docs/findings_and_gate_review.md) remain available as historical reference.
+Lineage repair (75% recovery, 99.1% precision) remains the recommended primary
+strategy; AI is supplementary where lineage cannot be repaired.
 
 ## Quick start — Python 3.12
 
@@ -24,11 +31,12 @@ On Windows use `.venv/Scripts/Activate.ps1` in PowerShell. Open the demo JSON to
 
 ## Reading order
 
-1. [Architecture](docs/architecture.md): components and data boundaries.
-2. [Runbook](docs/runbook.md): runnable commands and file formats.
-3. [Phase 2 evaluation](docs/dependency_review_phase2.md): assumptions and provisional gates.
-4. [Domain model](docs/domain_model.md) and [ground-truth rules](docs/ground_truth_rules.md).
-5. [Contributing](CONTRIBUTING.md): maintenance and validation.
+1. [Final report](docs/final_report.md): held-out evaluation results and recommendations.
+2. [Architecture](docs/architecture.md): components and data boundaries.
+3. [Runbook](docs/runbook.md): runnable commands and file formats.
+4. [Phase 2 evaluation](docs/dependency_review_phase2.md): workflow design and current status.
+5. [Domain model](docs/domain_model.md) and [ground-truth rules](docs/ground_truth_rules.md).
+6. [Contributing](CONTRIBUTING.md): maintenance and validation.
 
 ## Repository map
 

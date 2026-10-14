@@ -9,4 +9,6 @@ data/observable/*.json
 output/runs/
 output/*.json
 !output/dependency_review_demo.json
+output/heldout_run/*.pkl
+output/heldout_run/*.json
 baseline_results.json

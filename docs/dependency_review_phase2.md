@@ -1,10 +1,9 @@
 # Phase 2: evidence-backed dependency proposals
 
-Status: development evaluation completed 2026-10-11. Live model proposals run
-on all 36 dev cases with oracle-adjudicated reviews. System fails 3 of 4
-gates (recovery 3.6%, precision 21.3%, stability 20.6%). Human review and
-test-split evaluation remain pending. See docs/phase2_results.md for details.
-Original negative results remain valid. This phase has no success claim.
+Status: held-out evaluation completed 2026-10-13. Both Phase 2 gates pass
+on 18 test cases (recovery 57.6%, precision 91.2%). Results are
+oracle-adjudicated; human review has not been conducted. See
+docs/final_report.md for the current status.
 
 ## Workflow
 
@@ -108,12 +107,3 @@ Key failure modes: prompt biases toward DEPENDS_ON (misses GOVERNED_BY and
 EVIDENCES edges), model abstains too aggressively (~2 proposals/case when
 ~7 needed), low precision (21.3%), and high non-determinism (20.6% agreement).
 
-## Remaining steps
-
-1. Human review of proposals (without consulting hidden labels) to measure
-   real reviewer precision and compare against AI-assisted workflow.
-2. Test-split evaluation with frozen documents, labels, model, prompt, and
-   thresholds.
-3. Consider prompt improvements: remove DEPENDS_ON bias, target document
-   selection, and explicit guidance on all allowed relationship types.
-4. Compare against Phase 1 ranking approach as a baseline for the same cases.

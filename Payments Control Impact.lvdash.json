@@ -1,0 +1,1284 @@
+{
+  "datasets": [
+    {
+      "name": "summary",
+      "displayName": "Held-out Summary (Gates)",
+      "queryLines": [
+        "SELECT\n",
+        "  metric,\n",
+        "  CAST(value AS INT) AS value,\n",
+        "  CAST(total AS INT) AS total,\n",
+        "  CONCAT(CAST(CAST(value AS INT) AS STRING), ' / ', CAST(CAST(total AS INT) AS STRING)) AS result,\n",
+        "  CAST(REGEXP_REPLACE(pct, '%', '') AS DOUBLE) AS pct,\n",
+        "  target,\n",
+        "  status\n",
+        "FROM\n",
+        "  default.payments_heldout_summary\n",
+        "ORDER BY\n",
+        "  CASE\n",
+        "    WHEN status = 'PASS' THEN 0\n",
+        "    WHEN status = 'INFO' THEN 1\n",
+        "    ELSE 2\n",
+        "  END"
+      ]
+    },
+    {
+      "name": "cases",
+      "displayName": "Held-out Per-Case Results",
+      "queryLines": [
+        "SELECT\n",
+        "  change_id,\n",
+        "  CAST(key_misses AS INT) AS key_misses,\n",
+        "  CAST(key_recovered AS INT) AS key_recovered,\n",
+        "  CASE\n",
+        "    WHEN recovery = 'N/A' THEN NULL\n",
+        "    ELSE CAST(REGEXP_REPLACE(recovery, '%', '') AS DOUBLE)\n",
+        "  END AS recovery,\n",
+        "  CAST(new_controls AS INT) AS new_controls,\n",
+        "  CAST(true_new AS INT) AS true_new,\n",
+        "  CASE\n",
+        "    WHEN precision = 'N/A' THEN NULL\n",
+        "    ELSE CAST(REGEXP_REPLACE(precision, '%', '') AS DOUBLE)\n",
+        "  END AS precision,\n",
+        "  CAST(total_edges AS INT) AS total_edges,\n",
+        "  CAST(correct_edges AS INT) AS correct_edges,\n",
+        "  split,\n",
+        "  degradation\n",
+        "FROM\n",
+        "  default.payments_heldout_cases\n",
+        "ORDER BY\n",
+        "  key_misses DESC"
+      ]
+    },
+    {
+      "name": "strategy_comparison",
+      "displayName": "Strategy Comparison (Reshaped)",
+      "queryLines": [
+        "SELECT\n",
+        "  CASE\n",
+        "    WHEN strategy = 'Metadata-only baseline' THEN 'Metadata-only'\n",
+        "    WHEN\n",
+        "      strategy = 'Lineage repair'\n",
+        "      AND investment_pct = 70.0\n",
+        "    THEN\n",
+        "      'Lineage repair 70%'\n",
+        "    WHEN strategy = 'AI Phase 1 (Llama 4 Maverick)' THEN 'AI Phase 1'\n",
+        "    WHEN strategy = 'AI Phase 2 (GPT OSS 120B)' THEN 'AI Phase 2'\n",
+        "  END AS strategy_label,\n",
+        "  'Key Recall' AS metric,\n",
+        "  CASE\n",
+        "    WHEN CAST(key_recall AS DOUBLE) < 1 THEN CAST(key_recall AS DOUBLE) * 100\n",
+        "    ELSE CAST(key_recall AS DOUBLE)\n",
+        "  END AS value\n",
+        "FROM\n",
+        "  workspace.default.payments_baseline_repair\n",
+        "WHERE\n",
+        "  (\n",
+        "    strategy = 'Metadata-only baseline'\n",
+        "    AND investment_pct = 0.0\n",
+        "  )\n",
+        "  OR (\n",
+        "    strategy = 'Lineage repair'\n",
+        "    AND investment_pct = 70.0\n",
+        "  )\n",
+        "  OR strategy LIKE 'AI%'\n",
+        "UNION ALL\n",
+        "SELECT\n",
+        "  CASE\n",
+        "    WHEN strategy = 'Metadata-only baseline' THEN 'Metadata-only'\n",
+        "    WHEN\n",
+        "      strategy = 'Lineage repair'\n",
+        "      AND investment_pct = 70.0\n",
+        "    THEN\n",
+        "      'Lineage repair 70%'\n",
+        "    WHEN strategy = 'AI Phase 1 (Llama 4 Maverick)' THEN 'AI Phase 1'\n",
+        "    WHEN strategy = 'AI Phase 2 (GPT OSS 120B)' THEN 'AI Phase 2'\n",
+        "  END AS strategy_label,\n",
+        "  'Precision' AS metric,\n",
+        "  CAST(precision_pct AS DOUBLE) AS value\n",
+        "FROM\n",
+        "  workspace.default.payments_baseline_repair\n",
+        "WHERE\n",
+        "  (\n",
+        "    strategy = 'Metadata-only baseline'\n",
+        "    AND investment_pct = 0.0\n",
+        "  )\n",
+        "  OR (\n",
+        "    strategy = 'Lineage repair'\n",
+        "    AND investment_pct = 70.0\n",
+        "  )\n",
+        "  OR strategy LIKE 'AI%'"
+      ]
+    },
+    {
+      "name": "baseline_repair",
+      "displayName": "Baseline & Repair Comparison",
+      "queryLines": [
+        "SELECT\n",
+        "  strategy,\n",
+        "  CAST(investment_pct AS DOUBLE) AS investment_pct,\n",
+        "  CONCAT(CAST(investment_pct AS STRING), '%') AS investment_pct_label,\n",
+        "  CASE\n",
+        "    WHEN strategy = 'Metadata-only baseline' THEN 'Baseline'\n",
+        "    WHEN strategy = 'Lineage repair' THEN CONCAT(CAST(investment_pct AS STRING), '% repair')\n",
+        "    WHEN strategy = 'AI Phase 1 (Llama 4 Maverick)' THEN 'AI Phase 1'\n",
+        "    WHEN strategy = 'AI Phase 2 (GPT OSS 120B)' THEN 'AI Phase 2'\n",
+        "  END AS display_label,\n",
+        "  CASE\n",
+        "    WHEN CAST(key_recall AS DOUBLE) < 1 THEN CAST(key_recall AS DOUBLE) * 100\n",
+        "    ELSE CAST(key_recall AS DOUBLE)\n",
+        "  END AS key_recall,\n",
+        "  ROUND(\n",
+        "    CASE\n",
+        "      WHEN CAST(key_recall AS DOUBLE) < 1 THEN CAST(key_recall AS DOUBLE) * 100\n",
+        "      ELSE CAST(key_recall AS DOUBLE)\n",
+        "    END - 11.111, 1\n",
+        "  ) AS improvement_pp,\n",
+        "  CASE\n",
+        "    WHEN CAST(recovery AS DOUBLE) < 1 THEN CAST(recovery AS DOUBLE) * 100\n",
+        "    ELSE CAST(recovery AS DOUBLE)\n",
+        "  END AS recovery,\n",
+        "  CAST(precision_pct AS DOUBLE) AS precision_pct,\n",
+        "  CAST(false_positives AS INT) AS false_positives,\n",
+        "  CAST(workload_increase AS DOUBLE) AS workload_increase,\n",
+        "  CASE\n",
+        "    WHEN CAST(precision_pct AS DOUBLE) >= 100.0 THEN '100% Precision (0 false positives)'\n",
+        "    WHEN CAST(precision_pct AS DOUBLE) >= 99.0 THEN '99%+ Precision'\n",
+        "    ELSE '<99% Precision'\n",
+        "  END AS precision_category,\n",
+        "  description\n",
+        "FROM\n",
+        "  workspace.default.payments_baseline_repair\n",
+        "ORDER BY\n",
+        "  CASE\n",
+        "    WHEN strategy = 'Metadata-only baseline' THEN 0\n",
+        "    WHEN strategy = 'Lineage repair' THEN 1\n",
+        "    WHEN strategy = 'AI Phase 1 (Llama 4 Maverick)' THEN 2\n",
+        "    WHEN strategy = 'AI Phase 2 (GPT OSS 120B)' THEN 3\n",
+        "  END,\n",
+        "  investment_pct"
+      ]
+    },
+    {
+      "name": "degradation_grid",
+      "displayName": "Degradation Impact Grid",
+      "queryLines": [
+        "SELECT\n",
+        "  CAST(level AS INT) AS level,\n",
+        "  CONCAT(CAST(level AS STRING), '%') AS level_label,\n",
+        "  mode,\n",
+        "  CAST(key_recall AS DOUBLE) * 100 AS key_recall,\n",
+        "  CAST(affected_recall AS DOUBLE) * 100 AS affected_recall,\n",
+        "  CAST(workload AS INT) AS workload,\n",
+        "  CAST(unreachable_key AS INT) AS unreachable_key,\n",
+        "  CAST(cases AS INT) AS cases\n",
+        "FROM\n",
+        "  workspace.default.payments_degradation_grid\n",
+        "ORDER BY\n",
+        "  level,\n",
+        "  mode"
+      ]
+    },
+    {
+      "name": "cases_percent",
+      "displayName": "Per-Case Percent Metrics",
+      "config": {
+        "version": "1.1",
+        "source": "SELECT change_id, metric, value FROM (\n  SELECT change_id, 'Recovery Rate' AS metric, CAST(key_misses AS INT) AS sort_key,\n    CASE WHEN recovery = 'N/A' THEN NULL\n      ELSE CAST(REGEXP_REPLACE(recovery, '%', '') AS DOUBLE) END AS value\n  FROM default.payments_heldout_cases\n  UNION ALL\n  SELECT change_id, 'Precision' AS metric, CAST(key_misses AS INT) AS sort_key,\n    CASE WHEN precision = 'N/A' THEN NULL\n      ELSE CAST(REGEXP_REPLACE(precision, '%', '') AS DOUBLE) END AS value\n  FROM default.payments_heldout_cases\n  UNION ALL\n  SELECT change_id, 'Edge Correctness' AS metric, CAST(key_misses AS INT) AS sort_key,\n    CASE WHEN CAST(total_edges AS INT) = 0 THEN NULL\n      ELSE CAST(correct_edges AS INT) * 100.0 / CAST(total_edges AS INT) END AS value\n  FROM default.payments_heldout_cases\n) metric_rows ORDER BY metric_rows.sort_key DESC, metric_rows.change_id\n",
+        "dimensions": [
+          {
+            "name": "change_id",
+            "expr": "change_id",
+            "displayName": "Change ID"
+          },
+          {
+            "name": "metric",
+            "expr": "metric",
+            "displayName": "Metric"
+          }
+        ],
+        "measures": [
+          {
+            "name": "value",
+            "expr": "AVG(value)",
+            "displayName": "Percentage"
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "623a857f",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "kpi_baseline",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "degradation_grid",
+                  "fields": [
+                    {
+                      "name": "key_recall",
+                      "expression": "`key_recall`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`level` IN (30) AND `mode` IN ('correlated')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "headerAlignment": "center",
+                "contentAlignment": "center",
+                "title": "Current Recall"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "key_recall",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "formatTemplate": "{{ @formatted }}%",
+                  "rowNumber": 0,
+                  "displayName": "with 30% metadata degradation"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_repair",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "baseline_repair",
+                  "fields": [
+                    {
+                      "name": "recovery",
+                      "expression": "`recovery`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`strategy` IN ('Lineage repair') AND `investment_pct` IN (70.0)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "headerAlignment": "center",
+                "contentAlignment": "center",
+                "title": "Repair Recovery"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "recovery",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "formatTemplate": "{{ @formatted }}%",
+                  "rowNumber": 0,
+                  "displayName": "at 70% lineage repair · 99.1% precision"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_ai_recovery",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "baseline_repair",
+                  "fields": [
+                    {
+                      "name": "key_recall",
+                      "expression": "`key_recall`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`strategy` IN ('AI Phase 2 (GPT OSS 120B)')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "headerAlignment": "center",
+                "contentAlignment": "center",
+                "title": {
+                  "value": "AI Recovery",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "key_recall",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "formatTemplate": "{{ @formatted }}%",
+                  "rowNumber": 0,
+                  "displayName": "held-out evaluation"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_ai_precision",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "baseline_repair",
+                  "fields": [
+                    {
+                      "name": "precision_pct",
+                      "expression": "`precision_pct`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`strategy` IN ('AI Phase 2 (GPT OSS 120B)')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "headerAlignment": "center",
+                "contentAlignment": "center",
+                "title": {
+                  "value": "AI Precision",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "precision_pct",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "formatTemplate": "{{ @formatted }}%",
+                  "rowNumber": 0,
+                  "displayName": "held-out evaluation"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "investment_ladder",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "baseline_repair",
+                  "fields": [
+                    {
+                      "name": "precision_category",
+                      "expression": "`precision_category`"
+                    },
+                    {
+                      "name": "investment_pct_label",
+                      "expression": "`investment_pct_label`"
+                    },
+                    {
+                      "name": "sum(key_recall)",
+                      "expression": "SUM(`key_recall`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`strategy` IN ('Lineage repair', 'Metadata-only baseline')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Recovery by Repair Level — Every Increment Pays Off",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "investment_pct_label",
+                  "displayName": "Repair Investment",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(key_recall)",
+                  "displayName": "Key Recall (%)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "precision_category",
+                  "displayName": "Precision Tier",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "strategy_comparison",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "strategy_comparison",
+                  "fields": [
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    },
+                    {
+                      "name": "strategy_label",
+                      "expression": "`strategy_label`"
+                    },
+                    {
+                      "name": "sum(value)",
+                      "expression": "SUM(`value`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Strategy Comparison — Recall vs Precision",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "strategy_label",
+                  "displayName": "Strategy",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(value)",
+                  "displayName": "Percentage (%)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "metric",
+                  "displayName": "Metric",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "degradation_impact",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "degradation_grid",
+                  "fields": [
+                    {
+                      "name": "mode",
+                      "expression": "`mode`"
+                    },
+                    {
+                      "name": "level_label",
+                      "expression": "`level_label`"
+                    },
+                    {
+                      "name": "sum(key_recall)",
+                      "expression": "SUM(`key_recall`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Why Recall Drops — Correlated vs Random Degradation",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "level_label",
+                  "displayName": "Degradation Level",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(key_recall)",
+                  "displayName": "Key Recall (%)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "mode",
+                  "displayName": "Degradation Mode",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "text_why",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Why This Works\n",
+                "\n",
+                "The system achieves **100% recall** when metadata is healthy. The problem is metadata quality, not algorithm capability.\n",
+                "\n",
+                "Even **20% metadata repair** delivers **10pp recall improvement** with **ZERO false positives** and **ZERO risk** — a guaranteed win.\n",
+                "\n",
+                "**Scope:** 101 controls · 54 change scenarios · 18 evaluated cases · 144 key misses at 30% correlated degradation."
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#E8F5E9",
+                "dark": "#1B3A2B"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "text_strategy",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Recommended Strategy\n",
+                "\n",
+                "**Start with lineage repair** — deterministic, one-time investment, **75% recovery** with **99.1% precision**.\n",
+                "\n",
+                "**Use AI as safety net** for new entities and text-only references — **57.6% recovery**, **91.2% precision**. AI adds significant operational overhead, so use it selectively, not as primary.\n",
+                "\n",
+                "Together they cover what metadata alone cannot reach."
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#E8F5E9",
+                "dark": "#1B3A2B"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "gate_results",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "summary",
+                  "fields": [
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    },
+                    {
+                      "name": "result",
+                      "expression": "`result`"
+                    },
+                    {
+                      "name": "pct",
+                      "expression": "`pct`"
+                    },
+                    {
+                      "name": "target",
+                      "expression": "`target`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Validation Results",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "metric",
+                    "displayName": "Metric"
+                  },
+                  {
+                    "fieldName": "result",
+                    "displayName": "Result"
+                  },
+                  {
+                    "fieldName": "pct",
+                    "displayName": "Achievement (%)"
+                  },
+                  {
+                    "fieldName": "target",
+                    "format": {
+                      "mappings": [
+                        {
+                          "alias": "Not applicable",
+                          "value": "N/A"
+                        }
+                      ],
+                      "type": "alias"
+                    },
+                    "displayName": "Target"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "Status"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "scorecard",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "baseline_repair",
+                  "fields": [
+                    {
+                      "name": "display_label",
+                      "expression": "`display_label`"
+                    },
+                    {
+                      "name": "key_recall",
+                      "expression": "`key_recall`"
+                    },
+                    {
+                      "name": "improvement_pp",
+                      "expression": "`improvement_pp`"
+                    },
+                    {
+                      "name": "precision_pct",
+                      "expression": "`precision_pct`"
+                    },
+                    {
+                      "name": "false_positives",
+                      "expression": "`false_positives`"
+                    },
+                    {
+                      "name": "workload_increase",
+                      "expression": "`workload_increase`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "fields": [],
+                  "value": "Strategy Scorecard"
+                }
+              },
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "display_label",
+                    "headerAlignment": "left",
+                    "displayName": "Strategy"
+                  },
+                  {
+                    "fieldName": "key_recall",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "type": "number-plain"
+                    },
+                    "headerAlignment": "right",
+                    "displayName": "Recall (%)"
+                  },
+                  {
+                    "fieldName": "improvement_pp",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "type": "number-plain"
+                    },
+                    "headerAlignment": "right",
+                    "displayName": "Improvement (Percentage Points)"
+                  },
+                  {
+                    "fieldName": "precision_pct",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "type": "number-plain"
+                    },
+                    "headerAlignment": "right",
+                    "displayName": "Precision (%)"
+                  },
+                  {
+                    "fieldName": "false_positives",
+                    "headerAlignment": "right",
+                    "displayName": "False Positives"
+                  },
+                  {
+                    "fieldName": "workload_increase",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "type": "number-plain"
+                    },
+                    "headerAlignment": "right",
+                    "displayName": "Workload Increase (%)"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 22,
+            "width": 12,
+            "height": 14
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "per_case",
+      "displayName": "Case Detail",
+      "layout": [
+        {
+          "widget": {
+            "name": "case_header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Per-Case Breakdown\n",
+                "\n",
+                "Detailed results for each of the 18 evaluated change cases, in three complementary views with no internal scrolling: a dumbbell chart comparing key misses with recovered misses, a color-coded scorecard of recovery rate, precision, and edge correctness, and a compact detail grid with every per-case count."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "case_scorecard_heatmap",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cases_percent",
+                  "fields": [
+                    {
+                      "name": "measure(value)",
+                      "expression": "MEASURE(`value`)"
+                    },
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    },
+                    {
+                      "name": "change_id",
+                      "expression": "`change_id`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Per-Case Scorecard (Percent)"
+              },
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "metric",
+                  "displayName": "Metric",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "change_id",
+                  "displayName": "Change ID",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "measure(value)",
+                  "displayName": "Percentage",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "misses_dumbbell_by_case",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cases",
+                  "fields": [
+                    {
+                      "name": "changeId",
+                      "expression": "`change_id`"
+                    },
+                    {
+                      "name": "keyMisses",
+                      "expression": "`key_misses`"
+                    },
+                    {
+                      "name": "keyRecovered",
+                      "expression": "`key_recovered`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Key Misses vs Key Recovered by Change (Dumbbell)",
+                  "fields": []
+                }
+              },
+              "jsonSpec": {
+                "spec": "{\"data\":{\"name\":\"databricks_query\"},\"width\":\"container\",\"height\":\"container\",\"config\":{\"autosize\":{\"type\":\"fit\",\"contains\":\"padding\"}},\"transform\":[{\"fold\":[\"keyMisses\",\"keyRecovered\"],\"as\":[\"metric\",\"v\"]},{\"calculate\":\"replace(datum.metric,'key','Key ')\",\"as\":\"m\"}],\"encoding\":{\"y\":{\"field\":\"changeId\",\"type\":\"nominal\",\"sort\":{\"field\":\"keyMisses\",\"order\":\"descending\"},\"axis\":{\"labelAngle\":0,\"labelColor\":\"#444444\",\"labelFontSize\":11,\"title\":\"Change ID\",\"titleColor\":\"#444444\"}},\"x\":{\"field\":\"v\",\"type\":\"quantitative\",\"axis\":{\"title\":\"Controls\",\"labelColor\":\"#444444\"}}},\"layer\":[{\"mark\":{\"type\":\"line\",\"color\":\"#b0b0b0\",\"strokeWidth\":2.5},\"encoding\":{\"detail\":{\"field\":\"changeId\",\"type\":\"nominal\"}}},{\"mark\":{\"type\":\"circle\",\"size\":90},\"encoding\":{\"color\":{\"field\":\"m\",\"type\":\"nominal\",\"legend\":{\"title\":\"Metric\"},\"scale\":{\"range\":[\"#e4572e\",\"#2e86ab\"]}}}}]}",
+                "type": "vega-lite"
+              },
+              "version": 1,
+              "widgetType": "custom-vega-viz",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "changeId"
+                  },
+                  {
+                    "fieldName": "keyMisses"
+                  },
+                  {
+                    "fieldName": "keyRecovered"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "case_counts_pivot",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cases",
+                  "fields": [
+                    {
+                      "name": "change_id",
+                      "expression": "`change_id`"
+                    },
+                    {
+                      "name": "sum(key_misses)",
+                      "expression": "SUM(`key_misses`)"
+                    },
+                    {
+                      "name": "sum(key_recovered)",
+                      "expression": "SUM(`key_recovered`)"
+                    },
+                    {
+                      "name": "sum(new_controls)",
+                      "expression": "SUM(`new_controls`)"
+                    },
+                    {
+                      "name": "sum(true_new)",
+                      "expression": "SUM(`true_new`)"
+                    },
+                    {
+                      "name": "sum(total_edges)",
+                      "expression": "SUM(`total_edges`)"
+                    },
+                    {
+                      "name": "sum(correct_edges)",
+                      "expression": "SUM(`correct_edges`)"
+                    }
+                  ],
+                  "cubeGroupingSets": {
+                    "sets": [
+                      {
+                        "fieldNames": [
+                          "change_id"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`change_id`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Per-Case Detail (Counts)",
+                  "fields": []
+                }
+              },
+              "version": 4,
+              "widgetType": "pivot",
+              "encodings": {
+                "rows": {
+                  "fields": [
+                    {
+                      "fieldName": "change_id",
+                      "displayName": "Change ID",
+                      "scale": {
+                        "type": "categorical"
+                      }
+                    }
+                  ]
+                },
+                "cells": {
+                  "displayAs": "columns",
+                  "fields": [
+                    {
+                      "fieldName": "sum(key_misses)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "Key Misses",
+                      "cellType": "text"
+                    },
+                    {
+                      "fieldName": "sum(key_recovered)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "Key Recovered",
+                      "cellType": "text"
+                    },
+                    {
+                      "fieldName": "sum(new_controls)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "New Controls Proposed",
+                      "cellType": "text"
+                    },
+                    {
+                      "fieldName": "sum(true_new)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "True Positives",
+                      "cellType": "text"
+                    },
+                    {
+                      "fieldName": "sum(total_edges)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "Total Edges",
+                      "cellType": "text"
+                    },
+                    {
+                      "fieldName": "sum(correct_edges)",
+                      "contentAlignment": "right",
+                      "format": {
+                        "abbreviation": "none",
+                        "hideGroupSeparator": true,
+                        "type": "number-plain"
+                      },
+                      "displayName": "Correct Edges",
+                      "cellType": "text"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 12,
+            "height": 14
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

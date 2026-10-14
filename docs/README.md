@@ -4,6 +4,7 @@ Start with the [repository README](../README.md) or the [final report](final_rep
 
 ## Current
 
+- [Executive impact review](executive_impact_review.md): Minto-principled executive presentation with verified data.
 - [Final report](final_report.md): held-out evaluation results, both gates pass, recommendations.
 - [Architecture](architecture.md): code responsibilities and answer-leakage boundaries.
 - [Runbook](runbook.md): offline and live commands.

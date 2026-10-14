@@ -67,10 +67,13 @@ def test_verifier_disagreement_is_uncertain_and_not_recovered():
 def test_fabricated_quote_rejected_without_quote_correction():
     cmds = commands()
     cmds[2]["args"]["control_quote"] = "Invented quotation"
-    result, _ = run(cmds)
+    # The first early finish is answered with a reminder; the second is honoured.
+    result, _ = run(cmds + [{"action": "finish"}])
     assert result["findings"] == []
     assert result["uninvestigated_control_ids"] == ["C-ADDRESS"]
     assert "fabricated" in result["trace"][2]["error"]
+    assert "not_finished" in result["trace"][3]["result"]
+    assert result["status"] == "FINISHED"
 
 
 def test_labels_excluded_from_all_model_calls():
@@ -118,3 +121,108 @@ def test_model_error_is_checkpointed_and_raised():
             persist=lambda state: checkpoints.append(deepcopy(state)),
         )
     assert checkpoints[-1]["status"] == "MODEL_ERROR"
+
+
+# --- Agentic-path regressions -------------------------------------------------
+
+
+def test_reasoning_model_block_content_is_parsed():
+    """gpt-oss on Databricks returns [reasoning, text] blocks, not a string."""
+    from scripts.databricks_llm import content_text
+
+    blocks = [
+        {"type": "reasoning", "summary": [{"type": "summary_text", "text": "{bad}"}]},
+        {"type": "text", "text": '{"action": "finish"}'},
+    ]
+    assert content_text(blocks) == '{"action": "finish"}'
+    assert content_text(json.dumps(blocks)) == '{"action": "finish"}'
+    assert content_text("plain") == "plain"
+    assert content_text(None) == ""
+
+    responses = iter(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": finding()},
+            {"action": "finish"},
+            finding(),
+        ]
+    )
+
+    def gptoss(prompt):
+        return [
+            {"type": "reasoning", "summary": []},
+            {"type": "text", "text": json.dumps(next(responses))},
+        ]
+
+    result = investigate(demo()["case"], gptoss, max_steps=5)
+    assert all("error" not in e for e in result["trace"])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_batch_inspect_and_submit():
+    result, _ = run(
+        [
+            {"action": "inspect_control", "args": {"control_ids": ["C-ADDRESS"]}},
+            {"action": "submit_findings", "args": {"findings": [finding()]}},
+            {"action": "finish"},
+            finding(),
+        ]
+    )
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    assert result["trace"][1]["result"]["accepted_for_verification"] == ["C-ADDRESS"]
+
+
+def test_batch_submit_reports_rejections_without_dropping_valid_findings():
+    bad = dict(finding(), control_quote="Invented quotation")
+    result, _ = run(
+        [
+            {"action": "inspect_control", "args": {"control_ids": ["C-ADDRESS"]}},
+            {"action": "submit_findings", "args": {"findings": [bad]}},
+            {"action": "submit_findings", "args": {"findings": [finding()]}},
+            {"action": "finish"},
+            finding(),
+        ]
+    )
+    assert "fabricated" in result["trace"][1]["result"]["rejected"][0]["error"]
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_explore_node_reports_visible_edges():
+    case = demo()["case"]
+    tools = EvidenceTools(case)
+    nid = case["change_ticket"]["changed_entity_ids"][0]
+    out = tools.call("explore_node", {"node_id": nid})
+    assert out["node"]["id"] == nid
+    assert "outgoing" in out and "incoming" in out
+    with pytest.raises(ValueError):
+        tools.call("explore_node", {"node_id": "NOPE"})
+
+
+def test_evidence_path_must_use_known_nodes():
+    bad = dict(finding(), evidence_path=["NOT-A-NODE"])
+    result, _ = run(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": bad},
+            {"action": "finish"},
+            {"action": "finish"},
+        ]
+    )
+    assert result["findings"] == []
+    assert "evidence_path" in result["trace"][1]["error"]
+
+
+def test_verifier_retries_once_after_invalid_output():
+    result, _ = run(commands() + [{"decision": "AFFECTED"}, finding()])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_prompt_does_not_resend_old_tool_output_in_full():
+    case = demo()["case"]
+    cmds = [{"action": "search_controls", "args": {"query": "address"}}] * 5 + [
+        {"action": "finish"},
+        {"action": "finish"},
+    ]
+    _, prompts = run(cmds, case, max_steps=8)
+    # Prompt growth stays bounded: only the latest observations are in full.
+    assert len(prompts[5]) - len(prompts[3]) < len(prompts[3]) // 2

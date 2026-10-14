@@ -40,6 +40,62 @@ catalog. Budget exhaustion and uninvestigated controls are explicit; finishing
 does not certify complete coverage. The verifier uses the same adapter by
 default, so its errors may correlate with the investigator's errors.
 
+## Fixes for the live agentic run (2026-10-14)
+
+Earlier live runs could not produce findings for two reasons, now fixed:
+
+1. **Reasoning-model output was discarded.** `databricks-gpt-oss-120b` returns
+   message content as a list of blocks (`reasoning`, then `text`). The adapter
+   passed the list through, JSON parsing raised a `TypeError` on every step, and
+   the agent ended with no findings. `databricks_llm.content_text()` now keeps only
+   the answer text; the detective also normalises any non-string response.
+   Symptom in old traces: `the JSON object must be str, bytes or bytearray, not list`.
+2. **The step budget could not cover the case.** One control needed one inspect
+   step plus one submit step, while cases such as CHG-001 have 49 affected
+   controls (19 key) out of 101. The agent can now inspect up to 15 controls and
+   submit up to 20 findings per step.
+
+Other changes:
+
+- `explore_node {node_id}` shows a node's name, description and visible in/out
+  edges, so the agent can follow the change from the field and see where visible
+  lineage breaks (for CHG-001 the field reaches three rules, then nothing).
+- Prompts no longer resend the full graph and every past tool output each step.
+  A notebook keeps inspected control text and explored nodes; older observations
+  are summarised. The first prompt on CHG-001 fell from about 62k to 18k characters.
+- An early `finish` while controls are undecided returns a reminder once.
+- Findings may carry `evidence_path` (known node IDs). The verifier sees the
+  ticket, the control, its visible edges and the path nodes, and gets one retry
+  with the validation error when its JSON is invalid.
+- `DatabricksChatLLM` retries transient endpoint errors with backoff.
+
+These are software fixes verified with scripted model responses. They do not
+show live accuracy; that requires running the suite below.
+
+## Run the development suite
+
+```bash
+python -m scripts.run_detective_suite --model databricks-gpt-oss-120b \
+    --change-ids CHG-001 --max-steps 60 --output-dir output/runs/detective-suite-01
+# read output/runs/detective-suite-01/run1/CHG-001.json (trace) before widening
+python -m scripts.run_detective_suite --model databricks-gpt-oss-120b \
+    --max-steps 60 --output-dir output/runs/detective-suite-02
+```
+
+Labels are computed offline inside the runner and never reach the agent.
+Each run writes per-case results, model calls, and `metrics.json`; `--runs 5`
+also writes `consistency.json`.
+
+### Note on the frozen gates
+
+On the 36 development cases at 30% change-correlated degradation, the rules
+baseline flags 176 controls and misses 225 affected key controls. Recovering
+50% of those misses means adding at least 113 controls, which is +64% workload
+against the baseline even with perfect precision. If true recoveries count as
+workload, the >=50% recovery gate and the <=25% added-workload gate cannot both
+pass on this benchmark. Report false-positive workload separately rather than
+loosening either gate after the fact.
+
 ## Run in Databricks
 
 From the repository root, install the existing development and LLM requirements.

@@ -52,7 +52,7 @@ On Windows use `.venv/Scripts/Activate.ps1` in PowerShell. Open the demo JSON to
 | data/ground_truth/ | Seed fixtures and frozen benchmark snapshots |
 | data/observable/ | Generated inputs, recreated locally |
 | tests/ | Graph, evaluation, parsing, and approval checks |
-| docs/archive/ and output/archive/ | Historical plans and evidence |
+| docs/ and output/archive/ | Documentation and historical evidence |
 
 ## Benchmark and evidence
 

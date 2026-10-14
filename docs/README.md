@@ -17,8 +17,8 @@ Start with the [repository README](../README.md) or the [final report](final_rep
 - [Domain model](domain_model.md), [truth rules](ground_truth_rules.md), [baseline](rules_baseline.md).
 - [Benchmark generation](benchmark_generation.md) and [observable data](observable_benchmark.md).
 
-## Archive
+## Reference
 
-archive/ contains earlier plans, positioning, research, delivery drafts, and
-superseded executive summaries (Phase 1 and Phase 1+2 dev). Their metrics or next
-steps may be outdated; use the final report and current README for current status.
+- [Evaluation contract](evaluation_contract.md): pre-registered thresholds and benchmark design.
+- [Domain model](domain_model.md), [truth rules](ground_truth_rules.md), [baseline](rules_baseline.md).
+- [Benchmark generation](benchmark_generation.md) and [observable data](observable_benchmark.md).

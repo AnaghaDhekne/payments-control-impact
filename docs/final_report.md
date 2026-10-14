@@ -127,7 +127,7 @@ Before production deployment:
 | [evaluation_manifest.md](evaluation_manifest.md) | Pipeline config, model settings, tuning disclosure |
 | [leakage_audit.md](leakage_audit.md) | Information boundary audit, no leakage found |
 | [heldout_protocol.md](heldout_protocol.md) | Frozen evaluation protocol for held-out test |
-| [executive_summary_phase1_phase2.md](archive/executive_summary_phase1_phase2.md) | Full executive summary with all results (archived; predates held-out) |
+| executive_summary_phase1_phase2.md | (deleted — superseded by this report) |
 | [phase2_results.md](phase2_results.md) | Detailed Phase 2 per-case results |
 | [dependency_review_phase2.md](dependency_review_phase2.md) | Phase 2 workflow design |
 | [findings_and_gate_review.md](findings_and_gate_review.md) | Phase 1 full technical report |

@@ -12,7 +12,7 @@ def main():
     parser.add_argument("--case", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--model", default="databricks-gpt-oss-120b")
-    parser.add_argument("--max-steps", type=int, default=24)
+    parser.add_argument("--max-steps", type=int, default=60)
     parser.add_argument(
         "--replay", help="JSON list of {prompt, response}; no live model calls"
     )

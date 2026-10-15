@@ -75,6 +75,19 @@ Registered before running. Code, prompts and model are frozen at commit
   A large drop from the 81.5% above would suggest the earlier result relied on
   the tuned cases or on the benchmark's control-family structure.
 
+## Diagnosis: where UNCERTAIN comes from (CHG-025, consistency run 1)
+
+Of 21 UNCERTAIN items, 20 were proposer AFFECTED / verifier not AFFECTED.
+Checked against the answer key for four of them: the proposer was wrong on
+three (C01, C08, C09: outbound message mapping does not reach validation or
+reconciliation controls) and the verifier correctly withheld approval. The
+fourth (C06, truly affected) was a bug: the verifier agreed on retry but
+returned `counter_evidence: null`, which failed validation; fixed in
+`d6ca2e4`. Conclusion so far: the review burden comes mainly from the
+proposer over-claiming impact across functional areas; the verifier is
+protecting precision. Reducing it means a more conservative proposer, to be
+tested only on fresh cases.
+
 ## Next steps
 
 1. Analyse the CHG-025 proposer/verifier disagreements before changing prompts.

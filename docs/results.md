@@ -75,6 +75,27 @@ Registered before running. Code, prompts and model are frozen at commit
   A large drop from the 81.5% above would suggest the earlier result relied on
   the tuned cases or on the benchmark's control-family structure.
 
+**Result (job `211771677628591`, completed 2026-10-15 15:10 CT):**
+
+| Case | Change | Key misses | Recovered | New true / false | Uncertain |
+|---|---|---|---|---|---|
+| CHG-004 | Creditor country-code mapping | 19 | 11 | 22 / 0 | 19 |
+| CHG-002 | Debtor country-code mapping | 19 | 16 | 34 / 2 | 11 |
+| CHG-041 | Structured-address validation rule | 2 | 2 | 3 / 0 | 1 |
+| CHG-016 | Transformation service | 2 | 2 | 4 / 1 | 21 |
+| CHG-049 | Reconciliation report | 2 | 1 | 6 / 0 | 1 |
+| CHG-026 | High-value approval threshold | 2 | 0 | 0 / 0 | 10 |
+| CHG-029 | Screening exception report | 3 | 0 | 0 / 0 | 1 |
+| CHG-010 | Outbound network interface | 0 | – | 10 / 5 | 18 |
+| **Total** | | **49** | **32 (65.3%)** | **79 / 8 (90.8%)** | **82** |
+
+Recovery gate met (65.3% ≥ 50%), lower than the 81.5% on tuned cases, as the
+pre-registered reading anticipated. Workload gate not met (169 added review
+items vs 38 rules items). 2 controls uninvestigated. Precision stable at about
+90%. CHG-002 was briefly also resumed by a mistakenly submitted second job
+(cancelled within minutes); the original job rewrote the case file from its own
+state afterwards, and the file carries no resume marker.
+
 ## Diagnosis: where UNCERTAIN comes from (CHG-025, consistency run 1)
 
 Of 21 UNCERTAIN items, 20 were proposer AFFECTED / verifier not AFFECTED.

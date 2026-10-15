@@ -554,3 +554,13 @@ def test_verifier_reply_needs_no_chain():
     reply = {k: v for k, v in finding().items() if k != "evidence_path"}
     result, _ = run(commands() + [reply])
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_output_folder_lock_blocks_second_run(tmp_path):
+    from scripts.run_detective_suite import acquire_lock, LOCK_NAME
+
+    acquire_lock(tmp_path)
+    assert (tmp_path / LOCK_NAME).exists()
+    with pytest.raises(SystemExit):
+        acquire_lock(tmp_path)
+    acquire_lock(tmp_path, ignore=True)  # explicit override

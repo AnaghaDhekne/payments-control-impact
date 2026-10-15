@@ -29,6 +29,42 @@ class _AlreadyDone(Exception):
     """Internal signal: a resumed case already has a complete saved result."""
 
 
+LOCK_NAME = "ACTIVE.lock"
+LOCK_MAX_AGE_SECONDS = 6 * 3600
+
+
+def acquire_lock(out_dir, ignore=False):
+    """Refuse to share an output folder with another live run.
+
+    Two runs writing the same case files would mix their results. The lock is
+    removed on normal exit; a run that is killed leaves it behind, so a lock
+    older than LOCK_MAX_AGE_SECONDS is treated as stale.
+    """
+    import atexit
+    import os
+
+    lock = Path(out_dir) / LOCK_NAME
+    if lock.exists() and not ignore:
+        age = time.time() - lock.stat().st_mtime
+        if age < LOCK_MAX_AGE_SECONDS:
+            raise SystemExit(
+                f"{lock} exists ({int(age // 60)} min old): another run may be using "
+                f"this folder. Wait for it to finish, or pass --ignore-lock only "
+                f"after confirming it has stopped. Lock contents: {lock.read_text()[:200]}"
+            )
+    lock.write_text(
+        json.dumps({"pid": os.getpid(), "started": time.strftime("%Y-%m-%d %H:%M:%S")})
+    )
+
+    def release():
+        try:
+            lock.unlink()
+        except OSError:
+            pass
+
+    atexit.register(release)
+
+
 def labels_for(truth_for_change):
     """Offline labels in the shape score_detective expects."""
     affected = sorted(k for k, v in truth_for_change.items() if v.affected)
@@ -97,6 +133,12 @@ def main():
         help="Continue interrupted cases from their saved result files; "
         "cases already scored are skipped",
     )
+    parser.add_argument(
+        "--ignore-lock",
+        action="store_true",
+        help="Run even if another run appears to be using --output-dir "
+        "(only after confirming that run has stopped)",
+    )
     args = parser.parse_args()
 
     from scripts.databricks_llm import DatabricksChatLLM
@@ -117,6 +159,7 @@ def main():
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    acquire_lock(out_dir, args.ignore_lock)
     runs = []
     for run in range(args.runs):
         case_metrics, decisions = [], {}

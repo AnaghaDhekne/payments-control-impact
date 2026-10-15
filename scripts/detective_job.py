@@ -50,6 +50,8 @@ def build_body(repo, args):
         params += ["--max-cases", str(args.max_cases)]
     if args.runs != 1:
         params += ["--runs", str(args.runs)]
+    if getattr(args, "ignore_lock", False):
+        params += ["--ignore-lock"]
     return {
         "run_name": "detective-suite " + os.path.basename(args.output_dir.rstrip("/")),
         "timeout_seconds": 0,
@@ -149,6 +151,7 @@ def main():
     s.add_argument("--max-steps", type=int, default=60)
     s.add_argument("--runs", type=int, default=1)
     s.add_argument("--output-dir", required=True)
+    s.add_argument("--ignore-lock", action="store_true")
     s.set_defaults(func=submit)
     t = sub.add_parser("status")
     t.add_argument("run_id", type=int)

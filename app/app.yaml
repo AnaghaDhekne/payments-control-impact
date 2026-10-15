@@ -1,0 +1,13 @@
+# Databricks App definition. scripts/deploy_app.py copies this file, with the
+# app/, scripts/ and docs/ folders, to the bundle root before deploying.
+command:
+  - streamlit
+  - run
+  - app/app.py
+env:
+  - name: RESULTS_ROOT
+    value: /Volumes/workspace/default/detective_runs
+  - name: QA_ENDPOINT
+    value: databricks-gpt-oss-120b
+  - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+    value: "false"

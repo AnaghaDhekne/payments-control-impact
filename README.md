@@ -71,6 +71,11 @@ python -m scripts.detective_job status <run_id>
 
 Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 
+The results are presented in a Databricks App (`app/`): an executive summary,
+context for newcomers, how it works, live evidence from the run files, a case
+explorer, FAQ and a question box answered from the project documents. Deploy
+with `python -m scripts.deploy_app` from a Databricks terminal.
+
 ## Repository layout
 
 | Path | Contents |
@@ -85,6 +90,7 @@ Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 | `scripts/baseline.py`, `evaluate_baseline.py` | Rules baseline and its evaluation |
 | `scripts/generate_benchmark.py`, `generate_observable.py`, `ground_truth.py`, `validate_graph.py` | Benchmark and answer key |
 | `scripts/case_io.py`, `export_case.py` | Observable-case helpers and export |
+| `app/`, `scripts/deploy_app.py` | Databricks App presenting the POC (executive summary to case explorer); deploy script |
 | `data/` | Hidden graph and change set ([data/README.md](data/README.md)) |
 | `tests/` | Offline tests with scripted model responses |
 | `archive/` | Earlier phases' raw results ([archive/README.md](archive/README.md)) |

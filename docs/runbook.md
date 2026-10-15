@@ -96,6 +96,18 @@ python -m scripts.run_detective --case /tmp/case.json --max-steps 60 \
 Replay feeds saved replies back and fails if any prompt differs, which checks
 that code or case changes have not altered behaviour.
 
+## Presentation app
+
+```bash
+cd /tmp/pci && python -m scripts.deploy_app          # upload, create or update, grant, deploy
+python -m scripts.deploy_app --status                # URL and state
+```
+
+The app reads `/Volumes/workspace/default/detective_runs` with its own service
+principal (granted READ VOLUME by the script) and answers questions with the
+`databricks-gpt-oss-120b` endpoint (attached as an app resource). Run locally
+with `RESULTS_ROOT=<folder> streamlit run app/app.py`.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

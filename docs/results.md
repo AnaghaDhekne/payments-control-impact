@@ -152,9 +152,10 @@ Registered before the change is run on any case.
 Version B recovered 24 of the 45 key misses in the six finished cases against
 30 for A (CHG-002: 11 vs 16). The two remaining cases have 4 key misses, so
 B can reach at most 28 of 49, below the 29 the rule requires. **Version A goes
-to the held-out run.** B removed every wrong flag so far (0 vs 5 on the same
-cases) and sent fewer controls to review (69 vs 81), but at a cost in
-recall. Final B figures to be added when job 663596150833963 ends.
+to the held-out run.** On the same six cases B removed every wrong flag (0 vs 7)
+but sent more controls to review as UNCERTAIN (69 vs 60; CHG-002 32 vs 11):
+the stricter rule turned wrong flags and some true findings into review items
+rather than removing work. Final B figures to be added when job 663596150833963 ends.
 
 ## Pre-registered: held-out test run (2026-10-15)
 

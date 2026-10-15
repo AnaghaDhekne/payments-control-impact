@@ -251,3 +251,50 @@ def test_reasoning_only_reply_falls_back_to_json_in_reasoning():
     # An answer block always wins over reasoning.
     blocks.append({"type": "text", "text": '{"action": "finish"}'})
     assert content_text(blocks) == '{"action": "finish"}'
+
+
+def test_tool_and_arguments_spelling_is_accepted():
+    """gpt-oss often writes {"tool": ..., "arguments": ...} instead of {action, args}."""
+    from scripts.detective import parse_command
+
+    assert parse_command({"tool": "trace_metadata", "arguments": {}}) == (
+        "trace_metadata",
+        {},
+    )
+    assert parse_command(
+        {"function": {"name": "explore_node", "arguments": '{"node_id": "D03"}'}}
+    ) == ("explore_node", {"node_id": "D03"})
+    assert (
+        parse_command({"action": "inspect_controls", "args": {"control_ids": ["A"]}})[0]
+        == "inspect_control"
+    )
+    with pytest.raises(ValueError, match="Missing action"):
+        parse_command({"foo": 1})
+    result, _ = run(
+        [
+            {"tool": "inspect_control", "arguments": {"control_id": "C-ADDRESS"}},
+            {"tool": "submit_finding", "arguments": finding()},
+            {"tool": "finish"},
+            finding(),
+        ]
+    )
+    assert all("error" not in e for e in result["trace"])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_batch_inspect_keeps_valid_ids_and_reports_unknown():
+    tools = EvidenceTools(demo()["case"])
+    out = tools.call("inspect_control", {"control_ids": ["C-ADDRESS", "C999"]})
+    assert out[0]["document"]["control_id"] == "C-ADDRESS"
+    assert out[-1]["unknown_control_ids"] == ["C999"]
+    assert "C-ADDRESS" in tools.inspected
+    with pytest.raises(ValueError):
+        tools.call("inspect_control", {"control_ids": ["C999"]})
+
+
+def test_unknown_tool_error_lists_valid_tools():
+    result, _ = run(
+        [{"action": "lookup", "args": {}}, {"action": "finish"}, {"action": "finish"}],
+        max_steps=3,
+    )
+    assert "inspect_control" in result["trace"][0]["error"]

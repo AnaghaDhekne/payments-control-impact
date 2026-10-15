@@ -47,6 +47,51 @@ def _object(raw):
     return obj
 
 
+TOOL_NAMES = (
+    "trace_metadata",
+    "explore_node",
+    "search_controls",
+    "inspect_control",
+    "submit_finding",
+    "submit_findings",
+    "finish",
+)
+_ACTION_KEYS = ("action", "tool", "name", "function", "tool_name")
+_ARGS_KEYS = ("args", "arguments", "parameters", "input", "params")
+_ACTION_ALIASES = {
+    "inspect_controls": "inspect_control",
+    "explore_nodes": "explore_node",
+}
+
+
+def parse_command(obj):
+    """Read {action, args}; also accept common tool-call spellings models use.
+
+    gpt-oss often writes {"tool": ..., "arguments": {...}} or nests the call in
+    {"function": {"name": ..., "arguments": "<json string>"}}.
+    """
+    if isinstance(obj.get("function"), dict):
+        obj = obj["function"]
+    action = next((obj[k] for k in _ACTION_KEYS if isinstance(obj.get(k), str)), None)
+    args = next((obj[k] for k in _ARGS_KEYS if k in obj), {})
+    if isinstance(args, str):
+        args = json.loads(args) if args.strip() else {}
+    if args is None:
+        args = {}
+    if not isinstance(args, dict):
+        raise ValueError("args must be an object")
+    if action is None:
+        # Bare finding batch, e.g. {"findings": [...]}.
+        if isinstance(obj.get("findings"), list):
+            return "submit_findings", {"findings": obj["findings"]}
+        raise ValueError(
+            'Missing action. Reply with {"action": "<tool>", "args": {...}}; tools: '
+            + ", ".join(TOOL_NAMES)
+        )
+    action = _ACTION_ALIASES.get(action, action)
+    return action, args
+
+
 class EvidenceTools:
     """Read-only tools; search ordering is not an exclusion rule."""
 
@@ -104,17 +149,25 @@ class EvidenceTools:
             if (
                 not isinstance(ids, list)
                 or not ids
-                or len(ids) > MAX_INSPECT_BATCH
                 or not all(isinstance(i, str) for i in ids)
             ):
-                raise ValueError(
-                    "control_ids must be a list of 1 to %d control IDs"
-                    % MAX_INSPECT_BATCH
-                )
+                raise ValueError("control_ids must be a nonempty list of control IDs")
+            ids = list(dict.fromkeys(ids))
+            known = [i for i in ids if i in self.docs]
             unknown = [i for i in ids if i not in self.docs]
-            if unknown:
+            if not known:
                 raise ValueError("Unknown control IDs: " + ", ".join(unknown))
-            return [self._inspect_one(i) for i in dict.fromkeys(ids)]
+            results = [self._inspect_one(i) for i in known[:MAX_INSPECT_BATCH]]
+            skipped = known[MAX_INSPECT_BATCH:]
+            if unknown or skipped:
+                results.append(
+                    {
+                        "note": True,
+                        "unknown_control_ids": unknown,
+                        "not_inspected_batch_limit": skipped,
+                    }
+                )
+            return results
         if action == "explore_node":
             nid = args.get("node_id")
             if not isinstance(nid, str) or nid not in self.nodes:
@@ -154,7 +207,12 @@ class EvidenceTools:
             }
         if action == "trace_metadata":
             return rank_controls(self.case)
-        raise ValueError("Unknown tool")
+        raise ValueError(
+            "Unknown tool "
+            + repr(action)
+            + '. Reply with {"action": "<tool>", "args": {...}}; tools: '
+            + ", ".join(TOOL_NAMES)
+        )
 
 
 def validate_finding(case, finding, inspected):
@@ -228,7 +286,16 @@ def _summarize(action, args, result):
         return {"returned_control_ids": [r["control_id"] for r in result]}
     if action == "inspect_control":
         items = result if isinstance(result, list) else [result]
-        return {"inspected": [r["document"]["control_id"] for r in items]}
+        summary = {
+            "inspected": [r["document"]["control_id"] for r in items if "document" in r]
+        }
+        for r in items:
+            if r.get("note"):
+                summary.update(
+                    unknown_control_ids=r["unknown_control_ids"],
+                    not_inspected_batch_limit=r["not_inspected_batch_limit"],
+                )
+        return summary
     if action == "explore_node":
         return {"explored": result["node"]["id"]}
     if action == "trace_metadata":
@@ -297,6 +364,8 @@ def investigate(case, llm, max_steps=24, persist=None):
         """Store tool output in the notebook so it need not be resent in full."""
         if action == "inspect_control":
             for item in result if isinstance(result, list) else [result]:
+                if "document" not in item:
+                    continue
                 doc = item["document"]
                 notebook["inspected_controls"][doc["control_id"]] = {
                     "title": doc.get("title", ""),
@@ -345,12 +414,7 @@ def investigate(case, llm, max_steps=24, persist=None):
         entry["raw_response"] = raw
         brief = {"step": step + 1}
         try:
-            command = _object(raw)
-            action, args = command.get("action"), command.get("args", {})
-            if args is None:
-                args = {}
-            if not isinstance(args, dict):
-                raise ValueError("args must be an object")
+            action, args = parse_command(_object(raw))
             entry["action"] = action
             brief.update(action=action, args=args)
             if action == "finish":

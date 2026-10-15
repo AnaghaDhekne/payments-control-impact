@@ -57,6 +57,24 @@ Not in Git (they contain full prompts). On the Databricks workspace:
 
 Inspect with `python -m scripts.inspect_detective_run <path>/<case>.json`.
 
+## Pre-registered: frozen check on unseen development cases (2026-10-15)
+
+Registered before running. Code, prompts and model are frozen at commit
+`bb6d945` (the commit before this note); nothing is changed between cases.
+
+- **Cases:** CHG-004, CHG-002, CHG-041, CHG-026, CHG-029, CHG-016, CHG-049,
+  CHG-010. None of their change templates were inspected while fixing the
+  agent (each template has three near-identical releases; siblings of
+  CHG-001, CHG-014, CHG-025 and CHG-017 were excluded).
+- **Size:** 49 key misses by the rules baseline (19, 19, 2, 2, 3, 2, 2, 0);
+  CHG-010 has none and checks for false flags.
+- **Same settings** as above: `databricks-gpt-oss-120b`, 60 steps, one run,
+  30% change-correlated, output `/Volumes/workspace/default/detective_runs/suite-10`.
+- **Reading the result:** pooled key-miss recovery, new-control precision,
+  UNCERTAIN count and uninvestigated count, reported in full whatever they are.
+  A large drop from the 81.5% above would suggest the earlier result relied on
+  the tuned cases or on the benchmark's control-family structure.
+
 ## Next steps
 
 1. Analyse the CHG-025 proposer/verifier disagreements before changing prompts.

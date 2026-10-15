@@ -298,3 +298,23 @@ def test_unknown_tool_error_lists_valid_tools():
         max_steps=3,
     )
     assert "inspect_control" in result["trace"][0]["error"]
+
+
+def test_verifier_sees_family_and_change_neighborhood():
+    """The verifier needs sibling-control and downstream evidence for indirect impact."""
+    from scripts.detective import verification_evidence, control_family
+
+    case = deepcopy(demo()["case"])
+    base = case["control_documents"][0]
+    base["title"] = "Address validation — daily"
+    sib = dict(base, control_id="C-SIB", title="Address validation — manual")
+    case["control_documents"].append(sib)
+    tools = EvidenceTools(case)
+    family, siblings = control_family(tools, base["control_id"])
+    assert family == "Address validation" and siblings == ["C-SIB"]
+    ev = verification_evidence(
+        tools, tools.case["change_ticket"], {"control_id": base["control_id"]}
+    )
+    assert ev["control_family"]["members"][0]["control_id"] == "C-SIB"
+    assert "change_neighborhood" in ev and "hypothesis" in ev
+    assert "ground_truth" not in json.dumps(ev)

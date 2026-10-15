@@ -527,6 +527,7 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
             }
 
     start_step, already_finished = 0, False
+    done_reviews = {}  # control_id -> (review, verify trace entry) from a resumed run
     if resume is not None:
         if resume.get("case_digest") != state["case_digest"]:
             raise ValueError("Resume state belongs to a different case")
@@ -557,6 +558,20 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
             history.append(brief)
         for f in resume.get("findings", []):
             findings[f["control_id"]] = f
+        # Keep completed verifications; a check that never got an answer is redone.
+        entries = {
+            e["control_id"]: e
+            for e in resume.get("trace", [])
+            if e.get("phase") == "verify"
+        }
+        for review in resume.get("verified_findings", []):
+            cid = review.get("control_id")
+            if (
+                cid in findings
+                and cid in entries
+                and review.get("verification_reason") != "Verification unavailable"
+            ):
+                done_reviews[cid] = (review, entries[cid])
         start_step = len(trace)
         state["resumed_from_step"] = start_step
         if already_finished:
@@ -697,6 +712,11 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
                     "verification_reason": "Not verified (proposer UNAFFECTED)",
                 }
             )
+            continue
+        if cid in done_reviews:
+            review, old_entry = done_reviews[cid]
+            verified.append(review)
+            trace.append(old_entry)
             continue
         evidence = verification_evidence(tools, ticket, finding)
         prompt = VERIFIER_INSTRUCTIONS + json.dumps(evidence, sort_keys=True)

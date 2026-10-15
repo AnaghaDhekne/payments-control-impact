@@ -474,3 +474,21 @@ def test_resume_after_investigation_finished_only_reverifies():
     )
     assert len(calls) == 1  # only the verification call
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_resume_keeps_completed_verifications():
+    snapshots = []
+    replies = iter(commands() + [finding()])
+    investigate(
+        demo()["case"],
+        lambda p: json.dumps(next(replies)),
+        max_steps=6,
+        persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
+    )
+    saved = snapshots[-1]
+    calls = []
+    result = investigate(
+        demo()["case"], lambda p: calls.append(p) or "{}", max_steps=6, resume=saved
+    )
+    assert calls == []  # nothing re-asked
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]

@@ -67,8 +67,8 @@ def test_verifier_disagreement_is_uncertain_and_not_recovered():
 def test_fabricated_quote_rejected_without_quote_correction():
     cmds = commands()
     cmds[2]["args"]["control_quote"] = "Invented quotation"
-    # The first early finish is answered with a reminder; the second is honoured.
-    result, _ = run(cmds + [{"action": "finish"}])
+    # An early finish is answered with a reminder while more than 3 steps remain.
+    result, _ = run(cmds + [{"action": "finish"}], max_steps=7)
     assert result["findings"] == []
     assert result["uninvestigated_control_ids"] == ["C-ADDRESS"]
     assert "fabricated" in result["trace"][2]["error"]
@@ -318,3 +318,68 @@ def test_verifier_sees_family_and_change_neighborhood():
     assert ev["control_family"]["members"][0]["control_id"] == "C-SIB"
     assert "change_neighborhood" in ev and "hypothesis" in ev
     assert "ground_truth" not in json.dumps(ev)
+
+
+def test_cut_off_submission_recovers_complete_findings():
+    """A reply truncated at the output limit keeps every complete finding."""
+    full = json.dumps({"action": "submit_findings", "args": {"findings": [finding()]}})
+    cut = full[:-3] + ', {"control_id": "C-ADDR'  # truncated mid second finding
+    replies = iter(
+        [
+            json.dumps(
+                {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}}
+            ),
+            cut,
+            json.dumps({"action": "finish"}),
+            json.dumps(finding()),
+        ]
+    )
+    result = investigate(demo()["case"], lambda p: next(replies), max_steps=3)
+    assert result["trace"][1]["result"]["accepted_for_verification"] == ["C-ADDRESS"]
+    assert "cut off" in result["trace"][1]["result"]["note"]
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_oversized_batch_processes_first_eight():
+    from scripts.detective import MAX_SUBMIT_BATCH
+
+    result, _ = run(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {
+                "action": "submit_findings",
+                "args": {"findings": [finding()] * (MAX_SUBMIT_BATCH + 2)},
+            },
+            {"action": "finish"},
+            finding(),
+        ],
+        max_steps=3,
+    )
+    out = result["trace"][1]["result"]
+    assert len(out["not_processed_over_batch_limit"]) == 2
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_unaffected_is_recorded_without_verifier_call():
+    prompts_seen = []
+    result, prompts_seen = run(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": finding("UNAFFECTED")},
+            {"action": "finish"},
+        ],
+        max_steps=3,
+    )
+    assert len(prompts_seen) == 3  # no verification call
+    assert result["recommended_control_ids"] == []
+    assert result["uncertain_control_ids"] == []
+    assert result["verified_findings"][0]["verification_reason"].startswith(
+        "Not verified"
+    )
+
+
+def test_verifier_missing_counter_evidence_is_tolerated():
+    reply = dict(finding())
+    reply.pop("counter_evidence")
+    result, _ = run(commands() + [reply])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]

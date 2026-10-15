@@ -24,7 +24,8 @@ from scripts.databricks_llm import content_text
 from scripts.dependency_proposals import case_digest, extract_json, observable_payload
 
 MAX_INSPECT_BATCH = 15
-MAX_SUBMIT_BATCH = 20
+MAX_SUBMIT_BATCH = 8
+MAX_FINISH_REMINDERS = 3
 RECENT_FULL_OBSERVATIONS = 2
 FINDING_FIELDS = (
     "control_id",
@@ -45,6 +46,26 @@ def _object(raw):
     if not isinstance(obj, dict):
         raise ValueError("Model response must be a JSON object")
     return obj
+
+
+def salvage_findings(text):
+    """Recover complete finding objects from a reply that was cut off mid-JSON."""
+    decoder = json.JSONDecoder()
+    found, i = [], text.find("{")
+    while i != -1:
+        try:
+            obj, end = decoder.raw_decode(text, i)
+        except json.JSONDecodeError:
+            i = text.find("{", i + 1)
+            continue
+        if isinstance(obj, dict) and {"control_id", "decision", "ticket_quote"} <= set(
+            obj
+        ):
+            found.append(obj)
+            i = text.find("{", end)
+        else:
+            i = text.find("{", i + 1)
+    return found
 
 
 TOOL_NAMES = (
@@ -372,7 +393,7 @@ INSTRUCTIONS = (
     "- search_controls {query, limit:1..30}: rank control documents by word overlap.\n"
     "- inspect_control {control_ids:[...up to 15]} (or {control_id}): full control text and edges. "
     "Required before submitting a finding for that control.\n"
-    "- submit_findings {findings:[...up to 20]} (or submit_finding with one finding's fields): each "
+    "- submit_findings {findings:[...up to 8]} (or submit_finding with one finding's fields): each "
     "finding = {control_id, decision:AFFECTED|UNAFFECTED|UNCERTAIN, ticket_quote, control_quote, "
     "causal_reason, counter_evidence, evidence_path:[node IDs from changed entity to control]}.\n"
     "- finish {}.\n"
@@ -382,10 +403,17 @@ INSTRUCTIONS = (
     "share a family with an affected control (e.g. same prefix before the dash) are likely affected "
     "the same way; check them. 4) Inspect in batches, then submit findings in batches. "
     "5) Also record clear UNAFFECTED decisions for unrelated controls so coverage is explicit.\n"
-    "Rules: quotes must be exact, nonempty substrings of the ticket title/text and of that control's "
-    "text. Explain how the changed behaviour reaches the control's obligation; shared words alone are "
-    "insufficient. State counter-evidence. If evidence is insufficient use UNCERTAIN. Never invent "
-    "entities, quotes, or edges. Use the remaining steps well; finish when done.\n"
+    "Deciding: a missing edge is NOT counter-evidence, because edges near the change are known to be "
+    "missing. Decide AFFECTED when there is a functional chain: the changed entity is used by a rule, "
+    "system, interface or process, and the control governs that same function (for example its "
+    "family members are governed by the system or process that performs it, or its own edges reach "
+    "it). Decide UNAFFECTED when the control governs a different function the change does not reach. "
+    "Use UNCERTAIN only when neither a chain nor an exclusion can be shown.\n"
+    "Rules: quotes must be exact, short (under 12 words), nonempty substrings of the ticket title/text "
+    "and of that control's text. Keep causal_reason and counter_evidence under 30 words each and name "
+    "the node IDs of the chain. Submit at most 8 findings per action, otherwise your reply is cut off "
+    "and lost. Shared words alone are insufficient. Never invent entities, quotes, or edges. Use the "
+    "remaining steps; finish only when every control has a decision or steps run out.\n"
 )
 
 
@@ -427,7 +455,7 @@ def investigate(case, llm, max_steps=24, persist=None):
     trace, findings = [], {}
     history = []  # compact, prompt-facing record of earlier steps
     notebook = {"inspected_controls": {}, "explored_nodes": {}}
-    finish_reminded = False
+    finish_reminders = 0
     state = {
         "case_digest": case_digest(payload),
         "change_id": payload["change_id"],
@@ -523,13 +551,28 @@ def investigate(case, llm, max_steps=24, persist=None):
         entry["raw_response"] = raw
         brief = {"step": step + 1}
         try:
-            action, args = parse_command(_object(raw))
+            truncated = False
+            try:
+                action, args = parse_command(_object(raw))
+            except ValueError:
+                salvaged = salvage_findings(content_text(raw))
+                if not salvaged:
+                    raise
+                action, args, truncated = (
+                    "submit_findings",
+                    {"findings": salvaged[:MAX_SUBMIT_BATCH]},
+                    True,
+                )
             entry["action"] = action
             brief.update(action=action, args=args)
             if action == "finish":
                 undecided = len(tools.docs) - len(findings)
-                if undecided and not finish_reminded and step + 1 < max_steps:
-                    finish_reminded = True
+                if (
+                    undecided
+                    and finish_reminders < MAX_FINISH_REMINDERS
+                    and max_steps - step > 3
+                ):
+                    finish_reminders += 1
                     entry["result"] = brief["result"] = {
                         "not_finished": f"{undecided} controls have no decision yet. "
                         "Continue investigating (batch inspect/submit), or call finish again to stop."
@@ -542,14 +585,10 @@ def investigate(case, llm, max_steps=24, persist=None):
                     break
             elif action in ("submit_finding", "submit_findings"):
                 batch = args.get("findings") if action == "submit_findings" else [args]
-                if (
-                    not isinstance(batch, list)
-                    or not batch
-                    or len(batch) > MAX_SUBMIT_BATCH
-                ):
-                    raise ValueError(
-                        "findings must be a list of 1 to %d findings" % MAX_SUBMIT_BATCH
-                    )
+                if not isinstance(batch, list) or not batch:
+                    raise ValueError("findings must be a nonempty list of findings")
+                over = batch[MAX_SUBMIT_BATCH:]
+                batch = batch[:MAX_SUBMIT_BATCH]
                 accepted, rejected = [], []
                 for item in batch:
                     try:
@@ -569,6 +608,15 @@ def investigate(case, llm, max_steps=24, persist=None):
                         "accepted_for_verification": accepted,
                         "rejected": rejected,
                     }
+                    if over:
+                        entry["result"]["not_processed_over_batch_limit"] = [
+                            i.get("control_id") for i in over if isinstance(i, dict)
+                        ]
+                    if truncated:
+                        entry["result"]["note"] = (
+                            "Your reply was cut off; complete findings were recovered. "
+                            "Resend any missing ones, at most 8 per action, with short fields."
+                        )
                 brief["result"] = entry["result"]
                 brief["args"] = {
                     "control_ids": [
@@ -597,6 +645,17 @@ def investigate(case, llm, max_steps=24, persist=None):
     verified = []
     for finding in findings.values():
         cid = finding["control_id"]
+        if finding["decision"] == "UNAFFECTED":
+            # Recorded, not verified: it adds no recommendation and no review item,
+            # exactly like an uninvestigated control, but documents the reasoning.
+            verified.append(
+                {
+                    **finding,
+                    "proposer_decision": "UNAFFECTED",
+                    "verification_reason": "Not verified (proposer UNAFFECTED)",
+                }
+            )
+            continue
         evidence = verification_evidence(tools, ticket, finding)
         prompt = VERIFIER_INSTRUCTIONS + json.dumps(evidence, sort_keys=True)
         entry = {"phase": "verify", "control_id": cid}
@@ -611,8 +670,12 @@ def investigate(case, llm, max_steps=24, persist=None):
                 raw = llm(attempt_prompt)
                 entry.setdefault("raw_responses", []).append(raw)
                 entry["raw_response"] = raw
+                reply = _object(raw)
+                reply.setdefault("counter_evidence", "None stated.")
+                if not str(reply.get("counter_evidence", "")).strip():
+                    reply["counter_evidence"] = "None stated."
                 decision = validate_finding(
-                    payload, {**_object(raw), "control_id": cid}, tools.inspected
+                    payload, {**reply, "control_id": cid}, tools.inspected
                 )
                 review = {**decision, "proposer_decision": finding["decision"]}
                 if "evidence_path" in finding:

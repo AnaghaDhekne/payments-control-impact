@@ -11,18 +11,23 @@ All data is synthetic. No real bank, customer or control inventory is used.
 
 ## Current status (2026-10-15)
 
-The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`).
-On four **development** cases at 30% change-correlated metadata degradation:
+The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`),
+at 30% change-correlated metadata degradation:
 
-| Measure | Result | Gate |
-|---|---|---|
-| Key controls missed by rules, recovered | 22 of 27 (81.5%) | >= 50%: met |
-| Precision of newly recommended controls | 56 of 61 (91.8%) | (no gate) |
-| Added reviewer workload vs rules | 19 rules items vs 102 added items | <= 25%: **not met** |
-| Key-control agreement over 5 runs | not measured | >= 95%: open |
+| Measure | Tuned cases (4) | Unseen cases (8), code frozen | Gate |
+|---|---|---|---|
+| Key controls missed by rules, recovered | 22 of 27 (81.5%) | **32 of 49 (65.3%)** | >= 50%: met |
+| Precision of newly recommended controls | 56 of 61 (91.8%) | **79 of 87 (90.8%)** | (no gate) |
+| Added review items vs rules items | 102 vs 19 | **169 vs 38** | <= 25%: **not met** |
+| Avoidable review items per case | not measured | **7.0** | (descriptive) |
+| Key-control agreement over 5 runs | | running | >= 95%: open |
 
-These cases were inspected while the agent was being fixed, so they are
-development evidence, not held-out results. Details and caveats:
+The unseen-case result is the one to quote; the tuned-case figure is
+optimistic. Main weakness: review burden, from the agent over-claiming impact
+across functional areas and the verifier rejecting links that are clear from
+the text. Under way: an A/B test of a stricter agent (variant B), a five-run
+consistency check, then one held-out run on the 18 test cases with the chosen
+variant. Details, diagnosis and pre-registered plans:
 [docs/results.md](docs/results.md).
 
 ## How it works

@@ -170,10 +170,11 @@ def main():
                     }
                 )
                 continue
-            calls_path = path.with_suffix(
-                ".resume.calls.json" if args.resume and calls else ".calls.json"
-            )
-            calls_path.write_text(json.dumps(calls, indent=2, default=str) + "\n")
+            if calls:  # never overwrite an earlier log with an empty one
+                calls_path = path.with_suffix(
+                    ".resume.calls.json" if saved is not None else ".calls.json"
+                )
+                calls_path.write_text(json.dumps(calls, indent=2, default=str) + "\n")
             labels = labels_for(truth[cid])
             m = score(result, labels)
             m.update(

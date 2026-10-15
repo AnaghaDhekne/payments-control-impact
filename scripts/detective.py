@@ -21,7 +21,7 @@ import json
 import re
 from scripts.baseline import rank_controls
 from scripts.databricks_llm import content_text
-from scripts.dependency_proposals import case_digest, extract_json, observable_payload
+from scripts.case_io import case_digest, extract_json, observable_payload
 
 MAX_INSPECT_BATCH = 15
 MAX_SUBMIT_BATCH = 8

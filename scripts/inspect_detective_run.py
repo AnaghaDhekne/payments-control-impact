@@ -1,6 +1,6 @@
 """Summarise a saved detective run: step errors, actions, and verifier outcomes.
 
-python -m scripts.inspect_detective_run output/runs/detective-suite-02/run1/CHG-001.json
+python -m scripts.inspect_detective_run /Volumes/workspace/default/detective_runs/suite-09/run1/CHG-014.json
 """
 
 import argparse

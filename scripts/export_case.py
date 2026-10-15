@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.dependency_proposals import observable_payload
+from scripts.case_io import observable_payload
 from scripts.generate_benchmark import build_graph, build_changes
 from scripts.generate_observable import build_condition
 

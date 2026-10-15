@@ -17,7 +17,7 @@ import json
 import time
 from pathlib import Path
 
-from scripts.dependency_proposals import observable_payload
+from scripts.case_io import observable_payload
 from scripts.detective import investigate
 from scripts.evaluate_baseline import _truth_by_change
 from scripts.generate_benchmark import build_graph, build_changes

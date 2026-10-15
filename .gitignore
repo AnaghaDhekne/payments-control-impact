@@ -6,9 +6,5 @@ __pycache__/
 .env.*
 !.env.example
 data/observable/*.json
-output/runs/
-output/*.json
-!output/dependency_review_demo.json
-output/heldout_run/*.pkl
-output/heldout_run/*.json
+output/
 baseline_results.json

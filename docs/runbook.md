@@ -1,65 +1,109 @@
 # Runbook
 
-Run from the repository root with Python 3.12. Tests, benchmark generation, rules, and the offline demo do not require Databricks.
-
-## Offline checks and demo
+## Offline (any machine)
 
 ```bash
 python -m pip install -r requirements-dev.txt
-python -m pytest -q
+python -m pytest -q                 # scripted model responses; no credentials
+python -m black --check scripts tests
 python -m scripts.validate_graph
-python -m scripts.run_dependency_review demo --output output/dependency_review_demo.json
-python -m scripts.evaluate_baseline > output/baseline_results.json
+python -m scripts.evaluate_baseline > baseline_results.json
+python -m scripts.generate_benchmark   # regenerate data/ground_truth benchmark files
+python -m scripts.generate_observable  # write data/observable/*.json (ignored by Git)
 ```
 
-The demo contains a hand-authored proposal and simulated approval. It is not a model evaluation.
+CI (`.github/workflows/ci.yml`) runs formatting, tests, graph validation and
+the baseline evaluation on every push.
 
-## Export a development case
+## Databricks setup (once)
+
+1. Add the repository as a Git folder under `/Workspace/Users/<you>/`.
+2. Make sure a chat model is listed under **Serving**. The default is
+   `databricks-gpt-oss-120b`; pass another with `--model`.
+3. Create a volume for results (workspace folders reject some writes from
+   terminals and jobs):
+
+   ```bash
+   python -c "
+   from databricks.sdk import WorkspaceClient
+   from databricks.sdk.service.catalog import VolumeType
+   WorkspaceClient().volumes.create(catalog_name='workspace', schema_name='default',
+       name='detective_runs', volume_type=VolumeType.MANAGED)"
+   ```
+
+Authentication uses the workspace's own credentials. Never put tokens in
+files or commits.
+
+## Working copy
+
+Imports straight from a `/Workspace` Git folder can fail right after
+`git pull`. Work from a local copy:
 
 ```bash
-python -m scripts.export_case --change-id CHG-001 --output output/runs/development/case.json
+cd /Workspace/Users/<you>/payments-control-impact && git pull -q && rm -rf /tmp/pci && cp -r . /tmp/pci && cd /tmp/pci
 ```
 
-This command removes the damage manifest. Do not include hidden labels in model inputs.
-
-## Generate and review proposals
-
-Install requirements-llm.txt and configure Databricks SDK authentication in your environment. The default endpoint is databricks-llama-4-maverick; confirm availability in your workspace. No credentials belong in this repository.
+## Check the endpoint (1 minute)
 
 ```bash
-python -m pip install -r requirements-llm.txt
-python -m scripts.run_dependency_review propose --case output/runs/development/case.json --output output/runs/development/proposals.json
+python -m scripts.probe_model --n 6
 ```
 
-For a saved response add `--response response.json`. Inspect exact quotations and whether each claimed DIRECT dependency follows from them. Write reviews.json as a list:
+Expect 5–6 of 6 usable. If fewer, fix the model setup before a full run.
 
-```json
-[{"proposal_id": "copy-from-batch", "decision": "APPROVE", "reviewer": "your-name", "reviewed_at": "2026-10-11T23:00:00Z", "reason": "Explain why the documents establish this direct dependency"}]
-```
+## Run cases as a job (recommended)
 
-Use REJECT or UNCERTAIN when appropriate. Pending proposals never alter the graph.
+Web-terminal background processes are ended when the session ends. Jobs are not.
 
 ```bash
-python -m scripts.run_dependency_review review --case output/runs/development/case.json --batch output/runs/development/proposals.json --reviews reviews.json --output output/runs/development/result.json
+python -m scripts.detective_job submit \
+    --repo /Workspace/Users/<you>/payments-control-impact \
+    --change-ids CHG-001 CHG-014 CHG-025 CHG-017 \
+    --output-dir /Volumes/workspace/default/detective_runs/<run-name>
+python -m scripts.detective_job status <run_id>
 ```
 
-## Offline scoring
+- Each case prints `key misses …, recovered …` when done; the pooled summary
+  prints at the end. A case takes about 10 minutes.
+- Omit `--change-ids` to run all 36 development cases; add `--runs 5` for
+  consistency.
+- Jobs always pass `--resume`: resubmitting with the same `--output-dir`
+  continues unfinished cases and rescores finished ones.
+- In the UI: **Jobs & Pipelines → Runs → detective-suite <run-name>**.
 
-Independent labels must contain affected_control_ids, key_control_ids, and correct_proposal_ids. Do not show labels to the model or impact reviewer.
+## Inspect a run
 
 ```bash
-python -m scripts.score_dependency_review --result output/runs/development/result.json --labels labels.json --output output/runs/development/metrics.json
+python -m scripts.inspect_detective_run /Volumes/workspace/default/detective_runs/<run-name>/run1/CHG-001.json
 ```
 
-See [Phase 2 evaluation](dependency_review_phase2.md) for reviewer effort, proposal precision, recovery, provisional targets, and fresh-test requirements.
+Shows status, coverage, step errors by type, the action sequence, verifier
+outcomes and example UNCERTAIN cases with the raw verifier reply.
 
-## Reproduce Phase 1
+Per-case files in `<output-dir>/run<N>/`: `<case>.json` (state, trace,
+findings, verified findings, coverage), `<case>.calls.json` (every prompt and
+reply), `metrics.json` (per-case and pooled metrics).
+
+## Single case and replay
 
 ```bash
-python -m scripts.generate_benchmark
-python -m scripts.generate_observable
-python -m scripts.evaluate_repair --split test
-python -m scripts.evaluate_hybrid --split development --level 30 --mode correlated --runs 5 --top-k 30
+python -m scripts.export_case --change-id CHG-001 --output /tmp/case.json
+python -m scripts.run_detective --case /tmp/case.json --max-steps 60 --output /tmp/run/result.json
+python -m scripts.run_detective --case /tmp/case.json --max-steps 60 \
+    --replay /tmp/run/result.calls.json --output /tmp/run/replay.json
 ```
 
-Hybrid console output includes progress lines before JSON. Preserve raw output and configuration. Five runs are required to measure repeated-run agreement; single-run agreement is a placeholder. Existing test scenarios are historical and must not be treated as fresh Phase 2 validation.
+Replay feeds saved replies back and fails if any prompt differs, which checks
+that code or case changes have not altered behaviour.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Steps fail with `Expecting value: line 1 column 1` and raw reply `''` | gpt-oss ended with reasoning only | Already handled by retries; run `probe_model`. If it persists, check the endpoint |
+| `the JSON object must be str, bytes or bytearray, not list` | Old adapter code | `git pull`; content blocks are now parsed |
+| `Unknown tool` with `{"tool": …}` replies | Old code | `git pull` |
+| `ModuleNotFoundError: scripts.detective` | Importing from `/Workspace` after a pull | Use the `/tmp/pci` working copy |
+| `PermissionError` or `Required key not available` on output paths | Workspace folder or detached process cannot write | Write to a volume; submit as a job |
+| Terminal disconnects or `[1]+ Stopped` | Web terminal limits | Submit as a job; or resubmit, which resumes |
+| `status` shows the same step count twice | Checks seconds apart (about 10 s per step) | Wait a minute |

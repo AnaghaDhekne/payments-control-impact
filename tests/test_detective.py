@@ -4,7 +4,7 @@ import json
 from copy import deepcopy
 import pytest
 from scripts.detective import investigate, EvidenceTools
-from scripts.run_dependency_review import demo
+from tests.fixtures import demo_case
 from scripts.score_detective import score
 
 
@@ -16,7 +16,7 @@ def run(responses, case=None, max_steps=6):
         prompts.append(prompt)
         return json.dumps(next(iterator))
 
-    case = case or demo()["case"]
+    case = case or demo_case()
     original = deepcopy(case)
     result = investigate(case, llm, max_steps=max_steps)
     assert case == original
@@ -28,7 +28,7 @@ def finding(decision="AFFECTED"):
         "control_id": "C-ADDRESS",
         "decision": decision,
         "ticket_quote": "Update structured address validation rule.",
-        "control_quote": demo()["case"]["control_documents"][0]["text"],
+        "control_quote": demo_case()["control_documents"][0]["text"],
         "causal_reason": "Changing the validation rule changes the behavior used by the address control.",
         "counter_evidence": "No exclusion is stated in this fixture.",
     }
@@ -77,7 +77,7 @@ def test_fabricated_quote_rejected_without_quote_correction():
 
 
 def test_labels_excluded_from_all_model_calls():
-    case = demo()["case"]
+    case = demo_case()
     case["ground_truth"] = "SECRET-LABEL"
     case["degradation_manifest"] = {"removed_edge_ids": ["SECRET-EDGE"]}
     result, prompts = run(commands() + [finding()], case)
@@ -93,7 +93,7 @@ def test_unknown_tools_and_budget_leave_unresolved_controls():
 
 
 def test_zero_lexical_overlap_does_not_remove_control():
-    tools = EvidenceTools(demo()["case"])
+    tools = EvidenceTools(demo_case())
     assert (
         tools.call("search_controls", {"query": "unrelated"})[0]["control_id"]
         == "C-ADDRESS"
@@ -116,7 +116,7 @@ def test_model_error_is_checkpointed_and_raised():
 
     with pytest.raises(RuntimeError):
         investigate(
-            demo()["case"],
+            demo_case(),
             broken,
             persist=lambda state: checkpoints.append(deepcopy(state)),
         )
@@ -154,7 +154,7 @@ def test_reasoning_model_block_content_is_parsed():
             {"type": "text", "text": json.dumps(next(responses))},
         ]
 
-    result = investigate(demo()["case"], gptoss, max_steps=5)
+    result = investigate(demo_case(), gptoss, max_steps=5)
     assert all("error" not in e for e in result["trace"])
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
 
@@ -188,7 +188,7 @@ def test_batch_submit_reports_rejections_without_dropping_valid_findings():
 
 
 def test_explore_node_reports_visible_edges():
-    case = demo()["case"]
+    case = demo_case()
     tools = EvidenceTools(case)
     nid = case["change_ticket"]["changed_entity_ids"][0]
     out = tools.call("explore_node", {"node_id": nid})
@@ -218,7 +218,7 @@ def test_verifier_retries_once_after_invalid_output():
 
 
 def test_prompt_does_not_resend_old_tool_output_in_full():
-    case = demo()["case"]
+    case = demo_case()
     cmds = [{"action": "search_controls", "args": {"query": "address"}}] * 5 + [
         {"action": "finish"},
         {"action": "finish"},
@@ -283,7 +283,7 @@ def test_tool_and_arguments_spelling_is_accepted():
 
 
 def test_batch_inspect_keeps_valid_ids_and_reports_unknown():
-    tools = EvidenceTools(demo()["case"])
+    tools = EvidenceTools(demo_case())
     out = tools.call("inspect_control", {"control_ids": ["C-ADDRESS", "C999"]})
     assert out[0]["document"]["control_id"] == "C-ADDRESS"
     assert out[-1]["unknown_control_ids"] == ["C999"]
@@ -304,7 +304,7 @@ def test_verifier_sees_family_and_change_neighborhood():
     """The verifier needs sibling-control and downstream evidence for indirect impact."""
     from scripts.detective import verification_evidence, control_family
 
-    case = deepcopy(demo()["case"])
+    case = deepcopy(demo_case())
     base = case["control_documents"][0]
     base["title"] = "Address validation — daily"
     sib = dict(base, control_id="C-SIB", title="Address validation — manual")
@@ -334,7 +334,7 @@ def test_cut_off_submission_recovers_complete_findings():
             json.dumps(finding()),
         ]
     )
-    result = investigate(demo()["case"], lambda p: next(replies), max_steps=3)
+    result = investigate(demo_case(), lambda p: next(replies), max_steps=3)
     assert result["trace"][1]["result"]["accepted_for_verification"] == ["C-ADDRESS"]
     assert "cut off" in result["trace"][1]["result"]["note"]
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
@@ -420,7 +420,7 @@ def test_resume_continues_from_saved_state():
 
     with pytest.raises(RuntimeError):
         investigate(
-            demo()["case"],
+            demo_case(),
             dies,
             max_steps=6,
             persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
@@ -435,12 +435,12 @@ def test_resume_continues_from_saved_state():
         prompts.append(prompt)
         return json.dumps(next(rest))
 
-    result = investigate(demo()["case"], llm, max_steps=6, resume=saved)
+    result = investigate(demo_case(), llm, max_steps=6, resume=saved)
     assert result["resumed_from_step"] == 3  # two good steps + the failed one
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
     assert "C-ADDRESS" in prompts[0]  # restored notebook is in the prompt
     with pytest.raises(ValueError):
-        other = deepcopy(demo()["case"])
+        other = deepcopy(demo_case())
         other["change_ticket"]["text"] += " changed"
         investigate(other, llm, max_steps=6, resume=saved)
 
@@ -454,7 +454,7 @@ def test_resume_after_investigation_finished_only_reverifies():
 
     # Investigation finishes; the verification call then fails (-> UNCERTAIN).
     investigate(
-        demo()["case"],
+        demo_case(),
         llm,
         max_steps=6,
         persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
@@ -467,7 +467,7 @@ def test_resume_after_investigation_finished_only_reverifies():
     )
     calls = []
     result = investigate(
-        demo()["case"],
+        demo_case(),
         lambda p: calls.append(p) or json.dumps(finding()),
         max_steps=6,
         resume=saved,
@@ -480,7 +480,7 @@ def test_resume_keeps_completed_verifications():
     snapshots = []
     replies = iter(commands() + [finding()])
     investigate(
-        demo()["case"],
+        demo_case(),
         lambda p: json.dumps(next(replies)),
         max_steps=6,
         persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
@@ -488,7 +488,7 @@ def test_resume_keeps_completed_verifications():
     saved = snapshots[-1]
     calls = []
     result = investigate(
-        demo()["case"], lambda p: calls.append(p) or "{}", max_steps=6, resume=saved
+        demo_case(), lambda p: calls.append(p) or "{}", max_steps=6, resume=saved
     )
     assert calls == []  # nothing re-asked
     assert result["recommended_control_ids"] == ["C-ADDRESS"]

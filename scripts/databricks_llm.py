@@ -1,4 +1,4 @@
-"""Databricks model-serving adapter for the hybrid evaluator and detective."""
+"""Databricks model-serving adapter used by the detective agent."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
 """Build clean and degraded observable benchmark views.
 
 Ground truth stays in data/ground_truth. Outputs here are the only artifacts that
-baseline/hybrid systems may consume.
+rules baseline and the detective agent may consume.
 """
 
 from __future__ import annotations

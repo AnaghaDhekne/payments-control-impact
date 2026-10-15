@@ -88,6 +88,22 @@ proposer over-claiming impact across functional areas; the verifier is
 protecting precision. Reducing it means a more conservative proposer, to be
 tested only on fresh cases.
 
+**Frozen-check misses (CHG-026, CHG-029), checked against the answer key.**
+The opposite failure also occurs. On CHG-026 (high-value approval threshold)
+the proposer correctly marked C04 ("payments exceeding configured thresholds
+require enhanced authorization", key) and C05 AFFECTED, but the verifier
+returned UNCERTAIN for lack of a graph chain although the text link is direct.
+On CHG-029 the verifier correctly marked C03 (key) AFFECTED but the proposer
+had said UNCERTAIN, so the disagreement went to review. Family members C041,
+C030 and C032 (key, affected) were marked UNAFFECTED by the proposer and,
+because UNAFFECTED is never verified, received no second look. Errors
+therefore run in both directions: over-claiming across functional areas
+(CHG-025) and a verifier too strict on text-evident links plus unverified
+UNAFFECTED decisions (CHG-026, CHG-029). Version B addresses only the first
+and may lower recovery. Candidate fixes for later, to be tested only with
+fresh data: verify UNAFFECTED decisions on key controls, and let the verifier
+accept a direct text link between ticket and control as a chain.
+
 ## Pre-registered: proposer chain requirement, A/B test (2026-10-15)
 
 Registered before the change is run on any case.

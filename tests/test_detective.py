@@ -492,3 +492,19 @@ def test_resume_keeps_completed_verifications():
     )
     assert calls == []  # nothing re-asked
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_score_reports_review_burden_measures():
+    result = {
+        "baseline": [{"control_id": "B"}],
+        "recommended_control_ids": ["B", "T1", "F1"],
+        "uncertain_control_ids": ["T2", "F2"],
+        "uninvestigated_control_ids": [],
+        "trace": [],
+    }
+    labels = {"affected_control_ids": ["B", "T1", "T2"], "key_control_ids": ["T1"]}
+    m = score(result, labels)
+    assert m["review_items"] == 4
+    assert m["avoidable_review_items"] == 2  # F1, F2
+    assert m["review_queue_true_share"] == 0.5
+    assert m["uncertain_true_controls"] == 1

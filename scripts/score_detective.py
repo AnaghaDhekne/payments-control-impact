@@ -15,6 +15,7 @@ def score(result, labels):
     misses = key - baseline
     recovered = misses & new
     uncertain = set(result["uncertain_control_ids"])
+    queue = new | uncertain  # what a reviewer sees beyond the rules baseline
     return {
         "key_misses": len(misses),
         "key_recovered": len(recovered),
@@ -25,7 +26,13 @@ def score(result, labels):
         "remaining_key_misses": sorted(key - recommended),
         "uncertain_controls": len(uncertain),
         "uninvestigated_controls": len(result["uninvestigated_control_ids"]),
-        "review_items": len(new | uncertain),
+        "review_items": len(queue),
+        "uncertain_true_controls": len(uncertain & affected),
+        # Descriptive burden measures (registered 2026-10-15; do not replace the gate):
+        "avoidable_review_items": len(queue - affected),
+        "review_queue_true_share": (
+            len(queue & affected) / len(queue) if queue else None
+        ),
         "model_calls": len(result["trace"]),
         "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
     }

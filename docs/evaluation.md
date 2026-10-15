@@ -21,6 +21,7 @@ Computed by `scripts/score_detective.py` from a saved result and offline labels
 | New-control precision | New true ÷ (new true + new false) |
 | Uncertain | Controls sent to human review; workload, never counted as recovered |
 | Review items | New recommendations ∪ uncertain |
+| Uncertain true | UNCERTAIN controls that are affected |
 | Uninvestigated | Controls with no decision; reported, never counted as safe |
 
 `run_detective_suite.py` pools counts across cases (micro-average) and, with
@@ -43,11 +44,27 @@ pairs, report the approximate 95% upper bound on the miss rate as 3/n.
 On the development split the baseline flags 176 controls and misses 225
 affected key controls. Recovering 50% means adding at least 113 controls,
 +64% workload even at perfect precision. Because correct recoveries count as
-workload, any method that passes gate 1 fails gate 2 on this benchmark. The
-gate is reported as written; any change to it must be decided and documented
-before the next evaluation, not after seeing results. A reasonable candidate is
-to count false positives and UNCERTAIN items, not correct recoveries, as
-added workload.
+workload, any method that passes gate 1 fails gate 2 on this benchmark, and
+where the baseline flags nothing (for example CHG-001) any review item is an
+unbounded increase.
+
+**Decision (registered 2026-10-15, before the frozen-check results):** gate 2
+stays exactly as written and is reported as met or not met. Counting only
+wrong flags and UNCERTAIN items was considered and rejected as a replacement:
+on the four tuned cases it gives 46 items against 19 (+242%), so it would not
+change the verdict, and redefining a gate until it passes is not credible.
+Review burden is additionally described, never gated, by:
+
+| Measure | Definition |
+|---|---|
+| Avoidable review items | Items beyond the baseline (new recommendations ∪ UNCERTAIN) that are not affected |
+| Avoidable items per case | Avoidable review items ÷ cases |
+| Review-queue true share | Affected items ÷ all items beyond the baseline |
+
+On the four tuned cases: 102 items beyond the baseline, of which 56 new
+recommendations are affected and 5 are not; how many of the 41 UNCERTAIN
+items are affected was not recorded by that code version, so the true share is
+between 55% and 95%.
 
 ## Kill conditions
 

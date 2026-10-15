@@ -46,6 +46,7 @@ def aggregate(case_metrics):
     new_false = sum(m["new_false_controls"] for m in case_metrics)
     base_work = sum(m["baseline_controls"] for m in case_metrics)
     extra_work = sum(m["review_items"] for m in case_metrics)
+    avoidable = sum(m.get("avoidable_review_items", 0) for m in case_metrics)
     return {
         "cases": len(case_metrics),
         "key_misses": misses,
@@ -59,6 +60,13 @@ def aggregate(case_metrics):
         "added_review_items": extra_work,
         "added_workload_vs_baseline": extra_work / base_work if base_work else None,
         "target_added_workload_max": 0.25,
+        "avoidable_review_items": avoidable,
+        "avoidable_review_items_per_case": (
+            avoidable / len(case_metrics) if case_metrics else None
+        ),
+        "review_queue_true_share": (
+            (extra_work - avoidable) / extra_work if extra_work else None
+        ),
         "uncertain_controls": sum(m["uncertain_controls"] for m in case_metrics),
         "uninvestigated_controls": sum(
             m["uninvestigated_controls"] for m in case_metrics
@@ -166,6 +174,7 @@ def main():
                         "review_items": 0,
                         "uncertain_controls": 0,
                         "uninvestigated_controls": 0,
+                        "avoidable_review_items": 0,
                         "model_calls": len(calls),
                     }
                 )

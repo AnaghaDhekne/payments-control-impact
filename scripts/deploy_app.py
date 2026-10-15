@@ -138,6 +138,25 @@ def main():
             (app.get("app_status") or {}).get("state"),
             (app.get("app_status") or {}).get("message", ""),
         )
+        dep = app.get("active_deployment") or app.get("pending_deployment") or {}
+        print(
+            "deployment:",
+            (dep.get("status") or {}).get("state"),
+            (dep.get("status") or {}).get("message", ""),
+        )
+        src = dep.get("source_code_path")
+        if src:
+            for rel in ("app.yaml", "requirements.txt", "app/app.py", "app/data.py"):
+                try:
+                    info = _do(
+                        w,
+                        "GET",
+                        "/api/2.0/workspace/get-status",
+                        query={"path": f"{src}/{rel}"},
+                    )
+                    print(f"  {rel}: {info.get('object_type')}")
+                except Exception as exc:
+                    print(f"  {rel}: MISSING ({str(exc)[:80]})")
         return
 
     me = _do(w, "GET", "/api/2.0/preview/scim/v2/Me")["userName"]

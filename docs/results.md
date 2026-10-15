@@ -148,7 +148,18 @@ Registered before the change is run on any case.
   same version already differ (precision 100% vs 78% on three cases); the fix
   was motivated by CHG-025, a tuned case; all eight cases have been seen once.
 
+**Outcome (2026-10-15, 6 of 8 cases done; the rule is already decided).**
+Version B recovered 24 of the 45 key misses in the six finished cases against
+30 for A (CHG-002: 11 vs 16). The two remaining cases have 4 key misses, so
+B can reach at most 28 of 49, below the 29 the rule requires. **Version A goes
+to the held-out run.** B removed every wrong flag so far (0 vs 5 on the same
+cases) and sent fewer controls to review (69 vs 81), but at a cost in
+recall. Final B figures to be added when job 663596150833963 ends.
+
 ## Pre-registered: held-out test run (2026-10-15)
+
+**Submitted** 2026-10-15 with `--variant A`, job run id `862812162377923`,
+output `heldout-final`.
 
 Registered before the A/B result is known and before any test case is run.
 

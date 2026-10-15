@@ -88,6 +88,29 @@ proposer over-claiming impact across functional areas; the verifier is
 protecting precision. Reducing it means a more conservative proposer, to be
 tested only on fresh cases.
 
+## Pre-registered: proposer chain requirement, A/B test (2026-10-15)
+
+Registered before the change is run on any case.
+
+- **Change (version B):** a proposer AFFECTED finding must carry an
+  `evidence_path` that starts at a changed entity and ends at the control;
+  findings without one are rejected with a message and can be resubmitted.
+  The instructions say AFFECTED needs the control to govern the same rule,
+  system, interface or process the change reaches, and that impact crossing
+  into another functional area without an explicit link is UNCERTAIN.
+  Verifier unchanged. Includes the null counter-evidence fix (`d6ca2e4`).
+- **Baseline (version A):** frozen commit `799189a`, results in `suite-10`.
+- **Test:** the same eight cases (CHG-004, CHG-002, CHG-041, CHG-026,
+  CHG-029, CHG-016, CHG-049, CHG-010), one run, same settings, output
+  `suite-12`. Version A is rescored with the current scorer (no model calls)
+  so both have the same measures.
+- **Adopt B for the held-out run only if both hold:** avoidable review items
+  fall by at least 30%, and key controls recovered fall by no more than 3 of
+  the 49 key misses. Otherwise version A goes to the held-out run.
+- **Caveats stated in advance:** one run per version, and repeat runs of the
+  same version already differ (precision 100% vs 78% on three cases); the fix
+  was motivated by CHG-025, a tuned case; all eight cases have been seen once.
+
 ## Next steps
 
 1. Analyse the CHG-025 proposer/verifier disagreements before changing prompts.

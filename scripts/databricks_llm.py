@@ -123,36 +123,55 @@ class DatabricksChatLLM:
 
         self._w = WorkspaceClient()
 
+    # "Reasoning: low" is gpt-oss's documented reasoning-effort control in the
+    # system message; other models ignore it. Long reasoning was ending turns
+    # without any final answer.
     SYSTEM = (
+        "Reasoning: low\n"
         "Always write your final answer as a single JSON object in the final response, "
         "not only in your reasoning. Never leave the final answer empty."
     )
+    RETRY_NUDGE = (
+        "\n\nIMPORTANT: your previous reply contained no final answer. Think briefly, "
+        "then output ONLY the JSON object as your final answer."
+    )
+    RETRY_TEMPERATURE = 0.3
 
     def __call__(self, prompt):
         """Query the configured endpoint and return its answer text.
 
-        Endpoint errors and empty answers are retried with backoff. After the
-        last attempt an endpoint error is raised; an empty answer is returned
-        as "" so the caller records it as a step error.
+        Endpoint errors are retried with backoff. An empty answer is retried
+        with a nudge and a little sampling temperature, since an identical
+        temperature-0 request returns the same empty answer. After the last
+        attempt an endpoint error is raised; an empty answer is returned as ""
+        so the caller records it as a step error.
         """
         from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
 
-        last, text = None, ""
+        last, text, empty = None, "", 0
+        self.empty_answers = getattr(self, "empty_answers", 0)
         for attempt in range(self.retries):
+            content = prompt + (self.RETRY_NUDGE if empty else "")
             try:
                 resp = self._w.serving_endpoints.query(
                     name=self.model,
                     messages=[
                         ChatMessage(role=ChatMessageRole.SYSTEM, content=self.SYSTEM),
-                        ChatMessage(role=ChatMessageRole.USER, content=prompt),
+                        ChatMessage(role=ChatMessageRole.USER, content=content),
                     ],
-                    temperature=self.temperature,
+                    temperature=(
+                        self.temperature
+                        if not empty
+                        else max(self.temperature, self.RETRY_TEMPERATURE)
+                    ),
                     max_tokens=self.max_tokens,
                 )
                 text = content_text(resp.choices[0].message.content)
                 if text.strip():
                     return text
-                last = None  # empty answer: retry without waiting long
+                empty += 1
+                self.empty_answers += 1
+                last = None
                 continue
             except Exception as exc:  # endpoint/network errors
                 last = exc

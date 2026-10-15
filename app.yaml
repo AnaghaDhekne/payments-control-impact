@@ -1,5 +1,5 @@
-# Databricks App definition. scripts/deploy_app.py copies this file, with the
-# app/, scripts/ and docs/ folders, to the bundle root before deploying.
+# Databricks App definition. Deploy with the repository root folder as the
+# source (Deploy button) or with python -m scripts.deploy_app.
 command:
   - streamlit
   - run

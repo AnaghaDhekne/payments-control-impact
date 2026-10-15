@@ -27,8 +27,8 @@ BUNDLE = [
     ("app/content.py", "app/content.py"),
     ("app/data.py", "app/data.py"),
     ("app/qa.py", "app/qa.py"),
-    ("app/app.yaml", "app.yaml"),
-    ("app/requirements.txt", "requirements.txt"),
+    ("app.yaml", "app.yaml"),
+    ("requirements.txt", "requirements.txt"),
     ("README.md", "README.md"),
     ("data/README.md", "data/README.md"),
 ]

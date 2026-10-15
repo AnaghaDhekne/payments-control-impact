@@ -103,6 +103,10 @@ cd /tmp/pci && python -m scripts.deploy_app          # upload, create or update,
 python -m scripts.deploy_app --status                # URL and state
 ```
 
+Or in the UI: **Compute → Apps → control-impact-detective → Deploy**, with the
+source folder set to the repository root (the folder holding `app.yaml`), not
+`app/`. After a `git pull` in the Git folder, click **Deploy** again.
+
 The app reads `/Volumes/workspace/default/detective_runs` with its own service
 principal (granted READ VOLUME by the script) and answers questions with the
 `databricks-gpt-oss-120b` endpoint (attached as an app resource). Run locally

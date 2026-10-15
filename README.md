@@ -4,8 +4,12 @@ An experimental workflow for identifying payment controls affected by changes wh
 
 ## Current status
 
-**Detective recovery path implemented; live evaluation pending.** See
-[the diagnosis and Databricks run commands](docs/detective_recovery.md).
+**Detective agentic path runs live on Databricks (development results only).**
+On four development cases it recovered 22 of 27 key controls missed by the
+rules baseline (81.5%) with 92% precision on new controls; the workload gate is
+not met and consistency is not yet measured. See
+[live results](docs/detective_live_results.md) and
+[the diagnosis and run commands](docs/detective_recovery.md).
 The saved impact-discovery run reports 57.6% recovery and 91.2% new-control
 precision, but only 25.3% direct-edge precision. The separate simulated LLM
 review reports 5.6% recovery and 27.3% approval precision. These studies measure

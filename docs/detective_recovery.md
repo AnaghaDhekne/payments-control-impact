@@ -145,8 +145,27 @@ of aggregate performance. Keep every failure and earlier artifact.
 ## Validation status
 
 Automated tests use scripted model responses to check actual tool execution,
-evidence validation, uncertainty, checkpoints, scoring, and exclusion of
-hidden labels. These validate software behavior, not live LLM accuracy.
-No Databricks endpoint is available in this editing session. The new detective
-has not yet passed a live model evaluation and must not be presented as having
-achieved the previous ensemble's metrics.
+evidence validation, uncertainty, checkpoints, resume, scoring, and exclusion
+of hidden labels. These validate software behavior, not live LLM accuracy.
+
+Live development runs on Databricks are recorded in
+[detective_live_results.md](detective_live_results.md): 22 of 27 key misses
+recovered across four development cases, 92% precision on new controls, the
+workload gate not met, and consistency not yet measured. These cases were
+inspected while fixing the code, so they are not held-out evidence and must not
+be presented as having achieved the previous ensemble's held-out metrics.
+
+## Running long jobs
+
+Databricks web terminals end background processes. Submit runs as a job and
+write results to a Unity Catalog volume:
+
+```bash
+python -m scripts.detective_job submit --repo /Workspace/Users/<you>/payments-control-impact \
+    --change-ids CHG-014 CHG-025 CHG-017 \
+    --output-dir /Volumes/workspace/default/detective_runs/suite-09
+python -m scripts.detective_job status <run_id>
+```
+
+Jobs always resume from saved results, so resubmitting continues an
+interrupted run.

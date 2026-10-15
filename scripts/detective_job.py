@@ -50,10 +50,21 @@ def build_body(repo, args):
         params += ["--max-cases", str(args.max_cases)]
     if args.runs != 1:
         params += ["--runs", str(args.runs)]
+    if getattr(args, "variant", None):
+        params += ["--variant", args.variant]
+    if getattr(args, "split", "development") != "development":
+        params += [
+            "--split",
+            args.split,
+            "--confirm-heldout",
+            args.confirm_heldout or "",
+        ]
     if getattr(args, "ignore_lock", False):
         params += ["--ignore-lock"]
     return {
-        "run_name": "detective-suite " + os.path.basename(args.output_dir.rstrip("/")),
+        "run_name": "detective-suite "
+        + os.path.basename(args.output_dir.rstrip("/"))
+        + (f" variant {args.variant}" if getattr(args, "variant", None) else ""),
         "timeout_seconds": 0,
         "tasks": [
             {
@@ -152,6 +163,9 @@ def main():
     s.add_argument("--runs", type=int, default=1)
     s.add_argument("--output-dir", required=True)
     s.add_argument("--ignore-lock", action="store_true")
+    s.add_argument("--split", choices=["development", "test"], default="development")
+    s.add_argument("--confirm-heldout")
+    s.add_argument("--variant", choices=["A", "B"])
     s.set_defaults(func=submit)
     t = sub.add_parser("status")
     t.add_argument("run_id", type=int)

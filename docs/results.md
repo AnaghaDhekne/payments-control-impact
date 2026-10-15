@@ -148,6 +148,27 @@ Registered before the change is run on any case.
   same version already differ (precision 100% vs 78% on three cases); the fix
   was motivated by CHG-025, a tuned case; all eight cases have been seen once.
 
+## Pre-registered: held-out test run (2026-10-15)
+
+Registered before the A/B result is known and before any test case is run.
+
+- **Cases:** all 18 test-split changes (CHG-003, 006, 009, 012, 015, 018, 021,
+  024, 027, 030, 033, 036, 039, 042, 045, 048, 051, 054), 30% change-correlated
+  degradation, one run.
+- **Agent:** the variant selected by the A/B rule above (`--variant A` or `B`),
+  at the commit that records this note; both variants' instructions are
+  byte-identical to the measured commits `799189a` (A) and `67bd813` (B).
+- **Command:** `detective_job submit --split test --confirm-heldout
+  final-frozen-run --variant <A|B> --output-dir
+  /Volumes/workspace/default/detective_runs/heldout-final`.
+- **Rules:** no code, prompt or model change after submission; an interrupted
+  run may only be resumed with the same variant (enforced); every case is
+  reported; all three gates and the review-burden measures are reported
+  whatever they show.
+- **Caveat stated in advance:** the test cases were examined during the earlier
+  Phase 2 diagnosis (not by the detective), so this is the best available
+  unseen evaluation, not a pristine one.
+
 ## Next steps
 
 1. Analyse the CHG-025 proposer/verifier disagreements before changing prompts.

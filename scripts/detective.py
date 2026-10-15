@@ -400,7 +400,33 @@ def verification_evidence(tools, ticket, finding):
     }
 
 
-INSTRUCTIONS = (
+# Variant A (frozen check, commit 799189a) and variant B (chain requirement,
+# commit 67bd813) differ only in this paragraph and in whether a proposer
+# AFFECTED finding must carry an evidence_path from a changed entity.
+DECIDING = {
+    "A": (
+        "Deciding: a missing edge is NOT counter-evidence, because edges near the change are known to be "
+        "missing. Decide AFFECTED when there is a functional chain: the changed entity is used by a rule, "
+        "system, interface or process, and the control governs that same function (for example its "
+        "family members are governed by the system or process that performs it, or its own edges reach "
+        "it). Decide UNAFFECTED when the control governs a different function the change does not reach. "
+        "Use UNCERTAIN only when neither a chain nor an exclusion can be shown.\n"
+    ),
+    "B": (
+        "Deciding: a missing edge is NOT counter-evidence, because edges near the change are known to be "
+        "missing. Decide AFFECTED only with a concrete chain, written as evidence_path: the changed entity "
+        "first, then the rule, system, interface or process that uses it, ending with the control, where "
+        "the control governs that SAME rule, system, interface or process (its own edges or its family "
+        "members' edges reach it). AFFECTED without such a path is rejected. Impact that crosses into a "
+        "different functional area (for example from message mapping to reconciliation, reporting or "
+        "authorization) needs an explicit link into that area; without one, decide UNCERTAIN. Decide "
+        "UNAFFECTED when the control governs a different function the change does not reach.\n"
+    ),
+}
+VARIANTS = tuple(DECIDING)
+DEFAULT_VARIANT = "B"
+
+INSTRUCTIONS_TEMPLATE = (
     "You are a payments change-impact detective. Decide which controls are affected by the change, "
     "including INDIRECT effects. Visible lineage metadata is known to be INCOMPLETE near changed "
     "entities, so a control with no visible path may still be affected. Impact does not prove a "
@@ -423,20 +449,22 @@ INSTRUCTIONS = (
     "share a family with an affected control (e.g. same prefix before the dash) are likely affected "
     "the same way; check them. 4) Inspect in batches, then submit findings in batches. "
     "5) Also record clear UNAFFECTED decisions for unrelated controls so coverage is explicit.\n"
-    "Deciding: a missing edge is NOT counter-evidence, because edges near the change are known to be "
-    "missing. Decide AFFECTED only with a concrete chain, written as evidence_path: the changed entity "
-    "first, then the rule, system, interface or process that uses it, ending with the control, where "
-    "the control governs that SAME rule, system, interface or process (its own edges or its family "
-    "members' edges reach it). AFFECTED without such a path is rejected. Impact that crosses into a "
-    "different functional area (for example from message mapping to reconciliation, reporting or "
-    "authorization) needs an explicit link into that area; without one, decide UNCERTAIN. Decide "
-    "UNAFFECTED when the control governs a different function the change does not reach.\n"
+    "{deciding}"
     "Rules: quotes must be exact, short (under 12 words), nonempty substrings of the ticket title/text "
     "and of that control's text. Keep causal_reason and counter_evidence under 30 words each and name "
     "the node IDs of the chain. Submit at most 8 findings per action, otherwise your reply is cut off "
     "and lost. Shared words alone are insufficient. Never invent entities, quotes, or edges. Use the "
     "remaining steps; finish only when every control has a decision or steps run out.\n"
 )
+
+
+def instructions_for(variant):
+    if variant not in DECIDING:
+        raise ValueError("variant must be one of " + ", ".join(VARIANTS))
+    return INSTRUCTIONS_TEMPLATE.replace("{deciding}", DECIDING[variant])
+
+
+INSTRUCTIONS = instructions_for(DEFAULT_VARIANT)
 
 
 def _summarize(action, args, result):
@@ -462,7 +490,9 @@ def _summarize(action, args, result):
     return result
 
 
-def investigate(case, llm, max_steps=24, persist=None, resume=None):
+def investigate(
+    case, llm, max_steps=24, persist=None, resume=None, variant=DEFAULT_VARIANT
+):
     """Let the LLM select tools and hypotheses; return a complete audit trail.
 
     persist receives a snapshot after each call, including raw responses.
@@ -475,6 +505,7 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
     """
     if type(max_steps) is not int or not 1 <= max_steps <= 200:
         raise ValueError("max_steps must be from 1 to 200")
+    instructions = instructions_for(variant)
     tools = EvidenceTools(case)
     payload = tools.case
     baseline = rank_controls(payload)
@@ -489,6 +520,7 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
         "trace": trace,
         "findings": [],
         "status": "RUNNING",
+        "variant": variant,
     }
     ticket = payload["change_ticket"]
     changed = [
@@ -553,6 +585,10 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
     if resume is not None:
         if resume.get("case_digest") != state["case_digest"]:
             raise ValueError("Resume state belongs to a different case")
+        if resume.get("variant", variant) != variant:
+            raise ValueError(
+                f"Resume state was produced by variant {resume['variant']}, not {variant}"
+            )
         for old in resume.get("trace", []):
             if old.get("phase") != "investigate":
                 continue
@@ -601,7 +637,7 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
 
     def prompt_for(step):
         submitted = {cid: f["decision"] for cid, f in findings.items()}
-        return INSTRUCTIONS + json.dumps(
+        return instructions + json.dumps(
             {
                 "case": context,
                 "notebook": {
@@ -672,7 +708,10 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
                 for item in batch:
                     try:
                         finding = validate_finding(
-                            payload, item, tools.inspected, require_chain=True
+                            payload,
+                            item,
+                            tools.inspected,
+                            require_chain=(variant == "B"),
                         )
                     except ValueError as exc:
                         cid = item.get("control_id") if isinstance(item, dict) else None

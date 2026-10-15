@@ -564,3 +564,58 @@ def test_output_folder_lock_blocks_second_run(tmp_path):
     with pytest.raises(SystemExit):
         acquire_lock(tmp_path)
     acquire_lock(tmp_path, ignore=True)  # explicit override
+
+
+def test_heldout_split_needs_explicit_confirmation():
+    from scripts.run_detective_suite import select_cases, HELDOUT_CONFIRMATION
+
+    cases = [
+        {"change_id": "D1", "split": "development"},
+        {"change_id": "T1", "split": "test"},
+    ]
+    assert [c["change_id"] for c in select_cases(cases)] == ["D1"]
+    with pytest.raises(SystemExit):
+        select_cases(cases, "test")
+    with pytest.raises(SystemExit):
+        select_cases(cases, "test", "yes")
+    picked = select_cases(cases, "test", HELDOUT_CONFIRMATION)
+    assert [c["change_id"] for c in picked] == ["T1"]
+
+
+def test_variant_a_has_no_chain_requirement_and_records_variant():
+    no_path = {k: v for k, v in finding().items() if k != "evidence_path"}
+    responses = iter(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": no_path},
+            {"action": "finish"},
+            no_path,
+        ]
+    )
+    prompts = []
+    result = investigate(
+        demo_case(),
+        lambda p: prompts.append(p) or json.dumps(next(responses)),
+        max_steps=3,
+        variant="A",
+    )
+    assert result["variant"] == "A"
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    assert "AFFECTED without such a path is rejected" not in prompts[0]
+    with pytest.raises(ValueError):
+        investigate(demo_case(), lambda p: "{}", max_steps=1, variant="Z")
+
+
+def test_resume_refuses_a_different_variant():
+    snapshots = []
+    investigate(
+        demo_case(),
+        lambda p: json.dumps({"action": "finish"}),
+        max_steps=1,
+        persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
+        variant="A",
+    )
+    with pytest.raises(ValueError):
+        investigate(
+            demo_case(), lambda p: "{}", max_steps=2, resume=snapshots[-1], variant="B"
+        )

@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 from scripts.case_io import observable_payload
-from scripts.detective import investigate
+from scripts.detective import DEFAULT_VARIANT, VARIANTS, investigate
 from scripts.evaluate_baseline import _truth_by_change
 from scripts.generate_benchmark import build_graph, build_changes
 from scripts.generate_observable import build_condition
@@ -74,7 +74,32 @@ def labels_for(truth_for_change):
     return {"affected_control_ids": affected, "key_control_ids": key}
 
 
-def aggregate(case_metrics):
+HELDOUT_CONFIRMATION = "final-frozen-run"
+
+
+def select_cases(
+    all_cases, split="development", confirm=None, change_ids=None, max_cases=None
+):
+    """Pick cases for a run. The held-out test split needs explicit confirmation.
+
+    The test split is the only unseen data left; it is meant to be run once,
+    with code and prompts frozen, so it cannot be selected by accident.
+    """
+    if split == "test" and confirm != HELDOUT_CONFIRMATION:
+        raise SystemExit(
+            "The test split is the held-out set, to be run once with frozen code. "
+            f"Pass --split test --confirm-heldout {HELDOUT_CONFIRMATION} to proceed."
+        )
+    cases = [c for c in all_cases if c["split"] == split]
+    if change_ids:
+        wanted = set(change_ids)
+        cases = [c for c in cases if c["change_id"] in wanted]
+    if max_cases is not None:
+        cases = cases[:max_cases]
+    return cases
+
+
+def aggregate(case_metrics, split="development", variant=None):
     """Pool counts across cases (micro-averages), matching the evaluation contract."""
     misses = sum(m["key_misses"] for m in case_metrics)
     recovered = sum(m["key_recovered"] for m in case_metrics)
@@ -109,8 +134,14 @@ def aggregate(case_metrics):
         ),
         "model_calls": sum(m["model_calls"] for m in case_metrics),
         "statuses": sorted({m["status"] for m in case_metrics}),
-        "note": "Development split only; prompts may have been tuned on these cases. "
-        "Not a held-out result.",
+        "split": split,
+        "variant": variant,
+        "note": (
+            "Held-out test split, frozen code: the final evaluation."
+            if split == "test"
+            else "Development split only; prompts may have been tuned on these cases. "
+            "Not a held-out result."
+        ),
     }
 
 
@@ -134,6 +165,19 @@ def main():
         "cases already scored are skipped",
     )
     parser.add_argument(
+        "--split", choices=["development", "test"], default="development"
+    )
+    parser.add_argument(
+        "--variant",
+        choices=list(VARIANTS),
+        default=DEFAULT_VARIANT,
+        help="A = frozen-check agent (799189a); B = chain requirement (67bd813)",
+    )
+    parser.add_argument(
+        "--confirm-heldout",
+        help=f"Required with --split test; must be {HELDOUT_CONFIRMATION!r}",
+    )
+    parser.add_argument(
         "--ignore-lock",
         action="store_true",
         help="Run even if another run appears to be using --output-dir "
@@ -146,16 +190,13 @@ def main():
     llm = DatabricksChatLLM(args.model, max_tokens=args.max_tokens)
     graph, changes = build_graph(), build_changes()
     truth = _truth_by_change(graph, changes)
-    cases = [
-        c
-        for c in build_condition(graph, changes, args.level, args.mode)["cases"]
-        if c["split"] == "development"
-    ]
-    if args.change_ids:
-        wanted = set(args.change_ids)
-        cases = [c for c in cases if c["change_id"] in wanted]
-    if args.max_cases is not None:
-        cases = cases[: args.max_cases]
+    cases = select_cases(
+        build_condition(graph, changes, args.level, args.mode)["cases"],
+        args.split,
+        args.confirm_heldout,
+        args.change_ids,
+        args.max_cases,
+    )
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -198,6 +239,7 @@ def main():
                     max_steps=args.max_steps,
                     persist=persist,
                     resume=saved,
+                    variant=args.variant,
                 )
             except _AlreadyDone:
                 pass
@@ -256,7 +298,7 @@ def main():
         runs.append(
             {
                 "cases": case_metrics,
-                "summary": aggregate(case_metrics),
+                "summary": aggregate(case_metrics, args.split, args.variant),
                 "key_decisions": decisions,
             }
         )

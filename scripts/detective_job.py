@@ -5,6 +5,10 @@ Submit (prints a run ID and a link):
     python -m scripts.detective_job submit --change-ids CHG-014 CHG-025 CHG-017 \
         --output-dir /Volumes/workspace/default/detective_runs/suite-09
 
+List recent runs (to find a lost run ID):
+
+    python -m scripts.detective_job list
+
 Check status and the job's printed output:
 
     python -m scripts.detective_job status <run_id>
@@ -107,6 +111,29 @@ def status(args):
         print(logs[-args.tail :] if logs else "(no output yet)")
 
 
+def list_runs(args):
+    """Recent one-time runs, newest first, so a lost run ID can be recovered."""
+    w = _client()
+    out = w.api_client.do(
+        "GET",
+        "/api/2.2/jobs/runs/list",
+        query={"run_type": "SUBMIT_RUN", "limit": args.limit},
+    )
+    import datetime as _dt
+
+    for run in out.get("runs", []):
+        state = run.get("status", {}).get("state") or run.get("state", {}).get(
+            "life_cycle_state"
+        )
+        started = run.get("start_time")
+        when = (
+            _dt.datetime.fromtimestamp(started / 1000).strftime("%Y-%m-%d %H:%M")
+            if started
+            else "-"
+        )
+        print(f"{run['run_id']}  {when}  {state:<12}  {run.get('run_name', '')}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -127,6 +154,9 @@ def main():
     t.add_argument("run_id", type=int)
     t.add_argument("--tail", type=int, default=3000)
     t.set_defaults(func=status)
+    lst = sub.add_parser("list")
+    lst.add_argument("--limit", type=int, default=10)
+    lst.set_defaults(func=list_runs)
     args = parser.parse_args()
     args.func(args)
 

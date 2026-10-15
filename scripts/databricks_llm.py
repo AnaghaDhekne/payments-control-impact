@@ -5,9 +5,25 @@ from __future__ import annotations
 import json
 import time
 
+_MEANINGFUL_KEYS = {
+    "action",
+    "tool",
+    "name",
+    "function",
+    "findings",
+    "decision",
+    "recommendations",
+    "proposals",
+}
+
 
 def _last_json_object(text: str):
-    """Return the last complete JSON object embedded in text, re-serialised, or None."""
+    """Return the last meaningful JSON object embedded in text, re-serialised, or None.
+
+    Only objects carrying a command, finding or result key count: reasoning text
+    often mentions fragments such as ``trace_metadata {}`` that are not answers.
+    Nested objects inside a parsed object are skipped.
+    """
     decoder = json.JSONDecoder()
     found = None
     i = text.find("{")
@@ -17,9 +33,11 @@ def _last_json_object(text: str):
         except json.JSONDecodeError:
             i = text.find("{", i + 1)
             continue
-        if isinstance(obj, dict):
+        if isinstance(obj, dict) and _MEANINGFUL_KEYS & set(obj):
             found = obj
-        i = text.find("{", end)
+            i = text.find("{", end)
+        else:
+            i = text.find("{", i + 1)
     return json.dumps(found) if found is not None else None
 
 

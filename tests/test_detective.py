@@ -383,3 +383,20 @@ def test_verifier_missing_counter_evidence_is_tolerated():
     reply.pop("counter_evidence")
     result, _ = run(commands() + [reply])
     assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_reasoning_fallback_ignores_empty_fragments():
+    from scripts.databricks_llm import content_text
+
+    text = 'Call trace_metadata {} first. Then {"action": "trace_metadata", "args": {}}. Use args {}.'
+    blocks = [
+        {"type": "reasoning", "summary": [{"type": "summary_text", "text": text}]}
+    ]
+    assert json.loads(content_text(blocks)) == {"action": "trace_metadata", "args": {}}
+    only_fragments = [
+        {
+            "type": "reasoning",
+            "summary": [{"type": "summary_text", "text": "use {} and {}"}],
+        }
+    ]
+    assert content_text(only_fragments) == ""

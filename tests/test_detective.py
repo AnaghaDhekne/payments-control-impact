@@ -226,3 +226,28 @@ def test_prompt_does_not_resend_old_tool_output_in_full():
     _, prompts = run(cmds, case, max_steps=8)
     # Prompt growth stays bounded: only the latest observations are in full.
     assert len(prompts[5]) - len(prompts[3]) < len(prompts[3]) // 2
+
+
+def test_reasoning_only_reply_falls_back_to_json_in_reasoning():
+    """gpt-oss sometimes stops with only a reasoning block and no answer block."""
+    from scripts.databricks_llm import content_text
+
+    blocks = [
+        {
+            "type": "reasoning",
+            "summary": [
+                {
+                    "type": "summary_text",
+                    "text": 'Start at D03. {"action": "explore_node", "args": {"node_id": "D03"}}',
+                }
+            ],
+        }
+    ]
+    assert json.loads(content_text(blocks)) == {
+        "action": "explore_node",
+        "args": {"node_id": "D03"},
+    }
+    assert content_text([{"type": "reasoning", "summary": []}]) == ""
+    # An answer block always wins over reasoning.
+    blocks.append({"type": "text", "text": '{"action": "finish"}'})
+    assert content_text(blocks) == '{"action": "finish"}'

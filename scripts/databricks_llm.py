@@ -6,14 +6,51 @@ import json
 import time
 
 
+def _last_json_object(text: str):
+    """Return the last complete JSON object embedded in text, re-serialised, or None."""
+    decoder = json.JSONDecoder()
+    found = None
+    i = text.find("{")
+    while i != -1:
+        try:
+            obj, end = decoder.raw_decode(text, i)
+        except json.JSONDecodeError:
+            i = text.find("{", i + 1)
+            continue
+        if isinstance(obj, dict):
+            found = obj
+        i = text.find("{", end)
+    return json.dumps(found) if found is not None else None
+
+
+def _reasoning_text(block: dict) -> str:
+    """Collect readable text from a reasoning block (summary items, text or content)."""
+    parts = []
+    for key in ("summary", "content"):
+        items = block.get(key)
+        if isinstance(items, str):
+            parts.append(items)
+        elif isinstance(items, list):
+            for item in items:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict) and isinstance(item.get("text"), str):
+                    parts.append(item["text"])
+    if isinstance(block.get("text"), str):
+        parts.append(block["text"])
+    return "\n".join(parts)
+
+
 def content_text(content) -> str:
     """Return the answer text from a chat message content field.
 
     Reasoning models served on Databricks (for example databricks-gpt-oss-120b)
     return content as a list of blocks such as
     [{"type": "reasoning", ...}, {"type": "text", "text": "..."}].
-    Only the answer ("text") blocks are returned; reasoning blocks are dropped.
-    Plain strings are returned unchanged.
+    Answer ("text") blocks are returned and reasoning is dropped. If the model
+    stopped without any answer block (gpt-oss sometimes ends inside its
+    reasoning), the last JSON object found in the reasoning is returned instead;
+    if there is none, the result is "". Plain strings are returned unchanged.
     """
     if content is None:
         return ""
@@ -31,19 +68,21 @@ def content_text(content) -> str:
     if isinstance(content, dict):
         content = [content]
     if isinstance(content, list):
-        parts = []
+        parts, reasoning = [], []
         for block in content:
             if isinstance(block, str):
                 parts.append(block)
-            elif isinstance(block, dict) and block.get("type") in (
-                "text",
-                "output_text",
-                None,
-            ):
-                text = block.get("text")
-                if isinstance(text, str):
-                    parts.append(text)
-        return "\n".join(parts)
+            elif isinstance(block, dict):
+                if block.get("type") in ("text", "output_text", None):
+                    text = block.get("text")
+                    if isinstance(text, str):
+                        parts.append(text)
+                elif block.get("type") == "reasoning":
+                    reasoning.append(_reasoning_text(block))
+        answer = "\n".join(parts)
+        if answer.strip():
+            return answer
+        return _last_json_object("\n".join(reasoning)) or ""
     return str(content)
 
 
@@ -66,25 +105,41 @@ class DatabricksChatLLM:
 
         self._w = WorkspaceClient()
 
+    SYSTEM = (
+        "Always write your final answer as a single JSON object in the final response, "
+        "not only in your reasoning. Never leave the final answer empty."
+    )
+
     def __call__(self, prompt):
         """Query the configured endpoint and return its answer text.
 
-        Transient endpoint errors are retried with backoff; the final error is raised.
+        Endpoint errors and empty answers are retried with backoff. After the
+        last attempt an endpoint error is raised; an empty answer is returned
+        as "" so the caller records it as a step error.
         """
         from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
 
-        last = None
+        last, text = None, ""
         for attempt in range(self.retries):
             try:
                 resp = self._w.serving_endpoints.query(
                     name=self.model,
-                    messages=[ChatMessage(role=ChatMessageRole.USER, content=prompt)],
+                    messages=[
+                        ChatMessage(role=ChatMessageRole.SYSTEM, content=self.SYSTEM),
+                        ChatMessage(role=ChatMessageRole.USER, content=prompt),
+                    ],
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                 )
-                return content_text(resp.choices[0].message.content)
+                text = content_text(resp.choices[0].message.content)
+                if text.strip():
+                    return text
+                last = None  # empty answer: retry without waiting long
+                continue
             except Exception as exc:  # endpoint/network errors
                 last = exc
                 if attempt + 1 < self.retries:
                     time.sleep(self.backoff_seconds * (2**attempt))
-        raise last
+        if last is not None:
+            raise last
+        return text

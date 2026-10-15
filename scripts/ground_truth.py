@@ -6,7 +6,7 @@ complete hidden graph and produces benchmark labels.
 
 from __future__ import annotations
 from collections import defaultdict, deque
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import date
 import json
 from pathlib import Path
@@ -27,9 +27,8 @@ PROPAGATING = {
     "DEPENDS_ON",
     "EVIDENCES",
 }
-# A compensating-control link is contextual, not proof that the compensating control
-# itself is impacted by every change to the primary control.
-NON_PROPAGATING = {"COMPENSATED_BY"}
+# COMPENSATED_BY is deliberately absent: a compensating-control link is contextual,
+# not proof that the compensating control is impacted by every change to the primary.
 
 
 @dataclass(frozen=True)
@@ -193,7 +192,3 @@ def label_change(
             )
         )
     return labels
-
-
-def labels_as_dicts(labels: list[ImpactLabel]) -> list[dict]:
-    return [asdict(x) for x in labels]

@@ -90,7 +90,6 @@ def load_seed():
 
 def build_graph():
     graph = deepcopy(load_seed())
-    existing = {n["id"] for n in graph["nodes"]}
     next_control = 12
     next_edge = max(int(e["id"][1:]) for e in graph["edges"]) + 1
 
@@ -145,7 +144,7 @@ def build_changes():
     # 54 total: three deterministic variants of 18 meaningful templates.
     dates = ["2026-11-14", "2026-12-01", "2027-01-15"]
     for cycle in range(3):
-        for idx, (node, ctype, title) in enumerate(CHANGE_TEMPLATES, start=1):
+        for node, ctype, title in CHANGE_TEMPLATES:
             n = len(changes) + 1
             changes.append(
                 {

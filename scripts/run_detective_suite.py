@@ -25,6 +25,10 @@ from scripts.generate_observable import build_condition
 from scripts.score_detective import score
 
 
+class _AlreadyDone(Exception):
+    """Internal signal: a resumed case already has a complete saved result."""
+
+
 def labels_for(truth_for_change):
     """Offline labels in the shape score_detective expects."""
     affected = sorted(k for k, v in truth_for_change.items() if v.affected)
@@ -79,6 +83,12 @@ def main():
         "--mode", choices=["random", "correlated"], default="correlated"
     )
     parser.add_argument("--max-tokens", type=int, default=8000)
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Continue interrupted cases from their saved result files; "
+        "cases already scored are skipped",
+    )
     args = parser.parse_args()
 
     from scripts.databricks_llm import DatabricksChatLLM
@@ -119,12 +129,27 @@ def main():
 
             started = time.time()
             try:
+                saved = None
+                if args.resume and path.exists():
+                    saved = json.loads(path.read_text())
+                    if "coverage" in saved and saved.get("status") != "MODEL_ERROR":
+                        print(f"  {cid} already complete; rescoring saved result")
+                        result = saved
+                        raise _AlreadyDone
+                    print(
+                        f"  resuming {cid} from step "
+                        f"{sum(1 for e in saved.get('trace', []) if e.get('phase') == 'investigate')}",
+                        flush=True,
+                    )
                 result = investigate(
                     observable_payload(case),
                     tracked,
                     max_steps=args.max_steps,
                     persist=persist,
+                    resume=saved,
                 )
+            except _AlreadyDone:
+                pass
             except Exception as exc:  # keep going; the failure is recorded
                 print(
                     f"  model error on {cid}: {type(exc).__name__}: {exc}", flush=True
@@ -145,9 +170,10 @@ def main():
                     }
                 )
                 continue
-            path.with_suffix(".calls.json").write_text(
-                json.dumps(calls, indent=2, default=str) + "\n"
+            calls_path = path.with_suffix(
+                ".resume.calls.json" if args.resume and calls else ".calls.json"
             )
+            calls_path.write_text(json.dumps(calls, indent=2, default=str) + "\n")
             labels = labels_for(truth[cid])
             m = score(result, labels)
             m.update(

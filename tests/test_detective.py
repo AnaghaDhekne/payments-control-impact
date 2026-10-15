@@ -400,3 +400,77 @@ def test_reasoning_fallback_ignores_empty_fragments():
         }
     ]
     assert content_text(only_fragments) == ""
+
+
+def test_resume_continues_from_saved_state():
+    """An interrupted run resumes with its findings and memory, not from scratch."""
+    snapshots = []
+    first = iter(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": finding()},
+        ]
+    )
+
+    def dies(prompt):
+        try:
+            return json.dumps(next(first))
+        except StopIteration:
+            raise RuntimeError("terminal closed")
+
+    with pytest.raises(RuntimeError):
+        investigate(
+            demo()["case"],
+            dies,
+            max_steps=6,
+            persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
+        )
+    saved = snapshots[-1]
+    assert saved["status"] == "MODEL_ERROR" and len(saved["findings"]) == 1
+
+    prompts = []
+    rest = iter([{"action": "finish"}, finding()])
+
+    def llm(prompt):
+        prompts.append(prompt)
+        return json.dumps(next(rest))
+
+    result = investigate(demo()["case"], llm, max_steps=6, resume=saved)
+    assert result["resumed_from_step"] == 3  # two good steps + the failed one
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    assert "C-ADDRESS" in prompts[0]  # restored notebook is in the prompt
+    with pytest.raises(ValueError):
+        other = deepcopy(demo()["case"])
+        other["change_ticket"]["text"] += " changed"
+        investigate(other, llm, max_steps=6, resume=saved)
+
+
+def test_resume_after_investigation_finished_only_reverifies():
+    snapshots = []
+    replies = iter(commands())
+
+    def llm(prompt):
+        return json.dumps(next(replies))
+
+    # Investigation finishes; the verification call then fails (-> UNCERTAIN).
+    investigate(
+        demo()["case"],
+        llm,
+        max_steps=6,
+        persist=lambda s: snapshots.append(json.loads(json.dumps(s))),
+    )
+    # The snapshot taken right after "finish", before any verification.
+    saved = next(
+        s
+        for s in snapshots
+        if s["status"] == "FINISHED" and "verified_findings" not in s
+    )
+    calls = []
+    result = investigate(
+        demo()["case"],
+        lambda p: calls.append(p) or json.dumps(finding()),
+        max_steps=6,
+        resume=saved,
+    )
+    assert len(calls) == 1  # only the verification call
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]

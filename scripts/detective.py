@@ -440,12 +440,16 @@ def _summarize(action, args, result):
     return result
 
 
-def investigate(case, llm, max_steps=24, persist=None):
+def investigate(case, llm, max_steps=24, persist=None, resume=None):
     """Let the LLM select tools and hypotheses; return a complete audit trail.
 
     persist receives a snapshot after each call, including raw responses.
     Uninvestigated controls remain explicitly unresolved. A separate reviewer
     checks each submitted hypothesis with the full document and ticket.
+
+    resume is a saved state from an interrupted run of the same case. Its
+    investigation steps, findings and working memory are restored and the run
+    continues from the next step; verification is always redone in full.
     """
     if type(max_steps) is not int or not 1 <= max_steps <= 200:
         raise ValueError("max_steps must be from 1 to 200")
@@ -522,6 +526,42 @@ def investigate(case, llm, max_steps=24, persist=None):
                 "in": [f'{i["from"]}-{i["relationship"]}' for i in result["incoming"]],
             }
 
+    start_step, already_finished = 0, False
+    if resume is not None:
+        if resume.get("case_digest") != state["case_digest"]:
+            raise ValueError("Resume state belongs to a different case")
+        for old in resume.get("trace", []):
+            if old.get("phase") != "investigate":
+                continue
+            trace.append(old)
+            action, result = old.get("action"), old.get("result")
+            brief = {"step": old["step"], "action": action}
+            if "error" in old:
+                brief["error"] = old["error"]
+            elif action in ("inspect_control", "explore_node") and result is not None:
+                record(action, None, result)
+                if action == "inspect_control":
+                    for item in result if isinstance(result, list) else [result]:
+                        if "document" in item:
+                            tools.inspected.add(item["document"]["control_id"])
+                brief["summary"] = _summarize(action, None, result)
+            elif action in ("search_controls", "trace_metadata") and result is not None:
+                brief["summary"] = _summarize(action, None, result)
+            elif result is not None:
+                brief["result"] = result
+            if action == "finish":
+                if isinstance(result, dict) and "not_finished" in result:
+                    finish_reminders += 1
+                else:
+                    already_finished = True
+            history.append(brief)
+        for f in resume.get("findings", []):
+            findings[f["control_id"]] = f
+        start_step = len(trace)
+        state["resumed_from_step"] = start_step
+        if already_finished:
+            state["status"] = "FINISHED"
+
     def prompt_for(step):
         submitted = {cid: f["decision"] for cid, f in findings.items()}
         return INSTRUCTIONS + json.dumps(
@@ -538,7 +578,9 @@ def investigate(case, llm, max_steps=24, persist=None):
             sort_keys=True,
         )
 
-    for step in range(max_steps):
+    for step in range(start_step, max_steps):
+        if already_finished:
+            break
         entry = {"step": step + 1, "phase": "investigate"}
         try:
             raw = llm(prompt_for(step))

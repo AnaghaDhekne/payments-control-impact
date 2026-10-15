@@ -508,3 +508,13 @@ def test_score_reports_review_burden_measures():
     assert m["avoidable_review_items"] == 2  # F1, F2
     assert m["review_queue_true_share"] == 0.5
     assert m["uncertain_true_controls"] == 1
+
+
+def test_verifier_null_counter_evidence_keeps_answer():
+    """A null counter_evidence once turned a correct AFFECTED into UNCERTAIN."""
+    reply = dict(finding(), counter_evidence=None)
+    result, _ = run(commands() + [reply])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    review = result["verified_findings"][0]
+    assert review["counter_evidence"] == "None stated."
+    assert review["proposer_causal_reason"] == finding()["causal_reason"]

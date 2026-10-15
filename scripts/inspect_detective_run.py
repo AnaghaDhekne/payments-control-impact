@@ -49,7 +49,11 @@ def main():
             continue
         e = next((x for x in verify if x["control_id"] == f["control_id"]), {})
         print("\n---- UNCERTAIN", f["control_id"], "| verify error:", e.get("error"))
-        print("  proposer reason:", str(f.get("causal_reason", ""))[:300])
+        if "proposer_causal_reason" in f:
+            print("  proposer reason:", str(f["proposer_causal_reason"])[:300])
+            print("  verifier reason:", str(f.get("causal_reason", ""))[:300])
+        else:  # older runs kept only the verifier's reason
+            print("  verifier reason:", str(f.get("causal_reason", ""))[:300])
         for raw in e.get("raw_responses", [e.get("raw_response")]):
             print("  verifier raw:", repr(raw)[:700])
         shown += 1

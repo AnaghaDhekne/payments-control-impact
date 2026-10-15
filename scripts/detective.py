@@ -733,13 +733,20 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
                 entry.setdefault("raw_responses", []).append(raw)
                 entry["raw_response"] = raw
                 reply = _object(raw)
-                reply.setdefault("counter_evidence", "None stated.")
-                if not str(reply.get("counter_evidence", "")).strip():
+                # Counter-evidence is optional for the verifier: missing, null or
+                # empty all mean "none stated" (a null once discarded a correct answer).
+                ce = reply.get("counter_evidence")
+                if not isinstance(ce, str) or not ce.strip():
                     reply["counter_evidence"] = "None stated."
                 decision = validate_finding(
                     payload, {**reply, "control_id": cid}, tools.inspected
                 )
-                review = {**decision, "proposer_decision": finding["decision"]}
+                review = {
+                    **decision,
+                    "proposer_decision": finding["decision"],
+                    "proposer_causal_reason": finding["causal_reason"],
+                    "proposer_counter_evidence": finding["counter_evidence"],
+                }
                 if "evidence_path" in finding:
                     review["evidence_path"] = finding["evidence_path"]
                 # Disagreement is a review item, never silently discarded.

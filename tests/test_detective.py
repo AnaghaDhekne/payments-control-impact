@@ -31,6 +31,7 @@ def finding(decision="AFFECTED"):
         "control_quote": demo_case()["control_documents"][0]["text"],
         "causal_reason": "Changing the validation rule changes the behavior used by the address control.",
         "counter_evidence": "No exclusion is stated in this fixture.",
+        "evidence_path": ["R-ADDRESS", "C-ADDRESS"],
     }
 
 
@@ -518,3 +519,38 @@ def test_verifier_null_counter_evidence_keeps_answer():
     review = result["verified_findings"][0]
     assert review["counter_evidence"] == "None stated."
     assert review["proposer_causal_reason"] == finding()["causal_reason"]
+
+
+def test_proposer_affected_requires_chain_from_change_to_control():
+    no_path = {k: v for k, v in finding().items() if k != "evidence_path"}
+    wrong_start = dict(finding(), evidence_path=["C-ADDRESS", "C-ADDRESS"])
+    for bad in (no_path, wrong_start):
+        result, _ = run(
+            [
+                {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+                {"action": "submit_finding", "args": bad},
+                {"action": "finish"},
+                {"action": "finish"},
+            ],
+            max_steps=4,
+        )
+        assert result["findings"] == []
+        assert "evidence_path" in result["trace"][1]["error"]
+    # UNCERTAIN and UNAFFECTED need no chain.
+    loose = dict(no_path, decision="UNCERTAIN")
+    result, _ = run(
+        [
+            {"action": "inspect_control", "args": {"control_id": "C-ADDRESS"}},
+            {"action": "submit_finding", "args": loose},
+            {"action": "finish"},
+            loose,
+        ],
+        max_steps=3,
+    )
+    assert result["findings"][0]["decision"] == "UNCERTAIN"
+
+
+def test_verifier_reply_needs_no_chain():
+    reply = {k: v for k, v in finding().items() if k != "evidence_path"}
+    result, _ = run(commands() + [reply])
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]

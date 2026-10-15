@@ -236,8 +236,12 @@ class EvidenceTools:
         )
 
 
-def validate_finding(case, finding, inspected):
-    """Check cited evidence and scope without asserting semantic correctness."""
+def validate_finding(case, finding, inspected, require_chain=False):
+    """Check cited evidence and scope without asserting semantic correctness.
+
+    require_chain (proposer findings): an AFFECTED decision must carry an
+    evidence_path from a changed entity to the control itself.
+    """
     if not isinstance(finding, dict):
         raise ValueError("Finding must be an object")
     cid = finding.get("control_id")
@@ -268,6 +272,22 @@ def validate_finding(case, finding, inspected):
         ):
             raise ValueError("evidence_path must list known node IDs only")
         result["evidence_path"] = path
+    if require_chain and result["decision"] == "AFFECTED":
+        changed = case["change_ticket"].get("changed_entity_ids", [])
+        if (
+            not path
+            or len(path) < 2
+            or path[0] not in changed
+            or path[-1] != result["control_id"]
+        ):
+            raise ValueError(
+                "AFFECTED needs evidence_path from a changed entity ("
+                + ", ".join(changed)
+                + ") to "
+                + result["control_id"]
+                + " through the rule, system, interface or process the control governs; "
+                "otherwise use UNCERTAIN"
+            )
     return result
 
 
@@ -404,11 +424,13 @@ INSTRUCTIONS = (
     "the same way; check them. 4) Inspect in batches, then submit findings in batches. "
     "5) Also record clear UNAFFECTED decisions for unrelated controls so coverage is explicit.\n"
     "Deciding: a missing edge is NOT counter-evidence, because edges near the change are known to be "
-    "missing. Decide AFFECTED when there is a functional chain: the changed entity is used by a rule, "
-    "system, interface or process, and the control governs that same function (for example its "
-    "family members are governed by the system or process that performs it, or its own edges reach "
-    "it). Decide UNAFFECTED when the control governs a different function the change does not reach. "
-    "Use UNCERTAIN only when neither a chain nor an exclusion can be shown.\n"
+    "missing. Decide AFFECTED only with a concrete chain, written as evidence_path: the changed entity "
+    "first, then the rule, system, interface or process that uses it, ending with the control, where "
+    "the control governs that SAME rule, system, interface or process (its own edges or its family "
+    "members' edges reach it). AFFECTED without such a path is rejected. Impact that crosses into a "
+    "different functional area (for example from message mapping to reconciliation, reporting or "
+    "authorization) needs an explicit link into that area; without one, decide UNCERTAIN. Decide "
+    "UNAFFECTED when the control governs a different function the change does not reach.\n"
     "Rules: quotes must be exact, short (under 12 words), nonempty substrings of the ticket title/text "
     "and of that control's text. Keep causal_reason and counter_evidence under 30 words each and name "
     "the node IDs of the chain. Submit at most 8 findings per action, otherwise your reply is cut off "
@@ -649,7 +671,9 @@ def investigate(case, llm, max_steps=24, persist=None, resume=None):
                 accepted, rejected = [], []
                 for item in batch:
                     try:
-                        finding = validate_finding(payload, item, tools.inspected)
+                        finding = validate_finding(
+                            payload, item, tools.inspected, require_chain=True
+                        )
                     except ValueError as exc:
                         cid = item.get("control_id") if isinstance(item, dict) else None
                         rejected.append({"control_id": cid, "error": str(exc)})

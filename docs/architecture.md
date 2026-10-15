@@ -86,6 +86,9 @@ A finding is `{control_id, decision: AFFECTED|UNAFFECTED|UNCERTAIN,
 ticket_quote, control_quote, causal_reason, counter_evidence, evidence_path}`.
 Quotes must be exact substrings of the ticket and of that control's text; the
 control must have been inspected; `evidence_path` may only name known nodes.
+An AFFECTED finding from the agent must also carry an `evidence_path` that
+starts at a changed entity and ends at the control (added 2026-10-15 to curb
+cross-area over-claiming; see the A/B test in [results.md](results.md)).
 Invalid findings are rejected with the reason, and valid ones in the same batch
 are kept.
 

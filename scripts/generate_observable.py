@@ -95,13 +95,13 @@ def change_tickets(changes, nodes):
     return rows
 
 
-def degrade_edges(graph, change, level, mode):
+def degrade_edges(graph, change, level, mode, seed=SEED):
     """Remove edges reproducibly, preserving a local frontier under correlated damage."""
     edges = [e.copy() for e in graph["edges"] if e.get("metadata_exposable", True)]
     if level == 0:
         return edges, []
     k = round(len(edges) * level / 100)
-    rng = random.Random(stable_seed(SEED, change["change_id"], level, mode, "edges"))
+    rng = random.Random(stable_seed(seed, change["change_id"], level, mode, "edges"))
     if mode == "random":
         candidates = edges[:]
         rng.shuffle(candidates)
@@ -192,7 +192,7 @@ def degrade_text(text, aliases, level, rng, misleading=False):
     return out, ops
 
 
-def build_condition(graph, changes, level, mode):
+def build_condition(graph, changes, level, mode, seed=SEED):
     """Create degraded observable cases plus an evaluator-only damage manifest."""
     clean = clean_metadata(graph)
     nodes = {n["id"]: n for n in graph["nodes"]}
@@ -200,8 +200,8 @@ def build_condition(graph, changes, level, mode):
     tickets = change_tickets(changes, graph["nodes"])
     cases = []
     for c in changes:
-        visible_edges, removed = degrade_edges(graph, c, level, mode)
-        rng = random.Random(stable_seed(SEED, c["change_id"], level, mode, "text"))
+        visible_edges, removed = degrade_edges(graph, c, level, mode, seed)
+        rng = random.Random(stable_seed(seed, c["change_id"], level, mode, "text"))
         changed_aliases = []
         for nid in c["changed_node_ids"]:
             changed_aliases += nodes[nid].get("aliases", [])
@@ -220,7 +220,7 @@ def build_condition(graph, changes, level, mode):
             cn = nodes[d["control_id"]]
             crng = random.Random(
                 stable_seed(
-                    SEED, c["change_id"], d["control_id"], level, mode, "controltext"
+                    seed, c["change_id"], d["control_id"], level, mode, "controltext"
                 )
             )
             d["text"], ops = degrade_text(d["text"], cn.get("aliases", []), level, crng)
@@ -243,7 +243,7 @@ def build_condition(graph, changes, level, mode):
                 },
             }
         )
-    return {"seed": SEED, "level": level, "mode": mode, "cases": cases}
+    return {"seed": seed, "level": level, "mode": mode, "cases": cases}
 
 
 def main():

@@ -59,12 +59,25 @@ def build_body(repo, args):
             "--confirm-heldout",
             args.confirm_heldout or "",
         ]
+    if getattr(args, "run_index", 1) != 1:
+        params += ["--run-index", str(args.run_index)]
+    if getattr(args, "seed", None) is not None:
+        params += ["--seed", str(args.seed)]
+    if getattr(args, "level", None) is not None:
+        params += ["--level", str(args.level)]
+    if getattr(args, "mode", None):
+        params += ["--mode", args.mode]
     if getattr(args, "ignore_lock", False):
         params += ["--ignore-lock"]
     return {
         "run_name": "detective-suite "
         + os.path.basename(args.output_dir.rstrip("/"))
-        + (f" variant {args.variant}" if getattr(args, "variant", None) else ""),
+        + (f" variant {args.variant}" if getattr(args, "variant", None) else "")
+        + (
+            f" run{args.run_index}"
+            if getattr(args, "run_index", 1) != 1 or getattr(args, "runs", 1) != 1
+            else ""
+        ),
         "timeout_seconds": 0,
         "tasks": [
             {
@@ -165,7 +178,11 @@ def main():
     s.add_argument("--ignore-lock", action="store_true")
     s.add_argument("--split", choices=["development", "test"], default="development")
     s.add_argument("--confirm-heldout")
-    s.add_argument("--variant", choices=["A", "B"])
+    s.add_argument("--variant", choices=["A", "B", "C"])
+    s.add_argument("--run-index", type=int, default=1)
+    s.add_argument("--seed", type=int)
+    s.add_argument("--level", type=int, choices=[0, 30, 60])
+    s.add_argument("--mode", choices=["random", "correlated"])
     s.set_defaults(func=submit)
     t = sub.add_parser("status")
     t.add_argument("run_id", type=int)

@@ -242,12 +242,16 @@ def decisions_table(result: dict) -> list[dict]:
         if v and v.get("verification_reason") != "Not verified (proposer UNAFFECTED)":
             reason = v.get("verification_reason")
             verifier = (
-                "disagreed"
-                if reason == "Proposer and verifier disagree"
+                f"tie-break → {v.get('decision')}"
+                if str(reason).startswith("Tie-break")
                 else (
-                    "failed"
-                    if reason == "Verification unavailable"
-                    else v.get("decision")
+                    "disagreed"
+                    if str(reason).startswith("Proposer and verifier disagree")
+                    else (
+                        "failed"
+                        if reason == "Verification unavailable"
+                        else v.get("decision")
+                    )
                 )
             )
         rows.append(

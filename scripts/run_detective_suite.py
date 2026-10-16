@@ -21,7 +21,7 @@ from scripts.case_io import observable_payload
 from scripts.detective import DEFAULT_VARIANT, VARIANTS, investigate
 from scripts.evaluate_baseline import _truth_by_change
 from scripts.generate_benchmark import build_graph, build_changes
-from scripts.generate_observable import build_condition
+from scripts.generate_observable import SEED, build_condition
 from scripts.score_detective import score
 
 
@@ -75,21 +75,36 @@ def labels_for(truth_for_change):
 
 
 HELDOUT_CONFIRMATION = "final-frozen-run"
+FRESH_CONFIRMATION = "fresh-damage-run"
+MAIN_CONDITION = (30, "correlated", SEED)
 
 
 def select_cases(
-    all_cases, split="development", confirm=None, change_ids=None, max_cases=None
+    all_cases,
+    split="development",
+    confirm=None,
+    change_ids=None,
+    max_cases=None,
+    condition=MAIN_CONDITION,
 ):
-    """Pick cases for a run. The held-out test split needs explicit confirmation.
+    """Pick cases for a run. The test split needs explicit confirmation.
 
-    The test split is the only unseen data left; it is meant to be run once,
-    with code and prompts frozen, so it cannot be selected by accident.
+    Under the main condition the test split is the held-out set, already run
+    once (2026-10-16). Under any other damage condition (level, mode or seed)
+    it gives freshly damaged lineage for the same changes, used for the
+    pre-registered fresh-damage test; that needs its own confirmation.
     """
-    if split == "test" and confirm != HELDOUT_CONFIRMATION:
-        raise SystemExit(
-            "The test split is the held-out set, to be run once with frozen code. "
-            f"Pass --split test --confirm-heldout {HELDOUT_CONFIRMATION} to proceed."
+    if split == "test":
+        wanted = (
+            HELDOUT_CONFIRMATION
+            if tuple(condition) == MAIN_CONDITION
+            else FRESH_CONFIRMATION
         )
+        if confirm != wanted:
+            raise SystemExit(
+                "The test split must be confirmed explicitly for this condition. "
+                f"Pass --split test --confirm-heldout {wanted} to proceed."
+            )
     cases = [c for c in all_cases if c["split"] == split]
     if change_ids:
         wanted = set(change_ids)
@@ -145,6 +160,18 @@ def aggregate(case_metrics, split="development", variant=None):
     }
 
 
+def summarize_run(case_metrics, args):
+    """Pooled summary plus the damage condition it was measured under."""
+    summary = aggregate(case_metrics, args.split, args.variant)
+    condition = (args.level, args.mode, args.seed)
+    summary["condition"] = dict(zip(("level", "mode", "seed"), condition))
+    if args.split == "test" and condition != MAIN_CONDITION:
+        summary["note"] = (
+            "Test-split changes with freshly damaged lineage (fresh-damage test)."
+        )
+    return summary
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default="databricks-gpt-oss-120b")
@@ -153,6 +180,16 @@ def main():
     parser.add_argument("--max-cases", type=int, default=None)
     parser.add_argument("--change-ids", nargs="*", help="Run only these change IDs")
     parser.add_argument("--runs", type=int, default=1)
+    parser.add_argument(
+        "--run-index",
+        type=int,
+        default=1,
+        help="Number of the first run folder (run<N>); lets parallel jobs share "
+        "an output folder, one run each",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=SEED, help="Lineage-damage seed (default: main)"
+    )
     parser.add_argument("--level", type=int, choices=[0, 30, 60], default=30)
     parser.add_argument(
         "--mode", choices=["random", "correlated"], default="correlated"
@@ -171,7 +208,8 @@ def main():
         "--variant",
         choices=list(VARIANTS),
         default=DEFAULT_VARIANT,
-        help="A = frozen-check agent (799189a); B = chain requirement (67bd813)",
+        help="A = frozen-check agent (799189a); B = chain requirement (67bd813); "
+        "C = A plus coverage sweep, key re-check and tie-break",
     )
     parser.add_argument(
         "--confirm-heldout",
@@ -191,22 +229,27 @@ def main():
     graph, changes = build_graph(), build_changes()
     truth = _truth_by_change(graph, changes)
     cases = select_cases(
-        build_condition(graph, changes, args.level, args.mode)["cases"],
+        build_condition(graph, changes, args.level, args.mode, args.seed)["cases"],
         args.split,
         args.confirm_heldout,
         args.change_ids,
         args.max_cases,
+        condition=(args.level, args.mode, args.seed),
     )
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    acquire_lock(out_dir, args.ignore_lock)
+    first = args.run_index - 1
+    # One lock per run folder, so parallel jobs can share the output folder.
+    lock_dir = out_dir / f"run{first + 1}"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    acquire_lock(lock_dir, args.ignore_lock)
     runs = []
-    for run in range(args.runs):
+    for run in range(first, first + args.runs):
         case_metrics, decisions = [], {}
         for i, case in enumerate(cases, 1):
             cid = case["change_id"]
-            print(f"[run {run + 1}/{args.runs}] {i}/{len(cases)} {cid}", flush=True)
+            print(f"[run {run + 1}] {i}/{len(cases)} {cid}", flush=True)
             path = out_dir / f"run{run + 1}" / f"{cid}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             calls = []
@@ -298,7 +341,7 @@ def main():
         runs.append(
             {
                 "cases": case_metrics,
-                "summary": aggregate(case_metrics, args.split, args.variant),
+                "summary": summarize_run(case_metrics, args),
                 "key_decisions": decisions,
             }
         )

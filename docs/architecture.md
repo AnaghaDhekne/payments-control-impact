@@ -131,6 +131,23 @@ same way. If the verifier's output is invalid, it gets one retry with the error.
 - Proposer UNAFFECTED → recorded without a verifier call; it adds no
   recommendation and no review item.
 
+### Variants
+
+`--variant` selects the agent version: **A** (default; frozen check and
+held-out run), **B** (AFFECTED needs a cited chain; rejected by its A/B rule)
+and **C** (A plus three post-investigation steps, under test):
+
+- **Coverage sweep:** controls still undecided are decided in batches of 6,
+  key controls first, from the ticket, the change neighbourhood, the control
+  text and family; these become ordinary findings and are verified.
+- **Key re-check:** key controls marked UNAFFECTED also get a verifier call.
+- **Tie-break:** on proposer/verifier disagreement a third call sees both
+  arguments and the evidence and decides; only its UNCERTAIN, or a failed
+  call, goes to human review.
+
+`scripts/ensemble.py` combines several runs by majority vote (recommend at
+2 of 3, review at 2 of 3 flagged) and ranks the review queue.
+
 ### Output
 
 `recommended_control_ids` = rules baseline ∪ verified AFFECTED.

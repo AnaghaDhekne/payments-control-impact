@@ -71,6 +71,20 @@ python -m scripts.detective_job status <run_id>
   continues unfinished cases and rescores finished ones.
 - In the UI: **Jobs & Pipelines → Runs → detective-suite <run-name>**.
 
+## Parallel repeat runs and majority vote
+
+Repeat runs of the same cases can run as separate jobs at the same time, one
+run folder each (`--run-index N` writes `run<N>`):
+
+```bash
+for i in 1 2 3; do python -m scripts.detective_job submit --repo "$REPO" \
+    --variant C --run-index $i --output-dir /Volumes/workspace/default/detective_runs/<name>; done
+python -m scripts.ensemble /Volumes/workspace/default/detective_runs/<name> --groups 1,2,3
+```
+
+`ensemble.py` combines runs by majority vote, scores the result, ranks the
+review queue and reports agreement between ensembles and between single runs.
+
 ## Inspect a run
 
 ```bash

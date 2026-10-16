@@ -141,8 +141,9 @@ class DatabricksChatLLM:
         """Query the configured endpoint and return its answer text.
 
         Endpoint errors are retried with backoff. An empty answer is retried
-        with a nudge and a little sampling temperature, since an identical
-        temperature-0 request returns the same empty answer. After the last
+        first with a nudge at the same temperature, then (if still empty) with
+        a little sampling temperature, since an identical temperature-0 request
+        returns the same empty answer. After the last
         attempt an endpoint error is raised; an empty answer is returned as ""
         so the caller records it as a step error.
         """
@@ -159,9 +160,11 @@ class DatabricksChatLLM:
                         ChatMessage(role=ChatMessageRole.SYSTEM, content=self.SYSTEM),
                         ChatMessage(role=ChatMessageRole.USER, content=content),
                     ],
+                    # First retry: same temperature, nudged prompt (no added
+                    # randomness); only a second empty answer adds temperature.
                     temperature=(
                         self.temperature
-                        if not empty
+                        if empty < 2
                         else max(self.temperature, self.RETRY_TEMPERATURE)
                     ),
                     max_tokens=self.max_tokens,

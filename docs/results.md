@@ -69,6 +69,56 @@ not-recommend decision in all five runs (80%, target 95%): **not met**.
 Recovery is stable (87.5–100%); the volume of UNCERTAIN items is not (CHG-025:
 6 to 36). Cases CHG-014, CHG-025, CHG-017 (development, tuned).
 
+## Pre-registered: version C with majority vote, fresh-damage test (2026-10-16)
+
+Registered before any run of version C. Purpose: fix the two gaps the
+held-out run left (stability 80% vs 95%; about 4 avoidable review items per
+change).
+
+- **Version C** (`--variant C`) = version A's instructions plus three steps
+  after the investigation: (1) a coverage sweep that asks for a decision on
+  every control still undecided, in batches of 6, key controls first; (2) key
+  controls the agent marked UNAFFECTED are sent to the verifier too; (3) when
+  proposer and verifier disagree, a tie-break call sees both arguments and
+  the evidence and decides; only its UNCERTAIN (or a failed call) goes to a
+  person. Model replies that use the tool name as the JSON key are now
+  understood. Empty-answer retries: the first retry keeps temperature 0
+  (nudged prompt), only a second adds 0.3 (applies to A and C alike).
+- **Majority vote** (`scripts/ensemble.py`): three runs per case; recommend
+  when the rules reach a control or at least 2 of 3 runs recommend it; review
+  when at least 2 of 3 runs recommend it or send it to review; review items
+  ranked by how many runs flagged them.
+- **Cases:** the 18 test-split changes with **freshly damaged lineage**: 30%
+  random degradation (`--level 30 --mode random`), main seed. Removed edges
+  overlap the held-out run's damage by 30%, i.e. at chance; 93 key misses
+  (held-out: 144). A new seed under the main condition was checked and
+  rejected: 91% of removed edges were the same. The changes, tickets and
+  controls are those of the held-out run.
+- **Runs (parallel jobs):** version C, runs 1–6 in `fresh-C` (ensembles
+  {1,2,3} and {4,5,6}); version A, runs 1–2 in `fresh-A` as the comparison on
+  the same cases.
+- **Adopt C with majority vote for the practitioner-review stage only if all
+  hold** (ensemble = runs 1–3; A = mean of its two runs):
+  1. **Stability:** the two ensembles give the same recommend / not-recommend
+     decision on ≥ 95% of affected key-control pairs.
+  2. **Recovery:** ensemble key-miss recovery ≥ 50% and no more than 5 points
+     below A's.
+  3. **Review volume:** ensemble avoidable review items ≤ 3.0 per case and
+     below A's.
+  Otherwise version A stays, and the result is reported as it is.
+- **Also reported, not gated:** single-run pairwise agreement for C and for
+  A; the affected share in the top vs bottom half of the ranked review
+  queue; model calls per case; every case.
+- **Caveats stated in advance:** the fixes are tested together, so a gain
+  cannot be assigned to one of them; the test changes were run once before
+  (held-out), and three screening-engine results (CHG-015, 033, 051) were
+  inspected on 2026-10-16 after the fixes were designed: in all three every
+  control was decided and the misses were key controls the agent marked
+  AFFECTED and the verifier left UNCERTAIN (no visible edge), which is what
+  the tie-break addresses; no screening-specific change was made; random
+  damage is a different condition from the main one, so these numbers are
+  not comparable with the held-out 78.5%.
+
 ## Tuned development cases (2026-10-14/15)
 
 | Setting | Value |

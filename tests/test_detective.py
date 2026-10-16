@@ -8,7 +8,7 @@ from tests.fixtures import demo_case
 from scripts.score_detective import score
 
 
-def run(responses, case=None, max_steps=6):
+def run(responses, case=None, max_steps=6, variant="B"):
     prompts = []
     iterator = iter(responses)
 
@@ -18,7 +18,7 @@ def run(responses, case=None, max_steps=6):
 
     case = case or demo_case()
     original = deepcopy(case)
-    result = investigate(case, llm, max_steps=max_steps)
+    result = investigate(case, llm, max_steps=max_steps, variant=variant)
     assert case == original
     return result, prompts
 
@@ -619,3 +619,105 @@ def test_resume_refuses_a_different_variant():
         investigate(
             demo_case(), lambda p: "{}", max_steps=2, resume=snapshots[-1], variant="B"
         )
+
+
+# ---------------------------------------------------------------- variant C
+
+
+def two_control_case():
+    case = demo_case()
+    case["visible_metadata"]["nodes"].append(
+        {"id": "C-OTHER", "name": "Ledger posting check", "type": "CONTROL"}
+    )
+    case["control_documents"].append(
+        {
+            "control_id": "C-OTHER",
+            "title": "Ledger posting",
+            "text": "Checks that ledger postings balance at end of day.",
+        }
+    )
+    case["control_documents"][0]["criticality"] = "KEY"
+    return case
+
+
+def other_finding(decision="UNAFFECTED"):
+    return {
+        "control_id": "C-OTHER",
+        "decision": decision,
+        "ticket_quote": "Update structured address validation rule.",
+        "control_quote": "ledger postings balance",
+        "causal_reason": "Ledger posting is a different function from address validation.",
+        "counter_evidence": "",
+    }
+
+
+def test_variant_c_sweep_decides_controls_left_undecided():
+    result, prompts = run(
+        commands() + [{"findings": [other_finding()]}, finding()],
+        case=two_control_case(),
+        variant="C",
+    )
+    assert result["uninvestigated_control_ids"] == []
+    swept = [f for f in result["findings"] if f.get("source") == "sweep"]
+    assert [f["control_id"] for f in swept] == ["C-OTHER"]
+    assert swept[0]["counter_evidence"] == "None stated."
+    assert any(e.get("phase") == "sweep" for e in result["trace"])
+    assert "controls_to_decide" in prompts[4]
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+
+
+def test_variant_c_tie_break_resolves_disagreement():
+    result, prompts = run(
+        commands() + [finding("UNCERTAIN"), finding("AFFECTED")],
+        variant="C",
+    )
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    review = result["verified_findings"][0]
+    assert review["verification_reason"].startswith("Tie-break")
+    assert review["verifier_decision"] == "UNCERTAIN"
+    assert '"verifier"' in prompts[-1] and '"proposer"' in prompts[-1]
+
+
+def test_variant_c_tie_break_failure_stays_uncertain():
+    bad = {"decision": "AFFECTED"}  # no quotes: invalid twice
+    result, _ = run(
+        commands() + [finding("UNAFFECTED"), bad, bad],
+        variant="C",
+    )
+    assert result["uncertain_control_ids"] == ["C-ADDRESS"]
+    assert (
+        "tie-break unavailable" in result["verified_findings"][0]["verification_reason"]
+    )
+
+
+def test_variant_c_rechecks_key_controls_marked_unaffected():
+    cmds = commands()
+    cmds[2] = {"action": "submit_finding", "args": finding("UNAFFECTED")}
+    case = two_control_case()
+    # verifier says AFFECTED, tie-break says AFFECTED; sweep then decides C-OTHER
+    result, _ = run(
+        cmds + [{"findings": [other_finding()]}, finding(), finding()],
+        case=case,
+        variant="C",
+    )
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    # a non-key UNAFFECTED (C-OTHER) is still not verified
+    other = next(v for v in result["verified_findings"] if v["control_id"] == "C-OTHER")
+    assert other["verification_reason"] == "Not verified (proposer UNAFFECTED)"
+
+
+def test_variant_a_does_not_recheck_or_sweep():
+    cmds = commands()
+    cmds[2] = {"action": "submit_finding", "args": finding("UNAFFECTED")}
+    result, prompts = run(cmds, case=two_control_case(), variant="A")
+    assert len(prompts) == 4
+    assert result["uninvestigated_control_ids"] == ["C-OTHER"]
+
+
+def test_tool_name_used_as_key_is_understood():
+    from scripts.detective import parse_command
+
+    assert parse_command({"inspect_control": {"control_ids": ["C1"]}}) == (
+        "inspect_control",
+        {"control_ids": ["C1"]},
+    )

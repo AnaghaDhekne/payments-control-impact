@@ -98,6 +98,10 @@ change).
   1–6 `1032044827556125`, `59522537221119`, `565845798253507`,
   `987848725205628`, `1121319492587016`, `1018519589285706`; A runs 1–2
   `1034822050524777`, `77895592225147`.
+- **Order changed, scope unchanged** (2026-10-16 12:45 CT, before any result
+  was scored): the endpoint's capacity is shared, so C runs 4 and 5 were
+  stopped after 3 and 2 cases to let the A runs start; they resume later
+  (`--resume`, same folders). No run, case or rule is dropped.
 - **Runs (parallel jobs):** version C, runs 1–6 in `fresh-C` (ensembles
   {1,2,3} and {4,5,6}); version A, runs 1–2 in `fresh-A` as the comparison on
   the same cases.

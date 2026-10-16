@@ -94,6 +94,10 @@ change).
   (held-out: 144). A new seed under the main condition was checked and
   rejected: 91% of removed edges were the same. The changes, tickets and
   controls are those of the held-out run.
+- **Submitted** 2026-10-16 09:27 CT at commit `f210902`. Job run ids: C runs
+  1–6 `1032044827556125`, `59522537221119`, `565845798253507`,
+  `987848725205628`, `1121319492587016`, `1018519589285706`; A runs 1–2
+  `1034822050524777`, `77895592225147`.
 - **Runs (parallel jobs):** version C, runs 1–6 in `fresh-C` (ensembles
   {1,2,3} and {4,5,6}); version A, runs 1–2 in `fresh-A` as the comparison on
   the same cases.

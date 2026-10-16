@@ -106,37 +106,37 @@ FAQ = [
     (
         "Leadership",
         "Does the agentic path work?",
-        "Yes. It runs end to end on Databricks with gpt-oss-120b, and every step is logged. On eight cases it had never seen, with code frozen, it recovered 32 of the 49 key controls the rules missed (65%), against a 50% target.",
+        "Yes. It runs end to end on Databricks with gpt-oss-120b, and every step is logged. On the 18 held-out test cases, run once with code frozen, it recovered 113 of the 144 key controls the rules missed (78%; 95% interval 71–84%), against a 50% target, and 94% of its new recommendations were correct.",
     ),
     (
         "Leadership",
-        "Can I trust the 65%?",
-        "It is the most defensible figure so far: the cases were never inspected while fixing the agent, the code was frozen at one commit, and the reading rule was written into the repository before the run. It is still synthetic data, one run, and eight cases; the held-out run on 18 untouched cases is the final check.",
+        "Can I trust the 78%?",
+        "It is the final, pre-registered result: 18 test cases never used while building the agent, code frozen, variant chosen by a rule written before the A/B test, one run, every case reported. Limits: synthetic data, one run (repeat runs vary; see consistency), and the test cases were looked at during an earlier phase's diagnosis, though never by this agent.",
     ),
     (
         "Leadership",
-        "Why is it lower than the 81.5% shown earlier?",
-        "81.5% came from four cases used while fixing the agent, so it was optimistic. A drop on unseen cases is expected; the result still clears the target.",
+        "Why do the figures differ (81.5%, 65%, 78%)?",
+        "81.5% came from four cases used while fixing the agent, so it was optimistic. 65% came from eight unseen development cases, two of which (CHG-026, CHG-029) were hard misses. 78% is the held-out result over 18 cases and 144 key misses, the largest sample; its interval (71–84%) overlaps the development check's (51–77%). The figure to quote is 78%.",
     ),
     (
         "Leadership",
         "What does it cost in reviewer effort?",
-        "On the eight unseen cases, reviewers would see 169 items beyond the rules baseline: 79 correct new recommendations, 8 wrong ones and 82 sent for a human decision. About 7 items per case turn out to be unaffected. This is the main weakness.",
+        "On the 18 held-out cases, reviewers would see 406 items beyond the rules baseline (64 items): 262 correct new recommendations, 18 wrong ones and 126 sent for a human decision. 82% of those items are genuinely affected; about 4 per change are unnecessary. Volume, not accuracy, is the main cost.",
     ),
     (
         "Leadership",
         "Is it ready for production?",
-        "No. It is a proof of concept on a synthetic benchmark. A pilot decision should wait for the held-out result, the consistency result and a practitioner review of real findings.",
+        "No. It is a proof of concept on a synthetic benchmark. Recovery passed on held-out cases, but run-to-run consistency (80% vs 95%) and review volume are not at target, and no practitioner has yet reviewed real findings.",
     ),
     (
         "Leadership",
         "What decision is needed?",
-        "Whether to continue to the held-out run and a practitioner review, which the current results support. If the held-out run falls below 50%, the recommendation becomes investing in lineage metadata instead.",
+        "Whether to fund the next stage: a practitioner review of held-out findings plus work on stability and review volume. The stop rule agreed in advance (held-out below 50%) was not triggered.",
     ),
     (
         "Leadership",
         "Which targets were met?",
-        "Recovery: met (65% vs 50%). Added review workload: not met (the target of 25% cannot be met on this benchmark by any method that recovers 50%, because correct recoveries count as workload; it is reported unchanged). Consistency over five runs: being measured.",
+        "Recovery: met on held-out (78% vs 50%). Added review workload: not met (the 25% target cannot be met on this benchmark by any method that recovers 50%, because correct recoveries count as workload; it is reported unchanged). Consistency: not met, 80% of 10 key-control pairs got the same decision in all five runs, against 95%.",
     ),
     (
         "Technical",
@@ -171,7 +171,12 @@ FAQ = [
     (
         "Technical",
         "What is variant B?",
-        "A stricter agent that must cite a chain from the changed item to the control before claiming AFFECTED. It is being compared with variant A on the same eight cases; it wins only if avoidable review items fall by at least 30% and recovery drops by no more than 3 of 49.",
+        "A stricter agent that must cite a chain from the changed item to the control before claiming AFFECTED. On the same eight cases it made no wrong flags (A: 8), but recovered 27 of 49 key misses (A: 32) and sent 86 controls to review (A: 82); avoidable items fell from 56 to 46, not the 30% the rule required. By the rule registered in advance, variant A went to the held-out run.",
+    ),
+    (
+        "Technical",
+        "Why is consistency below target?",
+        "Three cases were run five times. Recovery of key misses was stable (7 or 8 of 8 every run), but 2 of the 10 affected key-control pairs flipped between recommended and not recommended, giving 80% against 95%. The volume of UNCERTAIN items varied most (CHG-025: 6 to 36). The model runs at temperature 0 but retries at 0.3, and the investigation path differs between runs. A majority vote over three runs is the planned fix.",
     ),
     (
         "Technical",
@@ -213,13 +218,13 @@ FAQ = [
 LIMITS = [
     (
         "Review burden",
-        "82 items sent to human review across eight unseen cases; about 7 avoidable items per case.",
-        "Variant B A/B test; verifier changes tested only on fresh cases.",
+        "126 items sent to human review across 18 held-out cases; about 4 unnecessary items per change.",
+        "Variant B tried and rejected (fewer wrong flags, but lower recall and more review). Next: verifier changes, tested only on fresh cases.",
     ),
     (
         "Agent over-claims across functional areas",
         "CHG-025: message mapping flagged against reconciliation controls; the verifier withheld approval.",
-        "Variant B requires a cited chain.",
+        "Variant B (cited chain) removed wrong flags but cost recall: 27 vs 32 of 49.",
     ),
     (
         "Verifier too strict on clear text links",
@@ -233,8 +238,8 @@ LIMITS = [
     ),
     (
         "Run-to-run variation",
-        "Same three cases: precision 78% in one run, 90% in the next.",
-        "Five-run consistency measurement.",
+        "Five runs of three cases: 80% of key-control pairs got the same decision every time (target 95%); review items on one case ranged 6 to 36.",
+        "Majority vote over three runs per case; re-measure.",
     ),
     (
         "Synthetic benchmark",
@@ -250,7 +255,7 @@ REPRO = """
 | Frozen check, 8 unseen cases | `suite-10`, job 211771677628591 | 799189a (variant A) |
 | A/B, variant B | `suite-12`, job 663596150833963 | 67bd813 (variant B) |
 | Consistency, 3 cases × 5 | `suite-11`, job 189647926488694 | 43457ab |
-| Held-out, 18 cases | `heldout-final` | d149a52 or later, chosen variant |
+| Held-out, 18 cases | `heldout-final`, job 862812162377923 | agent code d149a52, variant A |
 
 ```bash
 # from the repository folder in Databricks

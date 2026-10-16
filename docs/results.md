@@ -1,6 +1,75 @@
 # Results
 
-## Current: detective agent, live development runs (2026-10-14/15)
+## Final: held-out test run (2026-10-16)
+
+Pre-registered below ("Pre-registered: held-out test run"). Job
+`862812162377923`, variant A (chosen by the A/B rule), agent code `d149a52`
+(later commits changed only docs and the app), all 18 test-split cases, one
+run, 30% change-correlated degradation, `databricks-gpt-oss-120b`. All 18 cases
+finished; 8 controls uninvestigated; 1,280 model calls.
+
+| Case | Change (template, release) | Key misses | Recovered | New true / false | Uncertain |
+|---|---|---|---|---|---|
+| CHG-003 | Creditor town-name mapping, 1 | 19 | 18 | 37 / 6 | 11 |
+| CHG-021 | Creditor town-name mapping, 2 | 19 | 15 | 39 / 1 | 8 |
+| CHG-039 | Creditor town-name mapping, 3 | 19 | 15 | 34 / 3 | 11 |
+| CHG-009 | Screening interface, 1 | 10 | 10 | 20 / 0 | 0 |
+| CHG-027 | Screening interface, 2 | 10 | 10 | 20 / 0 | 0 |
+| CHG-045 | Screening interface, 3 | 10 | 10 | 20 / 0 | 0 |
+| CHG-006 | Screening field-set, 1 | 7 | 4 | 8 / 1 | 5 |
+| CHG-024 | Screening field-set, 2 | 8 | 5 | 7 / 1 | 12 |
+| CHG-042 | Screening field-set, 3 | 7 | 6 | 9 / 1 | 8 |
+| CHG-015 | Screening engine, 1 | 7 | 2 | 3 / 0 | 10 |
+| CHG-033 | Screening engine, 2 | 7 | 1 | 3 / 0 | 11 |
+| CHG-051 | Screening engine, 3 | 6 | 2 | 3 / 1 | 9 |
+| CHG-018 | Ledger-posting feed, 1 | 5 | 5 | 14 / 0 | 11 |
+| CHG-036 | Ledger-posting feed, 2 | 5 | 5 | 19 / 4 | 8 |
+| CHG-054 | Ledger-posting feed, 3 | 5 | 5 | 18 / 0 | 11 |
+| CHG-012 | Payment reject report, 1 | 0 | – | 3 / 0 | 1 |
+| CHG-030 | Payment reject report, 2 | 0 | – | 3 / 0 | 9 |
+| CHG-048 | Payment reject report, 3 | 0 | – | 2 / 0 | 1 |
+| **Total** | | **144** | **113 (78.5%)** | **262 / 18 (93.6%)** | **126** |
+
+| Gate | Target | Held-out | Status |
+|---|---|---|---|
+| Key-miss recovery | ≥ 50% | 78.5% (113 of 144; Wilson 95% interval 71.1–84.4%) | **Met** |
+| Added reviewer workload | ≤ 25% | 406 items beyond the baseline vs 64 rules items (+634%) | Not met |
+| Consistency over 5 runs | ≥ 95% | 80% (8 of 10 key-control pairs; development cases, see below) | Not met |
+
+Review burden (descriptive): 75 avoidable items, 4.2 per case; 81.5% of items
+beyond the baseline are genuinely affected.
+
+**Reading.** The stop rule (held-out recovery below 50%) is not triggered.
+Held-out recovery is higher than the frozen development check (65.3%, interval
+51.3–77.1%); the intervals overlap, so this is not evidence the method got
+better, only that it was not overfitted to the development cases. Performance
+depends strongly on the change type: screening interface and ledger-posting
+feed changes 45 of 45, town-name mapping 48 of 57, screening field-set 15 of
+22, **screening engine 5 of 20**. Screening-engine changes are the clear weak
+spot and the first thing a practitioner review should look at. Payment reject
+report changes had no key misses and produced no false flags.
+
+**Caveats.** One run (repeat runs vary, see consistency); synthetic benchmark
+whose controls come in families; the test cases were examined during the
+Phase 2 diagnosis, though never by this agent; gate 2 is unreachable on this
+benchmark by any method that passes gate 1 (see [evaluation.md](evaluation.md)).
+
+## Consistency: 3 cases × 5 runs (job 189647926488694, 2026-10-15)
+
+| Run | Key recovered | New-control precision | Uncertain | Avoidable items |
+|---|---|---|---|---|
+| 1 | 7 of 8 | 78.1% | 27 | 20 |
+| 2 | 7 of 8 | 90.5% | 11 | 8 |
+| 3 | 8 of 8 | 90.0% | 35 | 22 |
+| 4 | 8 of 8 | 88.9% | 48 | 39 |
+| 5 | 8 of 8 | 96.0% | 40 | 28 |
+
+Agreement: 8 of 10 affected key-control pairs got the same recommend /
+not-recommend decision in all five runs (80%, target 95%): **not met**.
+Recovery is stable (87.5–100%); the volume of UNCERTAIN items is not (CHG-025:
+6 to 36). Cases CHG-014, CHG-025, CHG-017 (development, tuned).
+
+## Tuned development cases (2026-10-14/15)
 
 | Setting | Value |
 |---|---|
@@ -24,7 +93,7 @@
 |---|---|---|---|
 | Key-miss recovery | ≥ 50% | 81.5% (22 of 27) | Met on development cases |
 | Added reviewer workload | ≤ 25% | 102 added review items (56 true, 5 false, 41 uncertain) vs 19 rules items | Not met |
-| Consistency over 5 runs | ≥ 95% | — | Not measured |
+| Consistency over 5 runs | ≥ 95% | 80% (see Consistency above) | Not met |
 
 ### Caveats
 
@@ -148,14 +217,22 @@ Registered before the change is run on any case.
   same version already differ (precision 100% vs 78% on three cases); the fix
   was motivated by CHG-025, a tuned case; all eight cases have been seen once.
 
-**Outcome (2026-10-15, 6 of 8 cases done; the rule is already decided).**
-Version B recovered 24 of the 45 key misses in the six finished cases against
-30 for A (CHG-002: 11 vs 16). The two remaining cases have 4 key misses, so
-B can reach at most 28 of 49, below the 29 the rule requires. **Version A goes
-to the held-out run.** On the same six cases B removed every wrong flag (0 vs 7)
-but sent more controls to review as UNCERTAIN (69 vs 60; CHG-002 32 vs 11):
-the stricter rule turned wrong flags and some true findings into review items
-rather than removing work. Final B figures to be added when job 663596150833963 ends.
+**Outcome (job 663596150833963, `suite-12`, completed 2026-10-15).**
+
+| | A (`suite-10`) | B (`suite-12`) |
+|---|---|---|
+| Key misses recovered | 32 of 49 (65.3%) | 27 of 49 (55.1%) |
+| New true / false | 79 / 8 (90.8%) | 50 / 0 (100%) |
+| Uncertain | 82 | 86 |
+| Avoidable review items | 56 | 46 (−18%) |
+| Uninvestigated | 2 | 42 |
+| Cases ending at the step budget | 0 | 4 of 8 |
+
+Neither condition holds (avoidable items fell 18%, not 30%; recovery fell by
+5, not ≤ 3). **Version A goes to the held-out run.** B removed every wrong flag
+but turned them, and some true findings, into UNCERTAIN items, and spent its
+budget on resubmissions: half its cases hit the step limit, leaving 42 controls
+undecided. A cited-chain requirement trades recall and coverage for precision.
 
 ## Pre-registered: held-out test run (2026-10-15)
 
@@ -183,13 +260,15 @@ Registered before the A/B result is known and before any test case is run.
 
 ## Next steps
 
-1. Analyse the CHG-025 proposer/verifier disagreements before changing prompts.
-2. Decide and document how the workload gate treats correct recoveries.
-3. Run 5 repeats on the same cases to measure consistency.
-4. Freeze code, prompts and model; run the remaining development cases, then
-   the test split once.
-5. Have a payments or controls practitioner review a sample of AFFECTED and
-   UNCERTAIN findings.
+Done: diagnosis of UNCERTAIN, gate-2 decision, consistency, frozen check, A/B
+test, held-out run.
+
+1. Practitioner review of a sample of AFFECTED and UNCERTAIN findings from the
+   held-out run, starting with the screening-engine cases (5 of 20 recovered).
+2. Stability: majority vote over three runs per case; re-measure agreement.
+3. Review volume: verifier treatment of direct text evidence (CHG-026) and a
+   second look at UNAFFECTED key controls (CHG-029), tested on fresh cases only.
+4. A pilot decision on a small real change set with control owners.
 
 ## Earlier phases (archived)
 

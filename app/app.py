@@ -106,8 +106,43 @@ RECORDED_FROZEN = {
     "uncertain_controls": 82,
     "uninvestigated_controls": 2,
 }
+RECORDED_B = {
+    "cases": 8,
+    "key_misses": 49,
+    "key_recovered": 27,
+    "key_miss_recovery": 27 / 49,
+    "new_control_precision": 1.0,
+    "baseline_workload": 38,
+    "added_review_items": 136,
+    "avoidable_review_items": 46,
+    "avoidable_review_items_per_case": 5.75,
+    "uncertain_controls": 86,
+    "uninvestigated_controls": 42,
+}
+RECORDED_CONS = {"key_pairs": 10, "agreement": 0.8, "target": 0.95}
+RECORDED_HELDOUT = {
+    "cases": 18,
+    "key_misses": 144,
+    "key_recovered": 113,
+    "key_miss_recovery": 113 / 144,
+    "new_control_precision": 262 / 280,
+    "baseline_workload": 64,
+    "added_review_items": 406,
+    "avoidable_review_items": 75,
+    "avoidable_review_items_per_case": 75 / 18,
+    "review_queue_true_share": 0.8153,
+    "uncertain_controls": 126,
+    "uninvestigated_controls": 8,
+}
 frozen_live = frozen is not None and frozen.get("cases") == 8
 F = frozen if frozen_live else RECORDED_FROZEN
+if not variant_b or variant_b.get("cases") != 8:
+    variant_b = RECORDED_B
+if not cons:
+    cons = RECORDED_CONS
+if not heldout or heldout.get("cases") != 18:
+    heldout = RECORDED_HELDOUT
+H = heldout
 
 
 def ab_decision():
@@ -191,18 +226,22 @@ def page_executive():
         "Can an AI agent find the controls a payment change affects when lineage is broken?"
     )
     st.markdown(
-        f'<div class="verdict"><b>Yes, above target on unseen cases.</b> The agent recovered '
-        f'<b>{F["key_recovered"]} of {F["key_misses"]}</b> affected key controls that the rules-based method missed '
-        f'(<b>{pct(F["key_miss_recovery"], 0)}</b>, target 50%), and <b>{pct(F["new_control_precision"], 0)}</b> of its new '
-        f'recommendations were correct. The cost is review effort: <b>{F["uncertain_controls"]}</b> controls were sent to a '
-        f"person across eight cases.</div>",
+        f'<div class="verdict"><b>Yes. On 18 held-out cases it had never seen, the agent recovered '
+        f'<b>{H["key_recovered"]} of {H["key_misses"]}</b> affected key controls that the rules-based method missed '
+        f'(<b>{pct(H["key_miss_recovery"], 0)}</b>, target 50%; 95% interval 71–84%).</b> '
+        f'<b>{pct(H["new_control_precision"], 0)}</b> of its new recommendations were correct. The cost is review effort: '
+        f'<b>{H["uncertain_controls"]}</b> controls sent to a person across 18 cases, about '
+        f'{H["avoidable_review_items_per_case"]:.1f} unnecessary items per change.</div>',
         unsafe_allow_html=True,
     )
     c = st.columns(4)
-    c[0].metric("Key controls recovered (target 50%)", pct(F["key_miss_recovery"], 0))
-    c[1].metric("Precision of new flags", pct(F["new_control_precision"], 0))
-    c[2].metric("Sent to human review (8 cases)", F["uncertain_controls"])
-    c[3].metric("Before → after fixes (CHG-001)", "0 → 14 of 19")
+    c[0].metric("Recovered (held-out)", pct(H["key_miss_recovery"], 0))
+    c[1].metric("Precision of new flags", pct(H["new_control_precision"], 0))
+    c[2].metric(
+        "Unneeded items / change",
+        f'{H["avoidable_review_items_per_case"]:.1f}',
+    )
+    c[3].metric("Same decision, 5 runs", pct(cons["agreement"], 0))
 
     st.subheader("Where things stand")
     winner, why = ab_decision()
@@ -215,12 +254,12 @@ def page_executive():
         (
             "Recover ≥ 50% of key controls the rules miss",
             pill("Met", "ok"),
-            f"{pct(F['key_miss_recovery'])} on 8 unseen cases, code frozen.",
+            f"Held-out: {pct(H['key_miss_recovery'])} ({H['key_recovered']} of {H['key_misses']}) on 18 test cases. Development check: {pct(F['key_miss_recovery'])} on 8 unseen cases.",
         ),
         (
             "Added review workload ≤ 25% vs rules",
             pill("Not met", "bad"),
-            f"{F['added_review_items']} added items vs {F['baseline_workload']} rules items. Reported unchanged; see FAQ.",
+            f"Held-out: {H['added_review_items']} added items vs {H['baseline_workload']} rules items; {pct(H.get('review_queue_true_share'), 0)} of added items are genuinely affected. Gate unreachable by any method that passes the first; see FAQ.",
         ),
         (
             "Same key decision across 5 runs ≥ 95%",
@@ -237,24 +276,12 @@ def page_executive():
         ),
         (
             "Stricter agent (variant B) A/B test",
-            pill(f"Variant {winner}", "ok") if winner else pill("Running", "warn"),
+            (
+                pill("B rejected" if winner == "A" else "B adopted", "ok")
+                if winner
+                else pill("Running", "warn")
+            ),
             why,
-        ),
-        (
-            "Held-out test (18 untouched cases)",
-            (
-                pill(
-                    pct(heldout["key_miss_recovery"]),
-                    "ok" if heldout["key_miss_recovery"] >= GATE_RECOVERY else "bad",
-                )
-                if heldout
-                else pill("Next", "dim")
-            ),
-            (
-                f"{heldout['key_recovered']} of {heldout['key_misses']} recovered"
-                if heldout
-                else "Runs once with the winning variant and everything frozen."
-            ),
         ),
     ]
     st.markdown(
@@ -272,17 +299,18 @@ def page_executive():
         st.markdown(
             "- Where lineage is incomplete, the agent finds most of what the rules miss, with quoted evidence a reviewer can check.\n"
             "- It does not replace control owners: it produces a review list with reasons, and sends disagreements to a person.\n"
-            "- The open problem is volume: about 7 avoidable review items per case, from over-claiming and from a verifier that is sometimes too strict."
+            "- The held-out result (78%) is higher than the development check (65%), so the method was not overfitted to the cases used for fixing.\n"
+            "- Two open problems: review volume (about 4 unnecessary items per change), and run-to-run variation (80% same decision on key controls, target 95%)."
         )
     with right:
         st.subheader("Decision needed")
         st.markdown(
-            "- **Continue** to the held-out run and a practitioner review of real findings. The results so far support this.\n"
-            "- **Stop rule, agreed in advance:** if the held-out result is below 50%, invest in lineage metadata instead of an AI workflow.\n"
-            "- Not yet: a production pilot."
+            "- **Continue:** the stop rule agreed in advance (held-out below 50%) was not triggered.\n"
+            "- **Next:** a practitioner review of real findings, and work on stability (e.g. majority vote over runs) and review volume.\n"
+            "- Not yet: a production pilot, because the stability and workload gates are not met."
         )
     st.caption(
-        "All data is synthetic. Figures: unseen development cases with frozen code unless stated. Details in sections 4 and 6."
+        "All data is synthetic. Headline figures: held-out test split, variant A, code frozen, one run. Details in sections 4 and 6."
     )
 
 
@@ -468,6 +496,23 @@ def page_evidence():
                 "Avoidable items": s.get("avoidable_review_items", ""),
             }
         )
+    if not any(summary_of(r) for r in runs):
+        for label, rec in (
+            ("Held-out test, variant A (18 cases)", RECORDED_HELDOUT),
+            ("Frozen check, variant A (8 unseen cases)", RECORDED_FROZEN),
+            ("A/B test, variant B (same 8 cases)", RECORDED_B),
+        ):
+            table.append(
+                {
+                    "Run": label + " · recorded",
+                    "Cases": rec["cases"],
+                    "Recovered": f"{rec['key_recovered']} / {rec['key_misses']}",
+                    "Recovery": pct(rec["key_miss_recovery"]),
+                    "Precision": pct(rec["new_control_precision"]),
+                    "Sent to review": rec["uncertain_controls"],
+                    "Avoidable items": rec["avoidable_review_items"],
+                }
+            )
     table.append(
         {
             "Run": "Tuned development cases (earlier workspace)",
@@ -758,11 +803,11 @@ def page_limits():
     )
     st.subheader("Next steps")
     st.markdown(
-        "1. Choose variant A or B by the pre-registered rule (Evidence section).\n"
-        "2. Finish the five-run consistency measurement.\n"
-        "3. Run the 18 held-out cases once, with the chosen variant and everything frozen.\n"
-        "4. Practitioner review of a sample of recommended and review items.\n"
-        "5. Then a pilot decision. If held-out recovery is below 50%, recommend investing in lineage metadata instead."
+        "Done: A/B test (variant A kept), five-run consistency (80%), held-out run (78% recovery).\n\n"
+        "1. Practitioner review of a sample of recommended and review items from the held-out run.\n"
+        "2. Stability: run each case three times and keep the majority decision; measure agreement again.\n"
+        "3. Review volume: target the verifier's over-strict rejections and the UNCERTAIN items that are not affected.\n"
+        "4. Then a pilot decision on a real, small change set with control owners."
     )
 
 
@@ -800,10 +845,10 @@ def page_ask():
     if "chat" not in st.session_state:
         st.session_state.chat = []
     examples = [
-        "Is the 65% result trustworthy?",
+        "Is the 78% held-out result trustworthy?",
         "Why does the workload gate fail?",
         "How does the agent avoid making things up?",
-        "What happens if the held-out test fails?",
+        "Why is consistency below target?",
     ]
     cols = st.columns(len(examples))
     clicked = next(

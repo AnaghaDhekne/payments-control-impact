@@ -9,25 +9,25 @@ answer key.
 
 All data is synthetic. No real bank, customer or control inventory is used.
 
-## Current status (2026-10-15)
+## Current status (2026-10-16)
 
 The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`),
-at 30% change-correlated metadata degradation:
+at 30% change-correlated metadata degradation. **Final, pre-registered
+held-out result** (18 test cases, one run, code frozen, variant A):
 
-| Measure | Tuned cases (4) | Unseen cases (8), code frozen | Gate |
+| Measure | Held-out (18 cases) | Unseen dev cases (8) | Gate |
 |---|---|---|---|
-| Key controls missed by rules, recovered | 22 of 27 (81.5%) | **32 of 49 (65.3%)** | >= 50%: met |
-| Precision of newly recommended controls | 56 of 61 (91.8%) | **79 of 87 (90.8%)** | (no gate) |
-| Added review items vs rules items | 102 vs 19 | **169 vs 38** | <= 25%: **not met** |
-| Avoidable review items per case | not measured | **7.0** | (descriptive) |
-| Key-control agreement over 5 runs | | running | >= 95%: open |
+| Key controls missed by rules, recovered | **113 of 144 (78.5%; 95% CI 71–84%)** | 32 of 49 (65.3%) | >= 50%: **met** |
+| Precision of newly recommended controls | **262 of 280 (93.6%)** | 79 of 87 (90.8%) | (no gate) |
+| Added review items vs rules items | 406 vs 64 | 169 vs 38 | <= 25%: not met |
+| Avoidable review items per case | 4.2 | 7.0 | (descriptive) |
+| Same key decision over 5 runs | 80% of 10 pairs (dev cases) | | >= 95%: not met |
 
-The unseen-case result is the one to quote; the tuned-case figure is
-optimistic. Main weakness: review burden, from the agent over-claiming impact
-across functional areas and the verifier rejecting links that are clear from
-the text. Under way: an A/B test of a stricter agent (variant B), a five-run
-consistency check, then one held-out run on the 18 test cases with the chosen
-variant. Details, diagnosis and pre-registered plans:
+The stop rule agreed in advance (held-out recovery below 50%) was not
+triggered. Open problems: run-to-run stability, review volume, and
+screening-engine changes (5 of 20 recovered). A stricter variant (B, cited
+chain required) was tested and rejected by its pre-registered rule: no wrong
+flags, but recall fell to 55%. Details, per-case tables and diagnosis:
 [docs/results.md](docs/results.md).
 
 ## How it works

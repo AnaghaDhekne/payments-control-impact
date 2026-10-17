@@ -108,6 +108,9 @@ change).
   runs 1–3 and A runs 1–2 resumed from their saved steps, same code and model:
   job run ids `573060831255233`, `1105397747202884`, `672466506468221` (C 1–3),
   `167770105481789`, `845418444026208` (A 1–2).
+- **Stability runs** (2026-10-17 18:47 CT, second workspace): C runs 4–6
+  resumed, job run ids `572616146806835`, `956239171330891`,
+  `729808572922086`.
   (`--resume`, same folders). No run, case or rule is dropped.
 - **Runs (parallel jobs):** version C, runs 1–6 in `fresh-C` (ensembles
   {1,2,3} and {4,5,6}); version A, runs 1–2 in `fresh-A` as the comparison on

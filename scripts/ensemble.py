@@ -111,11 +111,16 @@ def main():
         required=True,
         help="Run numbers per ensemble, e.g. 1,2,3 4,5,6",
     )
+    parser.add_argument(
+        "--cases", nargs="*", help="Score only these change IDs (same-case comparison)"
+    )
     args = parser.parse_args()
     folder = Path(args.folder)
     groups = [[int(x) for x in g.split(",")] for g in args.groups]
     runs = {n: load_run(folder, n) for g in groups for n in g}
     cases = sorted(set.intersection(*(set(r) for r in runs.values())))
+    if args.cases:
+        cases = [c for c in cases if c in set(args.cases)]
     missing = {n: sorted(set().union(*runs.values()) - set(r)) for n, r in runs.items()}
     truth = _truth_by_change(build_graph(), build_changes())
     labels = {cid: labels_for(truth[cid]) for cid in cases}
@@ -151,7 +156,11 @@ def main():
         out["ensembles"].append(
             {
                 "runs": g,
-                "summary": aggregate(metrics, "test", "ensemble"),
+                "summary": {
+                    **aggregate(metrics, "test", "ensemble"),
+                    "note": "Majority vote over the listed runs; cases finished in "
+                    "every run only. Labels computed offline.",
+                },
                 "cases": metrics,
                 "ranked_queue": {
                     "top_half_true_share": top_true / top if top else None,

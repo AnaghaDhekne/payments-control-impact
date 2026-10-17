@@ -102,6 +102,12 @@ change).
   was scored): the endpoint's capacity is shared, so C runs 4 and 5 were
   stopped after 3 and 2 cases, and C run 6 just after it started, to let both
   A runs start; all three resume later
+- **Moved workspace** (2026-10-17 10:38 CT): the first Free Edition workspace hit
+  its daily model limit with 12–14 of 18 cases done per main run. All results
+  were copied (`results/detective_runs.tar.gz`) to a second workspace, where C
+  runs 1–3 and A runs 1–2 resumed from their saved steps, same code and model:
+  job run ids `573060831255233`, `1105397747202884`, `672466506468221` (C 1–3),
+  `167770105481789`, `845418444026208` (A 1–2).
   (`--resume`, same folders). No run, case or rule is dropped.
 - **Runs (parallel jobs):** version C, runs 1–6 in `fresh-C` (ensembles
   {1,2,3} and {4,5,6}); version A, runs 1–2 in `fresh-A` as the comparison on

@@ -134,6 +134,34 @@ change).
   damage is a different condition from the main one, so these numbers are
   not comparable with the held-out 78.5%.
 
+**Result, rules 2 and 3 (2026-10-17, all 18 cases; C runs 1–3 vs A runs 1–2):**
+
+| | C, majority of runs 1–3 | A run 1 | A run 2 | A mean |
+|---|---|---|---|---|
+| Key misses recovered (of 93) | **49 (52.7%)** | 46 (49.5%) | 47 (50.5%) | 46.5 (50.0%) |
+| New-control precision | 98.1% | 96.8% | 97.1% | |
+| UNCERTAIN (sent to review) | 34 | 65 | 38 | 51.5 |
+| Avoidable review items per case | **0.33** (6) | 0.78 (14) | 0.44 (8) | 0.61 |
+| Review-queue true share | 95.6% | 91.2% | 94.3% | |
+| Uninvestigated controls | 0 | 7 | 4 | |
+| Model calls (all 18 cases) | 4,752 (3 runs) | 1,165 | 1,131 | |
+
+- **Rule 2 (recovery ≥ 50% and no more than 5 points below A): met.** 52.7%,
+  2.7 points above A's mean.
+- **Rule 3 (avoidable items ≤ 3.0 per case and below A): met.** 0.33 vs 0.61.
+- **Rule 1 (stability between two ensembles ≥ 95%): not yet measured**; needs
+  C runs 4–6. Single runs of C agree with each other no more than single runs
+  of A do (pairwise 90.5% vs 90.7%), as expected: the fixes do not steady a
+  single run; only the vote can, and that is what rule 1 tests.
+- **Reading.** The gains over A are real but modest on this condition: +2.5
+  key controls recovered, about half the avoidable items, a third fewer
+  UNCERTAIN, no undecided controls. Random damage gives both versions a light
+  review load (A: 0.6 avoidable items per case, against 4.2 on the held-out
+  run), so this test does not stress the review-volume weakness as hard as the
+  held-out condition did. The cost is about four times A's model calls.
+  Ranked queue: top half 90% affected vs bottom half 86%, so the ranking adds
+  little.
+
 ## Tuned development cases (2026-10-14/15)
 
 | Setting | Value |

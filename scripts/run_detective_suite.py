@@ -209,7 +209,7 @@ def main():
         choices=list(VARIANTS),
         default=DEFAULT_VARIANT,
         help="A = frozen-check agent (799189a); B = chain requirement (67bd813); "
-        "C = A plus coverage sweep, key re-check and tie-break",
+        "C = A plus coverage sweep, key re-check and tie-break; D = A plus tie-break only",
     )
     parser.add_argument(
         "--confirm-heldout",

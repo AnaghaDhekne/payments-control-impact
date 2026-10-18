@@ -439,12 +439,17 @@ DECIDING = {
 # controls marked UNAFFECTED, and a tie-break call when proposer and verifier
 # disagree. Pre-registered 2026-10-16 in docs/results.md.
 DECIDING["C"] = DECIDING["A"]
+# Variant D (final bounded round, 2026-10-18) = A plus the tie-break only: the
+# held-out diagnosis put 30 of 31 missed key controls in proposer/verifier
+# disagreements. No sweep, no key re-check, no voting.
+DECIDING["D"] = DECIDING["A"]
 VARIANTS = tuple(DECIDING)
 DEFAULT_VARIANT = "A"
 FEATURES = {
     "A": frozenset(),
     "B": frozenset({"chain"}),
     "C": frozenset({"sweep", "recheck_key", "adjudicate"}),
+    "D": frozenset({"adjudicate"}),
 }
 
 SWEEP_BATCH = 6

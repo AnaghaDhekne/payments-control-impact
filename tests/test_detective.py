@@ -721,3 +721,19 @@ def test_tool_name_used_as_key_is_understood():
         "inspect_control",
         {"control_ids": ["C1"]},
     )
+
+
+def test_variant_d_is_a_plus_tie_break_only():
+    # tie-break resolves the disagreement
+    result, prompts = run(
+        commands() + [finding("UNCERTAIN"), finding("AFFECTED")], variant="D"
+    )
+    assert result["recommended_control_ids"] == ["C-ADDRESS"]
+    assert result["verified_findings"][0]["verification_reason"].startswith("Tie-break")
+    # no sweep and no key re-check: an UNAFFECTED key control is not verified,
+    # and an undecided control stays undecided
+    cmds = commands()
+    cmds[2] = {"action": "submit_finding", "args": finding("UNAFFECTED")}
+    result, prompts = run(cmds, case=two_control_case(), variant="D")
+    assert len(prompts) == 4
+    assert result["uninvestigated_control_ids"] == ["C-OTHER"]

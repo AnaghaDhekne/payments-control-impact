@@ -178,7 +178,7 @@ def main():
     s.add_argument("--ignore-lock", action="store_true")
     s.add_argument("--split", choices=["development", "test"], default="development")
     s.add_argument("--confirm-heldout")
-    s.add_argument("--variant", choices=["A", "B", "C"])
+    s.add_argument("--variant", choices=["A", "B", "C", "D"])
     s.add_argument("--run-index", type=int, default=1)
     s.add_argument("--seed", type=int)
     s.add_argument("--level", type=int, choices=[0, 30, 60])

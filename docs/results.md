@@ -76,6 +76,60 @@ not-recommend decision in all five runs (80%, target 95%): **not met**.
 Recovery is stable (87.5–100%); the volume of UNCERTAIN items is not (CHG-025:
 6 to 36). Cases CHG-014, CHG-025, CHG-017 (development, tuned).
 
+## Pre-registered: final bounded round, variant D vs A (2026-10-18)
+
+Registered and frozen at 12:45 CT, before any run of variant D. Last
+improvement round of the POC; nothing is tuned after this note.
+
+**Diagnosis that motivated it** (existing A results, offline):
+
+| Where A's missed key controls ended | Held-out (18 cases) | Fresh-damage A, 2 runs |
+|---|---|---|
+| Proposer AFFECTED, verifier UNCERTAIN (sent to review) | **30 of 31** | 38 of 93 |
+| Proposer UNAFFECTED, never verified | 1 | 55 |
+| Undecided | 0 | 0 |
+
+- Cause 1: the verifier withholds approval mainly because no visible edge links
+  the change to the control (116 of 124 held-out disagreements cite a missing
+  edge), although missing edges are expected. But only 55% of those held-out
+  disagreements are truly affected (89% fresh, 37% frozen check), so accepting
+  them outright would add false flags. A judgement step that sees both
+  arguments is the supported fix.
+- Cause 2: key controls in another functional area marked UNAFFECTED (for
+  example creditor town name vs sanctions screening). No simple bounded rule
+  separates these: of 1,332 key UNAFFECTED decisions, 65 are wrong, and a
+  family-based re-check would be mostly wrong on the frozen-check cases. Not
+  fixed in this round; documented as next-stage work.
+- Undecided key controls: none in any A run, so the planned bounded check of
+  undecided key controls has nothing to act on and is not implemented.
+- False flags (18 held-out): mostly chains into reporting and reconciliation
+  families and the manual-fallback control C11; both proposer and verifier
+  agreed, so no single targeted fix; documented.
+
+**Candidate:** variant D = A plus one fix, the tie-break step (identical code
+to version C's): on a proposer/verifier disagreement a third call sees both
+arguments and the evidence and decides; only its UNCERTAIN, or a failed call,
+goes to review. No sweep, no key re-check, no voting, same model and prompts.
+
+**Validation set:** five development changes under fresh damage (30% random,
+main seed), never run under this condition: CHG-029, CHG-043, CHG-044,
+CHG-052, CHG-053 (16 key misses by the rules). Unchanged A and D, two runs
+each, output `freshdev-A` and `freshdev-D`. This small set is kept separate
+from A's 18-case held-out result, which stands as the headline.
+
+**Keep D only if all hold** (pooled over the two runs of each version):
+1. key-miss recovery equal to or higher than A's;
+2. unaffected review items (avoidable items) not higher than A's;
+3. undecided key controls not higher than A's (A had none so far, so this
+   cannot be "reduced"; equal is accepted);
+4. repeatability not worse: share of affected key controls with the same
+   recommend / not-recommend decision in both runs, D not below A.
+
+Otherwise A stays. If runs do not finish (capacity limits), A stays and the
+attempt is reported as incomplete. Caveat stated in advance: 16 key misses
+and two runs per version is a small sample; differences of one or two
+controls are within run-to-run noise.
+
 ## Pre-registered: version C with majority vote, fresh-damage test (2026-10-16)
 
 Registered before any run of version C. Purpose: fix the two gaps the

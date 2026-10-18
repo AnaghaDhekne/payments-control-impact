@@ -121,7 +121,7 @@ FAQ = [
     (
         "Leadership",
         "What does it cost in reviewer effort?",
-        "On the 18 held-out cases, reviewers would see 406 items beyond the rules baseline (64 items): 262 correct new recommendations, 18 wrong ones and 126 sent for a human decision. 82% of those items are genuinely affected; about 4 per change are unnecessary. Volume, not accuracy, is the main cost.",
+        "Version A adds 406 review items beyond the rules baseline’s 64 (470 total). These are not 406 wrong findings: 262 are correct new recommendations, 18 are incorrect, and 126 are UNCERTAIN. Offline synthetic labels show 69 uncertain items are affected and 57 are unaffected. In total, 331 additional items (81.5%) concern affected controls and warrant consideration; 75 (18.5%, 4.2 per change) concern unaffected controls. The original gate counts all additional items, including useful recoveries; it measures volume, not wasted effort or actual review time. Uncertain items do not count as recovered.",
     ),
     (
         "Leadership",

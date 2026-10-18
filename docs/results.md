@@ -78,7 +78,7 @@ Recovery is stable (87.5–100%); the volume of UNCERTAIN items is not (CHG-025:
 
 ## Pre-registered: final bounded round, variant D vs A (2026-10-18)
 
-Registered and frozen at 12:45 CT, before any run of variant D. Last
+Registered and frozen at 12:15 CT (commit `6757e83`), before any run of variant D. Last
 improvement round of the POC; nothing is tuned after this note.
 
 **Diagnosis that motivated it** (existing A results, offline):
@@ -116,6 +116,9 @@ main seed), never run under this condition: CHG-029, CHG-043, CHG-044,
 CHG-052, CHG-053 (16 key misses by the rules). Unchanged A and D, two runs
 each, output `freshdev-A` and `freshdev-D`. This small set is kept separate
 from A's 18-case held-out result, which stands as the headline.
+
+Submitted 12:17 CT: D runs 1–2 `252150333904575`, `201545758938808` (second
+workspace).
 
 **Keep D only if all hold** (pooled over the two runs of each version):
 1. key-miss recovery equal to or higher than A's;

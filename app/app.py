@@ -181,6 +181,11 @@ def results_summary_text():
     lines.append(
         f"Held-out test: {str(heldout['key_recovered']) + ' of ' + str(heldout['key_misses']) + ' (' + pct(heldout['key_miss_recovery']) + ')' if heldout else 'not run yet'}."
     )
+    lines.append(
+        "Version C fresh-damage test (18 test changes, 30% random damage): 3-run vote of C recovered 49 of 93 (52.7%) vs A 46.5 (50.0%); "
+        "unnecessary review items 0.33 vs 0.61 per change; precision 98.1%; two independent votes agreed on 94.4% of 162 key-control pairs "
+        "(target 95%, not met); C not adopted, A stays. C costs about four times A's model calls."
+    )
     return "\n".join(lines)
 
 
@@ -275,6 +280,12 @@ def page_executive():
             ),
         ),
         (
+            "Fix: version C with 3-run vote (fresh-damage test)",
+            pill("Not adopted", "warn"),
+            "Recovery 52.7% vs A 50.0% (met); unnecessary review items 0.33 vs 0.61 per change (met); "
+            "two votes agree on 94.4% vs 95% target (not met, by one control). By the pre-agreed rule, A stays.",
+        ),
+        (
             "Stricter agent (variant B) A/B test",
             (
                 pill("B rejected" if winner == "A" else "B adopted", "ok")
@@ -300,14 +311,15 @@ def page_executive():
             "- Where lineage is incomplete, the agent finds most of what the rules miss, with quoted evidence a reviewer can check.\n"
             "- It does not replace control owners: it produces a review list with reasons, and sends disagreements to a person.\n"
             "- The held-out result (78%) is higher than the development check (65%), so the method was not overfitted to the cases used for fixing.\n"
-            "- Two open problems: review volume (about 4 unnecessary items per change), and run-to-run variation (80% same decision on key controls, target 95%)."
+            "- Review noise can be fixed: version C with a 3-run vote cut unnecessary review items to 0.3 per change on a fresh test.\n"
+            "- Consistency is the remaining gap: 80% for one run, 94.4% for a 3-run vote, against 95%."
         )
     with right:
         st.subheader("Decision needed")
         st.markdown(
             "- **Continue:** the stop rule agreed in advance (held-out below 50%) was not triggered.\n"
-            "- **Next:** a practitioner review of real findings, and work on stability (e.g. majority vote over runs) and review volume.\n"
-            "- Not yet: a production pilot, because the stability and workload gates are not met."
+            "- **Next:** a practitioner review of real findings; optionally a 5-run vote on new cases to close the last 0.6% of consistency.\n"
+            "- Not yet: a production pilot, because consistency is below 95% and no practitioner has reviewed findings."
         )
     st.caption(
         "All data is synthetic. Headline figures: held-out test split, variant A, code frozen, one run. Details in sections 4 and 6."
@@ -803,9 +815,10 @@ def page_limits():
     )
     st.subheader("Next steps")
     st.markdown(
-        "Done: A/B test (variant A kept), five-run consistency (80%), held-out run (78% recovery).\n\n"
+        "Done: A/B test (variant A kept), five-run consistency (80%), held-out run (78% recovery), "
+        "version C test (review noise fixed; votes agree 94.4%, target 95%; not adopted).\n\n"
         "1. Practitioner review of a sample of recommended and review items from the held-out run.\n"
-        "2. Stability: run each case three times and keep the majority decision; measure agreement again.\n"
+        "2. Stability: a 5-run vote, registered in advance and tested on cases not used before.\n"
         "3. Review volume: target the verifier's over-strict rejections and the UNCERTAIN items that are not affected.\n"
         "4. Then a pilot decision on a real, small change set with control owners."
     )

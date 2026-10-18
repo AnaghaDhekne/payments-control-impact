@@ -179,6 +179,16 @@ FAQ = [
         "Three cases were run five times. Recovery of key misses was stable (7 or 8 of 8 every run), but 2 of the 10 affected key-control pairs flipped between recommended and not recommended, giving 80% against 95%. The volume of UNCERTAIN items varied most (CHG-025: 6 to 36). The model runs at temperature 0 but retries at 0.3, and the investigation path differs between runs. A majority vote over three runs is the planned fix.",
     ),
     (
+        "Leadership",
+        "Which expectations are met and which are not?",
+        "Met: the agentic path runs end to end; it finds 78.5% of the key controls the rules miss on held-out cases (target 50%) with 94% precision; review noise can be cut to 0.3 unnecessary items per change with version C. Not met: the 25% workload target (unreachable by design); consistency (80% for one run, 94.4% for a 3-run vote, target 95%). Not yet: practitioner review and production readiness.",
+    ),
+    (
+        "Technical",
+        "What did version C change, and why was it not adopted?",
+        "Version C adds a coverage sweep, a second look at key controls marked unaffected, and a tie-break call when agent and checker disagree; three runs are combined by majority vote. On fresh-damage cases it met the recovery rule (52.7% vs 50.0%) and the review-volume rule (0.33 vs 0.61 unnecessary items per change), but two independent votes agreed on 94.4% of key controls, one short of the 95% target. The rule required all three, so version A stays.",
+    ),
+    (
         "Technical",
         "How realistic is the benchmark?",
         "It models one fictional bank's outbound cross-border payment flow with 148 nodes, 101 controls and 54 changes. Generated controls come in families that share dependencies, which may make some links easier than in a real inventory. A practitioner review is planned.",
@@ -218,7 +228,7 @@ FAQ = [
 LIMITS = [
     (
         "Review burden",
-        "126 items sent to human review across 18 held-out cases; about 4 unnecessary items per change.",
+        "Held-out (A): about 4 unnecessary items per change. Version C with a 3-run vote: 0.3 on a fresh test.",
         "Variant B tried and rejected (fewer wrong flags, but lower recall and more review). Next: verifier changes, tested only on fresh cases.",
     ),
     (
@@ -239,7 +249,7 @@ LIMITS = [
     (
         "Run-to-run variation",
         "Five runs of three cases: 80% of key-control pairs got the same decision every time (target 95%); review items on one case ranged 6 to 36.",
-        "Majority vote over three runs per case; re-measure.",
+        "3-run vote reached 94.4% (target 95%); next: 5-run vote on new cases.",
     ),
     (
         "Synthetic benchmark",

@@ -9,26 +9,32 @@ answer key.
 
 All data is synthetic. No real bank, customer or control inventory is used.
 
-## Current status (2026-10-16)
+## Current status (2026-10-18)
 
-The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`),
-at 30% change-correlated metadata degradation. **Final, pre-registered
-held-out result** (18 test cases, one run, code frozen, variant A):
+The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`).
+Every test below was registered in [docs/results.md](docs/results.md) before
+it ran.
 
-| Measure | Held-out (18 cases) | Unseen dev cases (8) | Gate |
+### Expectations: met and not met
+
+| Expectation | Target | Result | Status |
 |---|---|---|---|
-| Key controls missed by rules, recovered | **113 of 144 (78.5%; 95% CI 71–84%)** | 32 of 49 (65.3%) | >= 50%: **met** |
-| Precision of newly recommended controls | **262 of 280 (93.6%)** | 79 of 87 (90.8%) | (no gate) |
-| Added review items vs rules items | 406 vs 64 | 169 vs 38 | <= 25%: not met |
-| Avoidable review items per case | 4.2 | 7.0 | (descriptive) |
-| Same key decision over 5 runs | 80% of 10 pairs (dev cases) | | >= 95%: not met |
+| Agentic path works end to end on Databricks | runs, logged, replayable | Live jobs; every step logged | **Met** |
+| Find key controls the rules miss (held-out, 18 cases) | >= 50% | **113 of 144 (78.5%; 95% CI 71–84%)** | **Met** |
+| Precision of newly recommended controls (held-out) | (no gate) | 262 of 280 (93.6%) | Good |
+| Added review workload vs rules | <= 25% | 406 vs 64 items (held-out) | Not met; unreachable by any method that meets the line above |
+| Unnecessary review items (held-out, version A) | (descriptive) | 4.2 per change | Weakness |
+| Same key decision on repeat runs (version A, 5 runs) | >= 95% | 80% | **Not met** |
+| Fix 1 (version B, cited chain required) | pre-registered rule | no wrong flags, but recall 55% | Rejected |
+| Fix 2 (version C + 3-run vote), fresh-damage test: recovery | >= 50%, within 5 pts of A | 52.7% vs A 50.0% | Met |
+| Fix 2: unnecessary review items | <= 3 per change and below A | **0.33 vs A 0.61** | **Met** |
+| Fix 2: two independent votes agree | >= 95% | **94.4%** (153 of 162; 154 needed) | **Not met**; C not adopted, A stays |
+| Ready for production | | synthetic data, no practitioner review | No; next step is a practitioner review |
 
 The stop rule agreed in advance (held-out recovery below 50%) was not
-triggered. Open problems: run-to-run stability, review volume, and
-screening-engine changes (5 of 20 recovered). A stricter variant (B, cited
-chain required) was tested and rejected by its pre-registered rule: no wrong
-flags, but recall fell to 55%. Details, per-case tables and diagnosis:
-[docs/results.md](docs/results.md).
+triggered. Weak spot on the held-out run: screening-engine changes (5 of 20).
+Version C fixes review noise and narrows the consistency gap (single runs
+agree 90.8%, votes 94.4%) at about four times A's model cost.
 
 ## How it works
 

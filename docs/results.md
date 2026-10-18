@@ -119,6 +119,8 @@ from A's 18-case held-out result, which stands as the headline.
 
 Submitted 12:17 CT: D runs 1–2 `252150333904575`, `201545758938808` (second
 workspace).
+Submitted 12:19 CT: A runs 1–2 `137347372014836`, `1113596348362003` (first
+workspace).
 
 **Keep D only if all hold** (pooled over the two runs of each version):
 1. key-miss recovery equal to or higher than A's;

@@ -234,16 +234,17 @@ def page_executive():
         f'<div class="verdict"><b>Yes. On 18 held-out cases it had never seen, the agent recovered '
         f'<b>{H["key_recovered"]} of {H["key_misses"]}</b> affected key controls that the rules-based method missed '
         f'(<b>{pct(H["key_miss_recovery"], 0)}</b>, target 50%; 95% interval 71–84%).</b> '
-        f'<b>{pct(H["new_control_precision"], 0)}</b> of its new recommendations were correct. The cost is review effort: '
-        f'<b>{H["uncertain_controls"]}</b> controls sent to a person across 18 cases, about '
-        f'{H["avoidable_review_items_per_case"]:.1f} unnecessary items per change.</div>',
+        f'<b>{pct(H["new_control_precision"], 0)}</b> of its new recommendations were correct. Additional review includes useful discoveries: '
+        f'331 of 406 additional items concern genuinely affected controls; 75 concern unaffected controls. '
+        f'The 126 UNCERTAIN items include 69 affected and 57 unaffected controls, based on synthetic labels. '
+        f'Item counts do not measure review time.</div>',
         unsafe_allow_html=True,
     )
     c = st.columns(4)
     c[0].metric("Recovered (held-out)", pct(H["key_miss_recovery"], 0))
     c[1].metric("Precision of new flags", pct(H["new_control_precision"], 0))
     c[2].metric(
-        "Unneeded items / change",
+        "Unaffected items / change",
         f'{H["avoidable_review_items_per_case"]:.1f}',
     )
     c[3].metric("Same decision, 5 runs", pct(cons["agreement"], 0))
@@ -262,9 +263,9 @@ def page_executive():
             f"Held-out: {pct(H['key_miss_recovery'])} ({H['key_recovered']} of {H['key_misses']}) on 18 test cases. Development check: {pct(F['key_miss_recovery'])} on 8 unseen cases.",
         ),
         (
-            "Added review workload ≤ 25% vs rules",
+            "Original additional-volume gate ≤ 25% vs rules",
             pill("Not met", "bad"),
-            f"Held-out: {H['added_review_items']} added items vs {H['baseline_workload']} rules items; {pct(H.get('review_queue_true_share'), 0)} of added items are genuinely affected. Gate unreachable by any method that passes the first; see FAQ.",
+            f"Held-out: {H['added_review_items']} added items vs {H['baseline_workload']} rules items: 331 affected (useful additional coverage), 75 unaffected (review overhead). This counts volume, not wasted effort or elapsed time. Original gate unchanged; see FAQ.",
         ),
         (
             "Same key decision across 5 runs ≥ 95%",

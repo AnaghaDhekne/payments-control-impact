@@ -165,6 +165,31 @@ change).
   Ranked queue: top half 90% affected vs bottom half 86%, so the ranking adds
   little.
 
+**Result, rule 1 and decision (2026-10-18, runs 4–6 complete, 18 cases each):**
+
+| | Vote of runs 1–3 | Vote of runs 4–6 |
+|---|---|---|
+| Key misses recovered (of 93) | 49 (52.7%) | 46 (49.5%) |
+| New-control precision | 98.1% | 100% |
+| Avoidable review items per case | 0.33 | 0.17 |
+| UNCERTAIN | 34 | 40 |
+
+- **Rule 1 (the two votes agree on ≥ 95% of affected key-control pairs): not
+  met.** 153 of 162 pairs (94.4%); 154 were needed. Single runs agree
+  pairwise on 90.8% and all six on 78.4%, so voting removed about 40% of the
+  disagreements but not enough.
+- **Decision, by the registered rule (all three must hold): version C is not
+  adopted; version A stays.** Rules 2 and 3 were met (on the runs 1–3 vote, as
+  registered). Recorded as measured; the target is not revisited.
+- **Also noted:** the second vote recovered 49.5%, just under 50%, so recovery
+  under this damage condition sits at the 50% line for both versions and both
+  votes; the review-volume gains held in both votes (0.33 and 0.17 avoidable
+  items per case against A's 0.61).
+- **What it means:** the tie-break and majority vote fix the review-volume
+  weakness and narrow, but do not close, the consistency gap, at about four
+  times A's model cost. Any further step (for example a five-run vote) is a
+  new test, to be registered and run on cases not used here.
+
 ## Tuned development cases (2026-10-14/15)
 
 | Setting | Value |

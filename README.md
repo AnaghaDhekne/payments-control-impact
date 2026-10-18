@@ -22,14 +22,34 @@ it ran.
 | Agentic path works end to end on Databricks | runs, logged, replayable | Live jobs; every step logged | **Met** |
 | Find key controls the rules miss (held-out, 18 cases) | >= 50% | **113 of 144 (78.5%; 95% CI 71–84%)** | **Met** |
 | Precision of newly recommended controls (held-out) | (no gate) | 262 of 280 (93.6%) | Good |
-| Added review workload vs rules | <= 25% | 406 vs 64 items (held-out) | Not met; unreachable by any method that meets the line above |
-| Unnecessary review items (held-out, version A) | (descriptive) | 4.2 per change | Weakness |
+| Additional review volume vs rules (not wasted effort) | <= 25% | 406 additional items beyond 64 baseline items; 331 affected, 75 unaffected | Original volume gate not met; counts useful recoveries too |
+| Unaffected additional review items (held-out, version A) | (descriptive) | 75 total; 4.2 per change; 18.5% of additional items | Review overhead, identified using synthetic labels |
 | Same key decision on repeat runs (version A, 5 runs) | >= 95% | 80% | **Not met** |
 | Fix 1 (version B, cited chain required) | pre-registered rule | no wrong flags, but recall 55% | Rejected |
 | Fix 2 (version C + 3-run vote), fresh-damage test: recovery | >= 50%, within 5 pts of A | 52.7% vs A 50.0% | Met |
 | Fix 2: unnecessary review items | <= 3 per change and below A | **0.33 vs A 0.61** | **Met** |
 | Fix 2: two independent votes agree | >= 95% | **94.4%** (153 of 162; 154 needed) | **Not met**; C not adopted, A stays |
 | Ready for production | | synthetic data, no practitioner review | No; next step is a practitioner review |
+
+### Version A: what the additional review contains
+
+The 406 items are **additional controls to consider, not 406 incorrect findings**.
+They are beyond the rules baseline's 64 items (470 total items including the baseline).
+
+| Additional items | Affected in the synthetic answer key | Unaffected | Total |
+|---|---:|---:|---:|
+| New recommendations | 262 | 18 | 280 |
+| UNCERTAIN, requiring human assessment | 69 | 57 | 126 |
+| **Total** | **331 (81.5%)** | **75 (18.5%)** | **406** |
+
+The 331 affected items represent useful additional coverage that warrants review;
+the 75 unaffected items represent review overhead on this benchmark. Uncertainty
+alone does not mean a finding is wrong. The affected/unaffected breakdown uses
+offline synthetic labels, which a real reviewer would not have in advance.
+The original +25% gate measures item volume, including correct recoveries; it
+remains failed, but does not measure wasted effort or elapsed review time.
+Only confirmed recommendations count toward key-miss recovery; the 69 affected
+UNCERTAIN items are not counted as recovered.
 
 The stop rule agreed in advance (held-out recovery below 50%) was not
 triggered. Weak spot on the held-out run: screening-engine changes (5 of 20).

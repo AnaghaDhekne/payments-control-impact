@@ -1,8 +1,8 @@
 # Run results snapshot
 
 `detective_runs.tar.gz` is a copy of the Databricks results volume
-(`/Volumes/workspace/default/detective_runs`) taken 2026-10-17 10:35 CT, so the
-runs can continue in another workspace. Per-case result files only; the full
+(`/Volumes/workspace/default/detective_runs`) taken 2026-10-18 12:00 CT from the second
+workspace, after every run finished. Per-case result files only; the full
 model-call logs (`*.calls.json`) are left out.
 
 | Folder | Contents |
@@ -10,7 +10,8 @@ model-call logs (`*.calls.json`) are left out.
 | `heldout-final/` | Held-out test, 18 cases, variant A (final, 78.5%) |
 | `suite-10/`, `suite-12/` | Frozen check (A) and A/B test (B), 8 cases |
 | `suite-11/` | Consistency, 3 cases x 5 runs |
-| `fresh-C/run1..6`, `fresh-A/run1..2` | Fresh-damage test, in progress (12-14 of 18 cases per main run) |
+| `fresh-C/run1..6`, `fresh-A/run1..2` | Fresh-damage test of version C vs A, complete (18 cases each) |
+| `suite-09/` | Tuned development cases CHG-014, 025, 017 |
 
 Restore into a workspace's volume (from the repository folder):
 

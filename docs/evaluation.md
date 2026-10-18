@@ -39,6 +39,16 @@ At 30% change-correlated degradation, proceed to a pilot only if the detective:
 Report sample size and uncertainty. With zero observed key misses among n
 pairs, report the approximate 95% upper bound on the miss rate as 3/n.
 
+### Interpreting review volume
+
+Additional review items are not synonymous with incorrect findings or wasted
+time. Correct discoveries create necessary review of controls missed by rules.
+For held-out version A, the 406 additional items comprise 331 affected items
+(262 recommendations and 69 UNCERTAIN) and 75 unaffected items (18 recommendations
+and 57 UNCERTAIN), using offline synthetic labels. Only the latter are labeled
+avoidable review items by this benchmark. Actual review duration was not measured.
+The original volume gate remains unchanged and failed; it is not a waste-rate gate.
+
 ### Known tension between gates 1 and 2
 
 On the development split the baseline flags 176 controls and misses 225

@@ -1392,7 +1392,7 @@ def agent_outcomes(change_id):
 def page_synthetic():
     ui.page_head(
         "Technical view",
-        "A complete, known map lets every answer be scored exactly",
+        "Break the dependency map. See what each method misses.",
         "An invented but realistic model of one bank's outbound cross-border payments. The full map is known, "
         "so the right answer for every change is known; the agent only ever sees a damaged copy. "
         "No real bank, customer or control data is used.",
@@ -1440,7 +1440,7 @@ def page_synthetic():
         change_id = st.selectbox(
             "Payment change to test",
             [r["Change"] for r in synthetic.change_table()],
-            index=26,
+            index=next((i for i, row in enumerate(synthetic.change_table()) if row["Change"] == "CHG-027"), 0),
             key="degradation_change",
         )
         damage_mode = "correlated" if mode == "Change-correlated" else "random"
@@ -1483,6 +1483,8 @@ def page_synthetic():
             "changing these controls does not rerun the model."
         )
 
+    st.markdown("### Further technical detail")
+    st.caption("Reference material for reviewers who want to audit the benchmark.")
     t2, t1, t3, t4 = st.tabs(
         [
             "Worked example",

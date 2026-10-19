@@ -917,42 +917,39 @@ def download_summary():
 
 
 def executive_value_case():
-    """Transparent scenario, not a claim of measured time savings or ROI."""
-    st.markdown("### Executive value case | What would this mean in operations?")
+    """Separate useful coverage from avoidable false-positive workload."""
+    st.markdown("### Executive value case | Coverage versus avoidable effort")
     st.caption(
-        "Illustrative scenario only. The POC measured detection, not reviewer minutes, "
-        "staffing costs, prevented incidents, or financial return."
+        "Illustrative extrapolation from 18 synthetic changes, not observed staff hours, "
+        "bank costs, prevented losses or ROI. Baseline = existing lineage-only rules check."
     )
     c1, c2, c3 = st.columns(3)
     changes = c1.number_input("Changes assessed per month", min_value=1, max_value=10000, value=100, step=10)
-    minutes = c2.number_input("Minutes to review one item", min_value=1, max_value=240, value=5)
+    minutes = c2.number_input("Minutes to review an unaffected item", min_value=1, max_value=240, value=5)
     rate = c3.number_input("Fully loaded reviewer cost ($/hour)", min_value=1, max_value=1000, value=75, step=5)
-    baseline_items = 64 / 18
-    new_items = 406 / 18
-    real_items = 331 / 18
-    avoidable_items = 75 / 18
-    extra_hours = changes * new_items * minutes / 60
-    extra_cost = extra_hours * rate
-    avoidable_hours = changes * avoidable_items * minutes / 60
-    real_hours = changes * real_items * minutes / 60
+    baseline_items, real_items, avoidable_items = 64 / 18, 331 / 18, 75 / 18
+    baseline = changes * baseline_items
+    useful = changes * real_items
+    avoidable = changes * avoidable_items
+    hours = avoidable * minutes / 60
+    cost = hours * rate
     a, b, c = st.columns(3)
-    a.metric("Additional review hours / month", f"{extra_hours:,.1f}")
-    b.metric("Additional review labor / month", f"${extra_cost:,.0f}")
-    c.metric("Of those hours: real impacts", f"{real_hours:,.1f}")
+    a.metric("Real impacts newly surfaced / month", f"{useful:,.0f}")
+    b.metric("Avoidable review hours / month", f"{hours:,.1f}")
+    c.metric("Avoidable review labor / month", f"${cost:,.0f}")
     st.markdown(
-        f"At **{changes:,} changes/month**, the benchmark implies about "
-        f"**{changes * baseline_items:,.0f} baseline review items** and "
-        f"**{changes * (baseline_items + new_items):,.0f} with the agent**. "
-        f"Of the additional items, roughly **{changes * real_items:,.0f} are real "
-        f"impacts** and **{changes * avoidable_items:,.0f} are unaffected**. "
-        f"The latter represent approximately **{avoidable_hours:,.1f} hours/month** "
-        "of potentially avoidable review."
+        f"**Existing baseline:** about {baseline:,.0f} review items/month from the "
+        "rules-based lineage check. **AI detective:** adds about "
+        f"{useful:,.0f} genuinely affected items requiring appropriate review, "
+        f"plus {avoidable:,.0f} unaffected items. Only the latter are classified "
+        "as **avoidable overhead**; real impacts are necessary control work, "
+        "not a time saving or wasted effort."
     )
     st.markdown(
-        "**Not included:** model inference/serving cost, setup and integration, "
-        "investigation time saved elsewhere, or the monetary value of earlier control discovery. "
-        "**Net savings and ROI cannot be established from the current POC.** "
-        "The next pilot should time actual reviews and investigations, and capture model usage cost."
+        "**Capacity note:** Reviewing newly discovered real impacts still takes time. "
+        "This page intentionally does not treat that necessary work as inefficiency. "
+        "Total staffing demand, net time savings, model costs, and ROI require "
+        "measured end-to-end review and investigation times in a practitioner pilot."
     )
 
 

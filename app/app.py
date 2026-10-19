@@ -1042,6 +1042,55 @@ def executive_value_case():
     )
 
 
+def delivery_readiness():
+    """Stakeholder-oriented assessment: evidence, ownership and client readiness."""
+    st.markdown(
+        '<div class="section-index"><span>DELIVERY ASSESSMENT</span>'
+        '<span>BEYOND A MODEL DEMO</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("### What a project reviewer should be able to verify")
+    st.caption(
+        "These are practical review dimensions, not official WorldLink scores or "
+        "comparisons with other interns. Every claim points to POC evidence or an explicit gap."
+    )
+    items = [
+        ("01 / CLIENT PROBLEM", "A decision worth making",
+         "A payments change can affect controls outside incomplete lineage. "
+         "The proposed decision is whether to pilot AI-assisted control-impact discovery.",
+         "Defined problem and buyer; client-specific workflow not validated."),
+        ("02 / ENGINEERING OWNERSHIP", "Built beyond a prompt",
+         "Deterministic baseline, synthetic benchmark, documented agent path, "
+         "recorded runs and reproducible evaluation.",
+         "Reproducibility documented; deployed runtime still needs a walkthrough."),
+        ("03 / EVALUATION", "Measured against a baseline",
+         "18 held-out changes, 162 affected key-control instances, "
+         "113 of 144 baseline misses recovered; 75 of 406 added items unaffected.",
+         "One silent miss; 80% repeatability versus 95% original target."),
+        ("04 / GOVERNANCE", "Evidence before automation",
+         "Cited source passages, independent checker and reviewer routing. "
+         "No automatic clearance or claim of completed human validation.",
+         "Real practitioner acceptance and model-risk approval outstanding."),
+        ("05 / OPERATIONAL VALUE", "Cost and adoption",
+         "A transparent baseline-versus-assisted workload scenario, "
+         "with necessary true-positive work separated from avoidable review.",
+         "Actual minutes, model spend, savings and ROI not measured."),
+        ("06 / CLIENT READINESS", "A defensible next decision",
+         "Inspectable example, architecture, limitations and next-step options "
+         "for an executive, architect and control owner.",
+         "Needs realistic client data and practitioner sign-off before a pilot decision."),
+    ]
+    for number, heading, evidence, gap in items:
+        with st.expander(f"{number}  —  {heading}", expanded=False):
+            st.markdown(f"**Evidence:** {evidence}")
+            st.markdown(f"**Remaining gap:** {gap}")
+    st.markdown(
+        "**Recommended next decision:** authorize a limited practitioner validation "
+        "of existing recorded findings, with timed reviews and a documented silent-miss "
+        "assessment. Do not treat this synthetic benchmark as client acceptance."
+    )
+
+
 def page_decision():
     ui.overview_css()
     ui.page_head(
@@ -1075,6 +1124,7 @@ def page_decision():
         "</div>",
         unsafe_allow_html=True,
     )
+    delivery_readiness()
     st.markdown("### Demonstrated so far, and what production would need")
     st.markdown(
         '<div class="ready">'

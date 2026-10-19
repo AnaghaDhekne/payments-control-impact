@@ -717,24 +717,13 @@ def page_overview():
         unsafe_allow_html=True,
     )
     client_experience.show(case)
-    with st.container():
-        st.markdown(
-            '<div style="background:#0b1019;color:#e9f3f9;padding:12px 4vw 30px">'
-            '<span style="font-size:11px;letter-spacing:.16em;color:#d5f17c">'
-            'THE NEXT QUESTION</span>'
-            '<h3 style="color:#fff!important;font-size:23px!important">'
-            'Would you trust this finding before a release?</h3>'
-            '<p style="color:#b2c5d1">Inspect the source evidence and the silent miss '
-            'before considering a controlled practitioner pilot.</p></div>',
-            unsafe_allow_html=True,
-        )
-        a, b, c = st.columns(3)
-        with a:
-            st.page_link(PAGES["case"], label="Inspect recorded evidence →")
-        with b:
-            st.page_link(PAGES["results"], label="Challenge the evaluation →")
-        with c:
-            st.page_link(PAGES["decision"], label="Decide next steps →")
+    st.markdown(
+        '<div style="background:#0b1019;color:#a6b8c7;padding:8px 4vw 8px;'
+        'font-size:12px;letter-spacing:.04em">THE EVIDENCE IS OPEN TO CHALLENGE '
+        '· RECORDED SYNTHETIC STUDY · NO PRODUCTION APPROVAL</div>',
+        unsafe_allow_html=True,
+    )
+    st.page_link(PAGES["case"], label="Open the full case evidence →")
 
 
 # ------------------------------------------------------------------ present

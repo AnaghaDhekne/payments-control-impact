@@ -1398,7 +1398,8 @@ def page_synthetic():
         "No real bank, customer or control data is used.",
         synthetic=True,
     )
-    ui.kpis(
+    with st.expander("Benchmark inventory (148 nodes, 238 links, 101 controls, 54 changes)"):
+        ui.kpis(
         [
             (
                 "148",
@@ -1413,7 +1414,74 @@ def page_synthetic():
             ("101", "controls", "30 key, 60 standard, 11 supporting"),
             ("54", "change scenarios", "36 for development, 18 held out for the test"),
         ]
+        )
+
+    st.markdown("### The experiment: remove information, then measure what is missed")
+    st.markdown(
+        "**Complete map → remove links → run rules-only baseline → let the agent investigate → "
+        "compare both against the untouched answer key.** "
+        "The answer key is never shown to the agent."
     )
+    left, right = st.columns([1, 2], gap="large")
+    with left:
+        level = st.select_slider(
+            "Lineage degradation",
+            options=[0, 30, 60],
+            value=30,
+            format_func=lambda x: f"{x}% links removed",
+            key="degradation_level",
+        )
+        mode = st.radio(
+            "Damage pattern",
+            ["Change-correlated", "Random"],
+            index=0,
+            key="degradation_pattern",
+        )
+        change_id = st.selectbox(
+            "Payment change to test",
+            [r["Change"] for r in synthetic.change_table()],
+            index=26,
+            key="degradation_change",
+        )
+        damage_mode = "correlated" if mode == "Change-correlated" else "random"
+        ex = syn_example(change_id, level, damage_mode)
+        st.markdown(
+            f"**{len(ex['removed'])} of {ex['edges_exposable']} exposable links removed** "
+            f"for this case. **{len(ex['key_misses'])} key-control impacts missed** "
+            "by the rules-only check."
+        )
+        st.caption(
+            "Degradation is controlled synthetic metadata loss, not model accuracy loss. "
+            "Change-correlated damage concentrates missing links near the changed component; "
+            "random damage removes links without that proximity preference. "
+            "This interactive example is a counterfactual, not a new agent run."
+        )
+    with right:
+        graph_view = st.radio(
+            "Compare map views",
+            ["Complete answer key", "What the rules see", "Missing links highlighted"],
+            index=2,
+            horizontal=True,
+            key="degradation_view",
+        )
+        graph_mode = {
+            "Complete answer key": "complete",
+            "What the rules see": "damaged",
+            "Missing links highlighted": "overlay",
+        }[graph_view]
+        st.graphviz_chart(
+            syn_dot(change_id, level, damage_mode, graph_mode, True),
+            use_container_width=True,
+        )
+    with st.expander("How the benchmark is constructed and scored"):
+        st.markdown(
+            "The complete directed graph defines affected controls deterministically. "
+            "The benchmark damages the metadata visible to the rules and agent, "
+            "while retaining the original graph for scoring. "
+            "Narrative artifacts may also be stale or incomplete. "
+            "The recorded held-out result uses **30% change-correlated degradation**; "
+            "changing these controls does not rerun the model."
+        )
 
     t2, t1, t3, t4 = st.tabs(
         [
@@ -2043,28 +2111,26 @@ def _page(fn, title, default=False):
 
 
 VIEWS = {
-    "": [
-        _page(page_overview, "Overview", default=True),
-        _page(page_present, "Present the story"),
+    "Decision": [
+        _page(page_overview, "The finding", default=True),
+        _page(page_decision, "Decision and value"),
     ],
-    "Understand the problem (everyone)": [
-        _page(page_problem, "1  The problem"),
-        _page(page_how, "2  How it works"),
-        _page(page_case, "3  One change, end to end"),
+    "Investigation": [
+        _page(page_case, "Investigate a change"),
+        _page(page_results, "Evaluation"),
     ],
-    "Results and options (executive)": [
-        _page(page_results, "4  Results"),
-        _page(page_decision, "5  Options"),
+    "Technical evidence": [
+        _page(page_synthetic, "Degradation experiment"),
+        _page(page_architecture, "Method and architecture"),
+        _page(page_explorer, "Run explorer"),
+        _page(page_evidence, "Source evidence"),
     ],
-    "Technical detail": [
-        _page(page_synthetic, "The synthetic data"),
-        _page(page_evidence, "Evidence"),
-        _page(page_explorer, "Case explorer"),
-        _page(page_architecture, "Architecture and method"),
-    ],
-    "Help": [
-        _page(page_faq, "Questions and answers"),
-        _page(page_ask, "Ask the assistant"),
+    "Reference": [
+        _page(page_problem, "Problem definition"),
+        _page(page_how, "Agent workflow"),
+        _page(page_present, "Presentation"),
+        _page(page_faq, "FAQ"),
+        _page(page_ask, "Ask"),
     ],
 }
 nav = st.navigation(VIEWS, position="hidden")

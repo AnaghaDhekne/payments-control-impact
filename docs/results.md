@@ -111,6 +111,31 @@ Submitted 2026-10-19 09:14–09:16 CT at commit `a171787`: freshdev-A
 run 1 `89981659491403`, run 2 `1045475298888369`, frozen check
 `4190204199177` (second workspace).
 
+**Result (2026-10-19, all runs complete; 412 tie-break calls):**
+
+| Pooled over 7 runs (A as saved vs the same runs with the tie-break) | A | A + tie-break | Rule | Status |
+|---|---|---|---|---|
+| Key misses recovered (of 411) | 258 (62.8%) | **267 (65.0%)** | not lower | Met |
+| Unaffected (avoidable) review items | 183 | **114 (−38%)** | ≥ 25% fewer | Met |
+| Truly affected review items dismissed | — | **59 of 271 (21.8%)** | ≤ 10% | **Not met** |
+| Repeatability, fresh-damage runs 1 vs 2 | 90.7% | 91.4% | not lower | Met |
+| Repeatability, 5-case runs 1 vs 2 | 76% | 76% | not lower | Met |
+
+| Set | Recovery A → A+T | Avoidable A → A+T | Affected items dismissed |
+|---|---|---|---|
+| Held-out (18) | 113 → 114 of 144 | 75 → 57 | 14 of 69 |
+| Fresh-damage A, 2 runs | 93 → 100 of 186 | 22 → 10 | 20 of 129 |
+| Frozen check (8) | 32 → 33 of 49 | 56 → 32 | 11 of 34 |
+| 5-case A, 2 runs | 20 → 20 of 32 | 30 → 15 | 14 of 39 |
+
+**Decision: "A + tie-break" is not recommended as is (rule 3 failed); A stays.**
+The tie-break is accurate when it promotes a finding (68 of 70 promotions to
+AFFECTED were truly affected) but not when it dismisses one: of 128 review items
+it dismissed, 59 were truly affected, 22 of them key controls. Exploratory,
+not pre-registered: a tie-break that may only promote (otherwise leaving the item
+in review) would keep the recovery gain without dismissing real impacts, but
+would not reduce review volume; this is next-stage work.
+
 ## Pre-registered: final bounded round, variant D vs A (2026-10-18)
 
 Registered and frozen at 12:15 CT (commit `6757e83`), before any run of variant D. Last

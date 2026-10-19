@@ -530,6 +530,17 @@ OVERVIEW_CSS = f"""
 .case-entry-title {{ font-family:'Source Serif 4',Georgia,serif; color:#202B36; font-size:1.55rem; margin:.65rem 0; line-height:1.18; }}
 .case-entry p {{ font-size:.91rem; line-height:1.55; color:#5B6675; }}
 @media(max-width:640px) {{ .hero-statline {{ align-items:start; }} .case-entry {{ min-height:0; }} }}
+
+.verdict-strip {{ display:grid; grid-template-columns:minmax(0,1.65fr) minmax(220px,1fr); gap:0; border-top:3px solid #202B36; border-bottom:1px solid #202B36; margin:1rem 0 2rem; }}
+.verdict-primary {{ padding:2rem 2rem 2rem 0; }}
+.verdict-primary > span {{ display:block; font-size:.72rem; letter-spacing:.14em; font-weight:600; color:#9B553F; }}
+.verdict-primary strong {{ display:block; font-family:'Source Serif 4',Georgia,serif; font-size:clamp(2.5rem,5vw,5rem); letter-spacing:-.05em; font-weight:500; line-height:1.15; margin:.5rem 0; }}
+.verdict-primary small {{ font-size:.35em; letter-spacing:0; font-weight:400; color:#5B6675; }}
+.verdict-primary p {{ max-width:45ch; line-height:1.55; }}
+.verdict-secondary {{ display:grid; grid-template-columns:auto 1fr; align-content:center; gap:.6rem 1rem; border-left:1px solid #D7D0C5; padding:1rem 0 1rem 1.5rem; }}
+.verdict-secondary b {{ font-family:'Source Serif 4',Georgia,serif; font-size:2rem; line-height:1.15; font-weight:500; }}
+.verdict-secondary span {{ align-self:center; font-size:.88rem; line-height:1.4; }}
+@media(max-width:700px) {{ .verdict-strip {{ grid-template-columns:1fr; }} .verdict-secondary {{ border-left:0; border-top:1px solid #D7D0C5; padding:1rem 0; }} }}
 </style>
 """
 

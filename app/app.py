@@ -1099,71 +1099,22 @@ def delivery_readiness():
 
 def page_decision():
     ui.overview_css()
-    ui.page_head(
-        "Results and options",
-        "Two gaps remain; four options are open",
-        "The choice of next step rests with leadership.",
-        step="5 of 5",
-        synthetic=True,
-    )
-    st.markdown(
-        '<div class="gaps">'
-        '<div class="gap"><div class="v">80% <small>target 95%</small></div><p><b>Repeatability.</b> Four in five '
-        "important decisions are the same across five runs. A three-run vote reached 94.4%.</p></div>"
-        '<div class="gap"><div class="v">4.2 <small>per change</small></div><p><b>Unaffected items for review</b>, '
-        "alongside about 18 real finds. Not yet tried on real data or judged by control owners.</p></div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-    executive_value_case()
-    st.markdown("### Options")
-    st.markdown(
-        '<div class="opts">'
-        '<div class="opt"><div class="h">Practitioner review</div><p>Control owners judge a sample of the agent\'s '
-        "output. Two or three people, a few hours. Answers whether it is right and useful in practice.</p></div>"
-        '<div class="opt"><div class="h">Close the two gaps</div><p>A five-run vote for repeatability and a tie-break '
-        "that may only promote findings (68 of 70 promotions were right). Model capacity only.</p></div>"
-        '<div class="opt"><div class="h">Both</div><p>Independent of each other: the review uses existing output; '
-        "the fixes use new runs.</p></div>"
-        '<div class="opt"><div class="h">Stop here</div><p>Keep the benchmark, code and results as documented. '
-        "Nothing runs in production.</p></div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-    delivery_readiness()
-    st.markdown("### Demonstrated so far, and what production would need")
-    st.markdown(
-        '<div class="ready">'
-        "<div><h4>Demonstrated in this proof of concept</h4><ul>"
-        "<li>Runs end to end on Databricks, every step logged</li>"
-        "<li>Finds 78% of the key impacts the lineage check misses, on unseen synthetic changes</li>"
-        "<li>Cites exact quotes; a second model call checks each finding</li>"
-        "<li>Sends disagreements to a person; never assumes a control is safe</li></ul></div>"
-        "<div><h4>Not yet demonstrated</h4><ul>"
-        "<li>Accuracy on real changes and real control documents</li>"
-        "<li>Usefulness to control owners, and reviewer time</li>"
-        "<li>Repeatability at 95%</li>"
-        "<li>Behaviour at other levels of lineage completeness on real data</li></ul></div>"
-        "<div><h4>Needed before production</h4><ul>"
-        "<li>Access to real change tickets, lineage and procedures</li>"
-        "<li>Model-risk review and approval</li>"
-        "<li>Integration with the change process and an audit trail</li>"
-        "<li>Monitoring of accuracy and drift over time</li></ul></div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-    with st.expander("Known limits"):
-        ui.score_table(
-            [
-                (
-                    ui.esc(i),
-                    f"{ui.esc(e)}<br><span style='color:#5B6675'>{ui.esc(r)}</span>",
-                )
-                for i, e, r in content.LIMITS
-            ]
-        )
+    ui.page_head("Client decision", "Validate with practitioners before piloting",
+                 "A controlled next step is justified; production readiness is not established.",
+                 synthetic=True)
+    st.markdown("### What the evidence says")
+    st.markdown("**113** key-control misses recovered; **1** key-control impact silently missed; **80%** repeatability against the original 95% target.")
+    st.markdown("### What we recommend")
+    st.write("Have payment-control owners assess recorded findings and excluded controls, investigate the silent miss, and time their work. Measure model cost and consistency before claiming ROI.")
+    st.warning("Synthetic benchmark only. No real bank data, completed practitioner validation, or demonstrated net savings.")
+    with st.expander("Compare baseline and AI-assisted review cost"):
+        executive_value_case()
+    with st.expander("Inspect delivery readiness and remaining gaps"):
+        delivery_readiness()
+    with st.expander("Technical limitations and provenance"):
+        provenance()
     download_summary()
-    nav_buttons("results", "synthetic", "Technical detail: the synthetic data")
+    st.page_link(PAGES["case"], label="Investigate the evidence →")
 
 
 # ------------------------------------------------------------------ technical: evidence

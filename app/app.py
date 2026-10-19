@@ -636,60 +636,58 @@ def brief_box():
 
 
 def page_overview():
+    """An evidence-led editorial front page, not a wall of KPI cards."""
     ui.overview_css()
     st.markdown(
-        '<div class="crumb"><b>Overview</b> &nbsp;<span class="badge dim">Synthetic benchmark data</span></div>'
-        '<div class="hero-h">An AI agent finds four in five of the important controls today\'s check misses</div>'
-        '<p class="lead">When a payment system changes, every control it could break must be found and re-checked. '
-        "Today's automated check depends on a map of links that is often incomplete. This proof of concept tested "
-        "whether an AI agent can find what that check misses.</p>",
+        '<div class="case-masthead"><span>CONTROL INTELLIGENCE / FIELD REPORT 01</span>'
+        '<span>ISO 20022 · SYNTHETIC EVALUATION · OCT 2026</span></div>'
+        '<div class="investigation-hero"><div class="hero-eyebrow">THE CONTROL IMPACT DETECTIVE</div>'
+        '<div class="hero-h">The control nobody knew to check.</div>'
+        '<p class="hero-deck">A payment field changes. The dependency map says the impact ends here. '
+        'But a key control sits beyond the missing link. Can an evidence-reading agent find '
+        'what the existing check cannot?</p>'
+        '<div class="hero-statline"><div><span class="hero-num">113<span>/144</span></span>'
+        '<span class="hero-stat-label">missed key-control impacts recovered</span></div>'
+        '<div class="hero-stat-side"><b>18</b> unseen synthetic changes<br>'
+        '<b>30%</b> of lineage links removed<br>'
+        '<b>1</b> affected key control still silently missed</div></div></div>',
         unsafe_allow_html=True,
     )
-    st.page_link(
-        PAGES["present"], label="Present the story: 7 screens, about 3 minutes"
-    )
+    st.markdown('<div class="section-index"><span>01 / THE BREAK IN THE MAP</span>'
+                '<span>FOLLOW THE EVIDENCE</span></div>', unsafe_allow_html=True)
+    ui.broken_link_animation(height=370)
+    st.markdown('<div class="section-index"><span>02 / THE VERDICT</span>'
+                '<span>RULES ALONE → RULES + EVIDENCE</span></div>', unsafe_allow_html=True)
     left, right = st.columns([3, 2], gap="large")
     with left:
-        ui.chart_title(
-            "Of 162 important controls affected by 18 test changes",
-            "With 30% of the map's links missing",
-        )
+        ui.chart_title("The original check found only 18 of 162 affected key controls",
+                       "The agent recovered 113 more; 30 remaining misses were routed for review, one was silent.")
         key_controls_bar(agent=True, height=78)
-        ui.chart_title("What a reviewer would get per change")
+        ui.chart_title("Necessary review versus avoidable noise")
         reviewer_chart()
     with right:
         brief_box()
     safety_finding()
-    st.markdown(
-        '<div class="tiles">'
-        '<div class="tile"><div class="n">1 · The problem</div><div class="h">The check misses most impacts</div>'
-        '<div class="big">11%</div><p>of affected important controls found by today\'s check when 30% of links are missing.</p></div>'
-        '<div class="tile"><div class="n">2 · How it works</div><div class="h">Reads like a reviewer, checked twice</div>'
-        '<div class="big">2 <small>checks</small></div><p>Every finding needs exact quotes and an independent second opinion.</p></div>'
-        '<div class="tile"><div class="n">3 · One change</div><div class="h">Followed end to end</div>'
-        '<div class="big">20 <small>of 20</small></div><p>controls found by the agent where the check found none, each with quotes.</p></div>'
-        '<div class="tile"><div class="n">4 · Results</div><div class="h">Finds most of what was missed</div>'
-        '<div class="big">78%</div><p>of missed important controls found; 94% of its recommendations right.</p></div>'
-        '<div class="tile"><div class="n">5 · Options</div><div class="h">Two gaps, four options</div>'
-        '<div class="big">80% <small>of 95%</small></div><p>repeatability; options range from a practitioner review to stopping here.</p></div>'
-        "</div>",
-        unsafe_allow_html=True,
-    )
-    cols = st.columns(5)
-    short = {
-        "problem": "the problem",
-        "how": "how it works",
-        "case": "the case",
-        "results": "results",
-        "decision": "options",
-    }
-    for col, key in zip(cols, ["problem", "how", "case", "results", "decision"]):
-        col.page_link(PAGES[key], label=f"Open {short[key]}")
-    st.markdown(
-        '<p class="small" style="margin-top:1.2rem"><b>The value, if it holds on real data:</b> control impacts '
-        "that today's lineage check misses reach a reviewer before release, each with the evidence for it.</p>",
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="section-index"><span>03 / OPEN THE CASE FILE</span>'
+                '<span>CHOOSE A LINE OF INQUIRY</span></div>', unsafe_allow_html=True)
+    cols = st.columns(3, gap="medium")
+    entries = [
+        ("case", "EVIDENCE / 01", "Trace one change",
+         "Follow the change request, missing links, agent reasoning and exact quotes."),
+        ("results", "PERFORMANCE / 02", "Interrogate the results",
+         "Examine recovery, repeatability, reviewer workload and the silent miss."),
+        ("decision", "DECISION / 03", "Make the call",
+         "Compare operational cost scenarios, limitations and next steps."),
+    ]
+    for col, (key, label, heading, detail) in zip(cols, entries):
+        with col:
+            st.markdown(
+                f'<div class="case-entry"><div class="case-entry-label">{label}</div>'
+                f'<div class="case-entry-title">{heading}</div><p>{detail}</p></div>',
+                unsafe_allow_html=True,
+            )
+            st.page_link(PAGES[key], label=f"Open {heading.lower()} →")
+    st.caption("Synthetic proof of concept; no demonstrated bank savings or production readiness.")
     provenance()
 
 

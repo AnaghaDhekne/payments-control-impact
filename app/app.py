@@ -380,7 +380,7 @@ def investigation_workbench():
     )
     mode = mode or "Broken lineage"
     if mode == "Complete reference":
-        overlay, explanation = "truth", (
+        overlay, explanation = "complete", (
             "Reference state: all affected relationships exist in the synthetic answer key. "
             "This is evaluation ground truth, not a view the baseline had access to."
         )
@@ -391,8 +391,9 @@ def investigation_workbench():
         )
     else:
         overlay, explanation = "overlay", (
-            "AI-assisted view: the recorded agent identified all 20 affected controls by "
-            "investigating the change and control documents. Evidence still requires human review."
+            "The red dashed edges show what was missing in lineage, not newly written links. "
+            "The recorded agent recommended all 20 affected controls by reading documents; "
+            "select a control below to inspect the evidence. Human review was not performed."
         )
     st.info(explanation)
     # The existing graph generator uses the same deterministic CHG-027 synthetic fixture.

@@ -372,11 +372,10 @@ def investigation_workbench():
         "and the recovered agent view. The graph is regenerated on selection; this is a recorded "
         "synthetic case, not a new model inference."
     )
-    mode = st.segmented_control(
+    mode = st.radio(
         "Investigation state",
         ["Complete reference", "Broken lineage", "Agent investigation"],
-        default="Broken lineage",
-        key="investigation_mode",
+        index=1, horizontal=True, key="investigation_mode",
     )
     mode = mode or "Broken lineage"
     if mode == "Complete reference":
@@ -459,10 +458,6 @@ def page_case():
         unsafe_allow_html=True,
     )
     investigation_workbench()
-    st.markdown("### Step 2 · What the map hides (static reference)")
-    st.graphviz_chart(
-        syn_dot("CHG-027", 30, "correlated", "overlay", True), use_container_width=True
-    )
     ui.legend(
         [
             ("Changed item", "#F0997B"),

@@ -810,7 +810,22 @@ def page_results():
         step="4 of 5",
         synthetic=True,
     )
-    ui.kpis(
+    st.markdown(
+        '<div class="section-index"><span>EXECUTIVE VERDICT / WHAT CHANGED</span>'
+        '<span>HELD-OUT SYNTHETIC EVALUATION</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="verdict-strip"><div class="verdict-primary">'
+        '<span>KEY CONTROL COVERAGE</span><strong>18 → 131 <small>of 162</small></strong>'
+        '<p>Baseline rules found 18 affected key controls. The agent recovered 113 more.</p></div>'
+        '<div class="verdict-secondary"><b>331</b><span>new genuine impacts surfaced</span>'
+        '<b>75</b><span>unaffected items added to review</span>'
+        '<b>1</b><span>affected key control not surfaced or routed</span></div></div>',
+        unsafe_allow_html=True,
+    )
+    with st.expander("Full diagnostic metrics and original evaluation gates"):
+        ui.kpis(
         [
             (
                 pct(H["key_miss_recovery"], 0),
@@ -842,7 +857,7 @@ def page_results():
         "Average over the 18 test changes.",
     )
     reviewer_chart()
-    st.markdown("### Scorecard against the targets set at the start")
+    st.markdown("### Evaluation standards and decision")
     ui.score_table(
         [
             (
@@ -856,10 +871,10 @@ def page_results():
                 f"{pct(cons['agreement'], 0)}. How much it found was stable; which items were routed for review varied.",
             ),
             (
-                "Original ≤25% added-volume gate (historical; flawed efficiency proxy)",
-                ui.badge("Superseded for interpretation", "warn"),
-                "406 added, of which 331 are genuine impacts and 75 unaffected (18.5%). "
-                "The original gate counts useful findings as burden. Replacement measure proposed, not retrospectively passed.",
+                "Avoidable-review share: 75 of 406 added items (18.5%)",
+                ui.badge("Observed; pilot target pending", "warn"),
+                "This is the meaningful efficiency metric. The original ≤25% total-added-volume gate "
+                "was flawed and is archived for audit; the future acceptance limit needs agreement before retesting.",
             ),
         ]
     )

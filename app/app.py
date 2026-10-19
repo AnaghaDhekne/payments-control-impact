@@ -186,6 +186,11 @@ def results_summary_text():
         "unnecessary review items 0.33 vs 0.61 per change; precision 98.1%; two independent votes agreed on 94.4% of 162 key-control pairs "
         "(target 95%, not met); C not adopted, A stays. C costs about four times A's model calls."
     )
+    lines.append(
+        "Final bounded round (2026-10-18/19): variant D (A + tie-break) vs unchanged A on 5 fresh-damage development cases, 2 runs each: "
+        "recovery 18 vs 20 of 32 key misses, unaffected review items 16 vs 30, undecided key controls 0 vs 0, repeatability 76% vs 76%. "
+        "D not adopted; version A is final."
+    )
     return "\n".join(lines)
 
 
@@ -235,9 +240,9 @@ def page_executive():
         f'<b>{H["key_recovered"]} of {H["key_misses"]}</b> affected key controls that the rules-based method missed '
         f'(<b>{pct(H["key_miss_recovery"], 0)}</b>, target 50%; 95% interval 71–84%).</b> '
         f'<b>{pct(H["new_control_precision"], 0)}</b> of its new recommendations were correct. Additional review includes useful discoveries: '
-        f'331 of 406 additional items concern genuinely affected controls; 75 concern unaffected controls. '
-        f'The 126 UNCERTAIN items include 69 affected and 57 unaffected controls, based on synthetic labels. '
-        f'Item counts do not measure review time.</div>',
+        f"331 of 406 additional items concern genuinely affected controls; 75 concern unaffected controls. "
+        f"The 126 UNCERTAIN items include 69 affected and 57 unaffected controls, based on synthetic labels. "
+        f"Item counts do not measure review time.</div>",
         unsafe_allow_html=True,
     )
     c = st.columns(4)
@@ -279,6 +284,12 @@ def page_executive():
                 if cons
                 else "Five repeat runs on three cases in progress."
             ),
+        ),
+        (
+            "Final round: version D (A + tie-break), 5 cases x 2 runs",
+            pill("Not adopted", "warn"),
+            "Recovery 18 vs A 20 of 32 (rule not met); unaffected review items 16 vs 30; repeatability 76% both. "
+            "Version A is the final version.",
         ),
         (
             "Fix: version C with 3-run vote (fresh-damage test)",

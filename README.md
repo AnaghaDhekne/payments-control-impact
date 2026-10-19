@@ -9,7 +9,7 @@ answer key.
 
 All data is synthetic. No real bank, customer or control inventory is used.
 
-## Current status (2026-10-18)
+## Current status (2026-10-19): final, version A
 
 The agentic path runs end to end on Databricks (`databricks-gpt-oss-120b`).
 Every test below was registered in [docs/results.md](docs/results.md) before
@@ -29,6 +29,7 @@ it ran.
 | Fix 2 (version C + 3-run vote), fresh-damage test: recovery | >= 50%, within 5 pts of A | 52.7% vs A 50.0% | Met |
 | Fix 2: unnecessary review items | <= 3 per change and below A | **0.33 vs A 0.61** | **Met** |
 | Fix 2: two independent votes agree | >= 95% | **94.4%** (153 of 162; 154 needed) | **Not met**; C not adopted, A stays |
+| Fix 3 (version D = A + tie-break), final bounded round, 5 dev cases x 2 runs | recovery >= A; unaffected items, undecided, repeatability not worse | recovery 18 vs 20 of 32; unaffected items 16 vs 30; undecided 0 vs 0; repeatability 76% vs 76% | **Not adopted** (recovery lower); A stays |
 | Ready for production | | synthetic data, no practitioner review | No; next step is a practitioner review |
 
 ### Version A: what the additional review contains

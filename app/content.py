@@ -189,6 +189,11 @@ FAQ = [
         "Version C adds a coverage sweep, a second look at key controls marked unaffected, and a tie-break call when agent and checker disagree; three runs are combined by majority vote. On fresh-damage cases it met the recovery rule (52.7% vs 50.0%) and the review-volume rule (0.33 vs 0.61 unnecessary items per change), but two independent votes agreed on 94.4% of key controls, one short of the 95% target. The rule required all three, so version A stays.",
     ),
     (
+        "Leadership",
+        "Which version is final, and why?",
+        "Version A, the one that passed the held-out test (78.5%). Three improvement attempts were tested against rules written in advance and none met all of them: B (stricter evidence) lost recall; C (tie-break, coverage sweep and a 3-run vote) cut review noise but repeat votes agreed on 94.4% against 95%; D (A plus the tie-break only) halved unaffected review items but recovered 18 instead of 20 of 32 key controls. Run-to-run noise is larger than these differences, so A stays.",
+    ),
+    (
         "Technical",
         "How realistic is the benchmark?",
         "It models one fictional bank's outbound cross-border payment flow with 148 nodes, 101 controls and 54 changes. Generated controls come in families that share dependencies, which may make some links easier than in a real inventory. A practitioner review is planned.",

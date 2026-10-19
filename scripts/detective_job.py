@@ -99,6 +99,58 @@ def build_body(repo, args):
     }
 
 
+def tiebreak_body(repo, args):
+    """Job that applies the tie-break to saved runs (scripts.tiebreak_saved)."""
+    ws_path = repo[len("/Workspace") :] if repo.startswith("/Workspace/") else repo
+    params = [
+        repo,
+        "--module",
+        "scripts.tiebreak_saved",
+        "--input-dir",
+        args.input_dir,
+        "--output-dir",
+        args.output_dir,
+        "--runs",
+        *[str(r) for r in args.runs],
+        "--level",
+        str(args.level),
+        "--mode",
+        args.mode,
+    ]
+    return {
+        "run_name": "tiebreak " + os.path.basename(args.output_dir.rstrip("/")),
+        "timeout_seconds": 0,
+        "tasks": [
+            {
+                "task_key": "tiebreak",
+                "environment_key": "default",
+                "spark_python_task": {
+                    "python_file": ws_path + "/scripts/job_entry.py",
+                    "parameters": params,
+                    "source": "WORKSPACE",
+                },
+            }
+        ],
+        "environments": [
+            {
+                "environment_key": "default",
+                "spec": {"client": "2", "dependencies": ["databricks-sdk>=0.30,<1"]},
+            }
+        ],
+    }
+
+
+def submit_tiebreak(args):
+    w = _client()
+    out = w.api_client.do(
+        "POST",
+        "/api/2.2/jobs/runs/submit",
+        body=tiebreak_body(args.repo.rstrip("/"), args),
+    )
+    print(f"submitted run_id={out['run_id']}")
+    print(f"status: python -m scripts.detective_job status {out['run_id']}")
+
+
 def submit(args):
     repo = args.repo
     if not repo.startswith("/Workspace/"):
@@ -184,6 +236,14 @@ def main():
     s.add_argument("--level", type=int, choices=[0, 30, 60])
     s.add_argument("--mode", choices=["random", "correlated"])
     s.set_defaults(func=submit)
+    tb = sub.add_parser("tiebreak", help="apply the tie-break to saved A runs")
+    tb.add_argument("--repo", default=DEFAULT_REPO)
+    tb.add_argument("--input-dir", required=True)
+    tb.add_argument("--output-dir", required=True)
+    tb.add_argument("--runs", nargs="+", type=int, default=[1])
+    tb.add_argument("--level", type=int, default=30)
+    tb.add_argument("--mode", default="correlated")
+    tb.set_defaults(func=submit_tiebreak)
     t = sub.add_parser("status")
     t.add_argument("run_id", type=int)
     t.add_argument("--tail", type=int, default=3000)

@@ -76,6 +76,36 @@ not-recommend decision in all five runs (80%, target 95%): **not met**.
 Recovery is stable (87.5–100%); the volume of UNCERTAIN items is not (CHG-025:
 6 to 36). Cases CHG-014, CHG-025, CHG-017 (development, tuned).
 
+## Pre-registered: tie-break applied to saved A runs (paired test, 2026-10-19)
+
+Registered before any tie-break call on these runs. Requested after the D
+result, because D's runs differ from A's by run-to-run noise: A recovered 12
+then 8, D 7 then 11, on the same five cases.
+
+- **Design (paired, removes run noise):** take A's saved runs unchanged and
+  apply only the tie-break (the exact code of variants C and D) to the controls
+  where proposer and verifier disagreed (`scripts/tiebreak_saved.py`). Each run
+  is then scored with and without the tie-break (`scripts/compare_runs.py`).
+  By construction the tie-break cannot lower a run's recovery; what is tested
+  is how much it gains, how much review noise it removes and how many truly
+  affected controls it dismisses.
+- **Runs:** fresh-damage A runs 1–2 (18 test changes, 144 disagreements), the
+  frozen check (8 development changes, 81), the held-out run (18 test changes,
+  125), and if available the final-round A runs `freshdev-A` 1–2. About 350
+  model calls.
+- **Recommend "A + tie-break" as the next-stage version only if, pooled over
+  all runs:**
+  1. key-miss recovery is not lower than A's on the same runs;
+  2. unaffected (avoidable) review items fall by at least 25%;
+  3. truly affected controls dismissed by the tie-break are at most 10% of the
+     truly affected controls A had sent to review;
+  4. repeatability on fresh-damage runs 1 vs 2 is not lower than A's.
+- **Caveats stated in advance:** the held-out run's disagreements motivated the
+  tie-break (diagnosis of 18 Oct), so its held-out figure is reported but is
+  not unseen evidence; the fresh-damage and frozen-check runs carry the
+  decision as much as the held-out run. Version A's held-out result (78.5%)
+  remains the headline unless and until a new held-out test is run.
+
 ## Pre-registered: final bounded round, variant D vs A (2026-10-18)
 
 Registered and frozen at 12:15 CT (commit `6757e83`), before any run of variant D. Last

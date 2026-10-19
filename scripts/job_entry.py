@@ -25,11 +25,15 @@ def main():
     sys.path.insert(0, local)
     for name in [m for m in sys.modules if m == "scripts" or m.startswith("scripts.")]:
         del sys.modules[name]
-    from scripts import run_detective_suite
+    import importlib
 
-    sys.argv = ["run_detective_suite"] + rest
+    module = "scripts.run_detective_suite"
+    if rest[:1] == ["--module"]:
+        module, rest = rest[1], rest[2:]
+    mod = importlib.import_module(module)
+    sys.argv = [module.rsplit(".", 1)[-1]] + rest
     print("running:", " ".join(sys.argv), flush=True)
-    run_detective_suite.main()
+    mod.main()
 
 
 if __name__ == "__main__":

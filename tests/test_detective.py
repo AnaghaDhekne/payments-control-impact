@@ -737,3 +737,21 @@ def test_variant_d_is_a_plus_tie_break_only():
     result, prompts = run(cmds, case=two_control_case(), variant="D")
     assert len(prompts) == 4
     assert result["uninvestigated_control_ids"] == ["C-OTHER"]
+
+
+def test_tiebreak_applied_offline_to_a_saved_run():
+    from scripts.tiebreak_saved import apply_tiebreak
+
+    saved, _ = run(commands() + [finding("UNCERTAIN")], variant="A")
+    assert saved["uncertain_control_ids"] == ["C-ADDRESS"]
+    calls = []
+
+    def llm(prompt):
+        calls.append(prompt)
+        return json.dumps(finding("AFFECTED"))
+
+    out = apply_tiebreak(saved, demo_case(), llm)
+    assert len(calls) == 1 and '"verifier"' in calls[0]
+    assert out["recommended_control_ids"] == ["C-ADDRESS"]
+    assert out["uncertain_control_ids"] == []
+    assert saved["uncertain_control_ids"] == ["C-ADDRESS"]  # source untouched

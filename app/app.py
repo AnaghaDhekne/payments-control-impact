@@ -359,6 +359,75 @@ def misses_breakdown():
     )
 
 
+def investigation_workbench():
+    """User-directed, evidence-backed investigation of the recorded CHG-027 run."""
+    st.markdown(
+        '<div class="section-index"><span>LIVE INTERACTION / RECORDED CASE</span>'
+        '<span>SELECT WHAT TO INSPECT</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("### Investigate CHG-027 yourself")
+    st.caption(
+        "Switch between the intact reference map, the degraded lineage the rules check received, "
+        "and the recovered agent view. The graph is regenerated on selection; this is a recorded "
+        "synthetic case, not a new model inference."
+    )
+    mode = st.segmented_control(
+        "Investigation state",
+        ["Complete reference", "Broken lineage", "Agent investigation"],
+        default="Broken lineage",
+        key="investigation_mode",
+    )
+    mode = mode or "Broken lineage"
+    if mode == "Complete reference":
+        overlay, explanation = "truth", (
+            "Reference state: all affected relationships exist in the synthetic answer key. "
+            "This is evaluation ground truth, not a view the baseline had access to."
+        )
+    elif mode == "Broken lineage":
+        overlay, explanation = "damaged", (
+            "Rules-only view: correlated lineage damage hides the engine-to-control relationships. "
+            "The baseline reports zero of 20 affected controls for this change."
+        )
+    else:
+        overlay, explanation = "overlay", (
+            "AI-assisted view: the recorded agent identified all 20 affected controls by "
+            "investigating the change and control documents. Evidence still requires human review."
+        )
+    st.info(explanation)
+    # The existing graph generator uses the same deterministic CHG-027 synthetic fixture.
+    # Keep the state transitions explicit rather than autoplaying a diagram.
+    try:
+        st.graphviz_chart(
+            syn_dot("CHG-027", 30, "correlated", overlay, True),
+            use_container_width=True,
+        )
+    except Exception as exc:
+        st.warning(f"Graph unavailable ({type(exc).__name__}); use the case evidence below.")
+    run = find_run(runs, "heldout")
+    result = data.case_result(run["folder"], "run1", "CHG-027") if run else None
+    findings = (result or {}).get("verified_findings", [])
+    if not findings:
+        st.caption("Recorded findings are not available in this deployment.")
+        return
+    ids = sorted({f.get("control_id") for f in findings if f.get("control_id")})
+    control = st.selectbox("Inspect a control and its recorded evidence", ids, index=ids.index("C02") if "C02" in ids else 0)
+    finding = next(f for f in findings if f.get("control_id") == control)
+    left, right = st.columns([1, 1], gap="large")
+    with left:
+        st.markdown("**Source evidence**")
+        st.markdown("Change ticket")
+        st.info(finding.get("ticket_quote") or "No ticket quote recorded")
+        st.markdown("Control procedure")
+        st.info(finding.get("control_quote") or "No control quote recorded")
+    with right:
+        st.markdown("**Investigator assessment**")
+        st.write(finding.get("proposer_causal_reason") or finding.get("causal_reason") or "No rationale recorded")
+        st.markdown("**Independent check**")
+        st.write(finding.get("causal_reason") or "No checker rationale recorded")
+        st.caption("Recorded model output, not a completed practitioner review.")
+
+
 def page_case():
     ui.overview_css()
     ex = synthetic.example("CHG-027")
@@ -388,7 +457,8 @@ def page_case():
         "</div>",
         unsafe_allow_html=True,
     )
-    st.markdown("### Step 2 · What the map hides")
+    investigation_workbench()
+    st.markdown("### Step 2 · What the map hides (static reference)")
     st.graphviz_chart(
         syn_dot("CHG-027", 30, "correlated", "overlay", True), use_container_width=True
     )

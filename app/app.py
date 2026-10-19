@@ -824,9 +824,9 @@ def page_results():
         '<b>1</b><span>affected key control not surfaced or routed</span></div></div>',
         unsafe_allow_html=True,
     )
-    with st.expander("Full diagnostic metrics and original evaluation gates"):
+    with st.expander("Full diagnostic metrics"):
         ui.kpis(
-        [
+            [
             (
                 pct(H["key_miss_recovery"], 0),
                 f"of missed {T('key control')}s found",
@@ -837,10 +837,10 @@ def page_results():
                 f"of {T('recommended')} controls right",
                 "262 of 280",
             ),
-            ("4.2", "unaffected items per change", "of about 26 a reviewer would get"),
+            ("18.5%", "unaffected share of added items", "75 of 406; true impacts excluded"),
             (pct(cons["agreement"], 0), "same decision across 5 runs", "Target 95%"),
-        ]
-    )
+            ]
+        )
     safety_finding()
     ui.chart_title(
         f"The agent finds {H['key_recovered']} of the {H['key_misses']} important controls the check misses",

@@ -916,6 +916,46 @@ def download_summary():
     )
 
 
+def executive_value_case():
+    """Transparent scenario, not a claim of measured time savings or ROI."""
+    st.markdown("### Executive value case | What would this mean in operations?")
+    st.caption(
+        "Illustrative scenario only. The POC measured detection, not reviewer minutes, "
+        "staffing costs, prevented incidents, or financial return."
+    )
+    c1, c2, c3 = st.columns(3)
+    changes = c1.number_input("Changes assessed per month", min_value=1, max_value=10000, value=100, step=10)
+    minutes = c2.number_input("Minutes to review one item", min_value=1, max_value=240, value=5)
+    rate = c3.number_input("Fully loaded reviewer cost ($/hour)", min_value=1, max_value=1000, value=75, step=5)
+    baseline_items = 64 / 18
+    new_items = 406 / 18
+    real_items = 331 / 18
+    avoidable_items = 75 / 18
+    extra_hours = changes * new_items * minutes / 60
+    extra_cost = extra_hours * rate
+    avoidable_hours = changes * avoidable_items * minutes / 60
+    real_hours = changes * real_items * minutes / 60
+    a, b, c = st.columns(3)
+    a.metric("Additional review hours / month", f"{extra_hours:,.1f}")
+    b.metric("Additional review labor / month", f"${extra_cost:,.0f}")
+    c.metric("Of those hours: real impacts", f"{real_hours:,.1f}")
+    st.markdown(
+        f"At **{changes:,} changes/month**, the benchmark implies about "
+        f"**{changes * baseline_items:,.0f} baseline review items** and "
+        f"**{changes * (baseline_items + new_items):,.0f} with the agent**. "
+        f"Of the additional items, roughly **{changes * real_items:,.0f} are real "
+        f"impacts** and **{changes * avoidable_items:,.0f} are unaffected**. "
+        f"The latter represent approximately **{avoidable_hours:,.1f} hours/month** "
+        "of potentially avoidable review."
+    )
+    st.markdown(
+        "**Not included:** model inference/serving cost, setup and integration, "
+        "investigation time saved elsewhere, or the monetary value of earlier control discovery. "
+        "**Net savings and ROI cannot be established from the current POC.** "
+        "The next pilot should time actual reviews and investigations, and capture model usage cost."
+    )
+
+
 def page_decision():
     ui.overview_css()
     ui.page_head(
@@ -934,6 +974,7 @@ def page_decision():
         "</div>",
         unsafe_allow_html=True,
     )
+    executive_value_case()
     st.markdown("### Options")
     st.markdown(
         '<div class="opts">'

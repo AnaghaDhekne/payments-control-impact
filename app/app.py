@@ -15,7 +15,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import content, data  # noqa: E402
+from app import content, data, synthetic  # noqa: E402
 
 st.set_page_config(
     page_title="Control Impact Detective",
@@ -199,13 +199,14 @@ def results_summary_text():
 SECTIONS = [
     "1 · Executive summary",
     "2 · Context: the problem",
-    "3 · How it works",
-    "4 · Evidence",
-    "5 · Case explorer",
-    "6 · Limits and next steps",
-    "7 · FAQ",
-    "8 · Ask a question",
-    "9 · Technical appendix",
+    "3 · The synthetic data",
+    "4 · How it works",
+    "5 · Evidence",
+    "6 · Case explorer",
+    "7 · Limits and next steps",
+    "8 · FAQ",
+    "9 · Ask a question",
+    "10 · Technical appendix",
 ]
 with st.sidebar:
     st.markdown("### 🔎 Control Impact Detective")
@@ -213,7 +214,7 @@ with st.sidebar:
     section = st.radio("Sections", SECTIONS, label_visibility="collapsed")
     st.divider()
     st.caption(
-        "New here? Read sections 1 and 2 first. Numbers on the Evidence page are read live "
+        "New here? Read sections 1, 2 and 3 first. Numbers on the Evidence page are read live "
         "from the run results."
     )
     st.caption(
@@ -334,7 +335,7 @@ def page_executive():
             "- Not yet: a production pilot, because consistency is below 95% and no practitioner has reviewed findings."
         )
     st.caption(
-        "All data is synthetic. Headline figures: held-out test split, variant A, code frozen, one run. Details in sections 4 and 6."
+        "All data is synthetic. Headline figures: held-out test split, variant A, code frozen, one run. Details in sections 5 and 7."
     )
 
 
@@ -377,12 +378,304 @@ digraph { rankdir=LR; node [shape=box, style="rounded,filled", fillcolor="#f5f6f
     )
 
 
+# ------------------------------------------------------------------ 3. synthetic data
+
+
+@st.cache_data(show_spinner=False)
+def syn_example(change_id, level, mode):
+    ex = synthetic.example(change_id, level, mode)
+    return {k: v for k, v in ex.items() if k != "edges"}
+
+
+@st.cache_data(show_spinner=False)
+def syn_dot(change_id, level, mode, show, focused):
+    ex = synthetic.example(change_id, level, mode)
+    return synthetic.map_dot(
+        highlight=ex["path_edges"],
+        removed=ex["removed"],
+        show=show,
+        focus=synthetic.focus_nodes(ex) if focused else None,
+        changed=set(ex["change"]["changed_node_ids"]),
+        affected=set(ex["affected"]),
+    )
+
+
+def page_synthetic():
+    st.markdown(
+        '<div class="eyebrow">Section 3 · the test world, in full</div>',
+        unsafe_allow_html=True,
+    )
+    st.title("The synthetic data")
+    st.markdown(
+        "Every result in this app is measured on a made-up but realistic model of one bank's outbound "
+        "cross-border payments. The complete map of how everything depends on everything else is known, "
+        "so the right answer for every change is known. The AI is shown only a damaged copy of the map and "
+        "is scored against the complete one. No real bank, customer or control data is used."
+    )
+    c = st.columns(4)
+    c[0].metric("Items in the map", 148)
+    c[1].metric("Links between them", 238)
+    c[2].metric("Controls (30 key)", 101)
+    c[3].metric("Changes (18 held out)", 54)
+
+    t1, t2, t3, t4 = st.tabs(
+        [
+            "What is in it",
+            "Worked example",
+            "Complete map: 148 items, 238 links",
+            "30% degradation vs complete",
+        ]
+    )
+
+    with t1:
+        st.subheader("Items, by type")
+        st.dataframe(
+            pd.DataFrame(synthetic.type_counts()),
+            hide_index=True,
+            use_container_width=True,
+        )
+        st.subheader("Links, by type")
+        st.markdown(
+            "Links have a direction: impact flows from source to target. All link types carry impact except "
+            "COMPENSATED_BY (a manual fallback)."
+        )
+        st.dataframe(
+            pd.DataFrame(synthetic.link_counts()),
+            hide_index=True,
+            use_container_width=True,
+        )
+        st.subheader("How the answer key is built")
+        st.markdown(
+            "A control is **affected** by a change when the changed item reaches it by following impact-carrying "
+            "links in their direction through the complete map (at most 6 steps; a path stops at the first control). "
+            "This is plain code, the same every time; no model creates labels. Each change affects 10 to 49 controls."
+        )
+        with st.expander("All 101 controls"):
+            st.dataframe(
+                pd.DataFrame(synthetic.control_table()),
+                hide_index=True,
+                use_container_width=True,
+                height=420,
+            )
+        with st.expander("All 54 change scenarios"):
+            st.dataframe(
+                pd.DataFrame(synthetic.change_table()),
+                hide_index=True,
+                use_container_width=True,
+                height=420,
+            )
+
+    changes = [r["Change"] for r in synthetic.change_table()]
+    titles = {r["Change"]: r["Title"] for r in synthetic.change_table()}
+
+    with t2:
+        cid = st.selectbox(
+            "Change",
+            changes,
+            index=changes.index("CHG-027"),
+            format_func=lambda x: f"{x} · {titles[x]}",
+            key="syn_example_change",
+        )
+        ex = syn_example(cid, 30, "correlated")
+        ch, case = ex["change"], ex["case"]
+        st.markdown(
+            f"**{ch['title']}** changes "
+            + ", ".join(
+                f"`{i}` {synthetic.nodes_by_id()[i]['name']}"
+                for i in ch["changed_node_ids"]
+            )
+            + f". Split: {ch['split']}."
+        )
+        a, b = st.columns(2)
+        with a:
+            st.markdown("**Step 1 · The answer key (complete map)**")
+            st.markdown(
+                f"Following the links from the changed item reaches **{len(ex['affected'])} controls**, "
+                f"**{len(ex['key'])} of them key**. These are the right answers."
+            )
+        with b:
+            st.markdown("**Step 2 · What the AI and the rules see (30% damaged)**")
+            st.markdown(
+                f"{len(ex['removed'])} of {ex['edges_exposable']} visible links are removed, nearest the change first. "
+                f"{len(ex['removed_on_paths'])} of them lie on the paths above. The rules method, walking only what is left, "
+                f"finds **{len(ex['rules_found_affected'])} of {len(ex['affected'])}** affected controls and misses "
+                f"**{len(ex['key_misses'])} key** controls."
+            )
+        st.markdown(
+            "**The paths, in the complete map.** Orange: the changed item. Pink: affected controls. "
+            "Red dashed: links the damaged view hides. Hover any box or line for details."
+        )
+        st.graphviz_chart(
+            syn_dot(cid, 30, "correlated", "overlay", True), use_container_width=True
+        )
+        st.markdown(
+            "**Every affected control, with its path and what damage did to it**"
+        )
+        st.dataframe(
+            pd.DataFrame(ex["rows"]), hide_index=True, use_container_width=True
+        )
+        a, b = st.columns(2)
+        with a:
+            st.markdown("**The ticket the AI receives**")
+            st.code(
+                case["change_ticket"]["title"] + "\n" + case["change_ticket"]["text"],
+                language=None,
+            )
+        with b:
+            st.markdown("**One control document the AI can read**")
+            k = ex["affected"][0] if ex["affected"] else None
+            doc = next(
+                (d for d in case["control_documents"] if d["control_id"] == k), None
+            )
+            if doc:
+                st.code(
+                    f"{doc['control_id']} · {doc['title']} ({doc['criticality'].lower()})\n{doc['text']}",
+                    language=None,
+                )
+        st.caption(
+            "The detective's job is to recover the pink controls the rules miss, using the item names, descriptions "
+            "and control texts, and to cite its evidence. On this benchmark's held-out run it recovered 113 of 144 such key misses."
+        )
+
+    with t3:
+        a, b = st.columns([2, 1])
+        with a:
+            cid3 = st.selectbox(
+                "Highlight a change",
+                changes,
+                index=changes.index("CHG-027"),
+                format_func=lambda x: f"{x} · {titles[x]}",
+                key="syn_map_change",
+            )
+        with b:
+            view = st.radio(
+                "Show",
+                [
+                    "Complete map",
+                    "What the AI sees (30% damaged)",
+                    "Both: removed links in red",
+                ],
+                key="syn_map_view",
+            )
+        show = {
+            "Complete map": "complete",
+            "What the AI sees (30% damaged)": "damaged",
+        }.get(view, "overlay")
+        st.caption(
+            "Columns, left to right: data elements, rules, interfaces, systems, processes, reports, evidence, "
+            "parent controls, family controls. Orange = the changed item; pink = controls it affects; blue lines = "
+            "its paths. Use the expand icon on the chart to view it full screen; hover for names and descriptions."
+        )
+        st.graphviz_chart(
+            syn_dot(cid3, 30, "correlated", show, False), use_container_width=True
+        )
+
+    with t4:
+        a, b, c2 = st.columns([2, 1, 1])
+        with a:
+            cid4 = st.selectbox(
+                "Change",
+                changes,
+                index=changes.index("CHG-027"),
+                format_func=lambda x: f"{x} · {titles[x]}",
+                key="syn_deg_change",
+            )
+        with b:
+            level = st.selectbox(
+                "Damage level",
+                [30, 60, 0],
+                key="syn_deg_level",
+                format_func=lambda x: f"{x}%",
+            )
+        with c2:
+            mode = st.selectbox(
+                "Damage style",
+                ["correlated", "random"],
+                key="syn_deg_mode",
+                format_func=lambda x: (
+                    "near the change (main)" if x == "correlated" else "random"
+                ),
+            )
+        ex4 = syn_example(cid4, level, mode)
+        m = st.columns(4)
+        m[0].metric("Links in the complete map", ex4["edges_total"])
+        m[1].metric(
+            "Links the AI sees",
+            ex4["edges_visible"],
+            f"-{len(ex4['removed'])} removed",
+            delta_color="normal",
+        )
+        m[2].metric(
+            "Affected controls found by rules",
+            f"{len(ex4['rules_found_affected'])} of {len(ex4['affected'])}",
+        )
+        m[3].metric(
+            "Key controls missed by rules",
+            f"{len(ex4['key_misses'])} of {len(ex4['key'])}",
+        )
+        st.markdown(
+            "**How the damage is chosen.** One link is never exposed (internal). Of the other 237, the stated share is removed. "
+            "In the main style, links nearest the changed item go first, but roughly the same share of the changed item's "
+            "own links is kept (at least one), so it is never cut off. The damage lands on the next layer out, where impact "
+            "chains continue. The random style removes links anywhere."
+        )
+        if level:
+            st.markdown(
+                "**Where the removed links are**, by distance from the changed item "
+                "(0 steps = links touching the changed item itself):"
+            )
+            st.dataframe(
+                pd.DataFrame(synthetic.degradation_by_distance(ex4)),
+                hide_index=True,
+                use_container_width=True,
+            )
+        st.markdown(
+            "**This change's paths, complete vs damaged** (red dashed = removed):"
+        )
+        st.graphviz_chart(
+            syn_dot(cid4, level, mode, "overlay", True), use_container_width=True
+        )
+        st.markdown(
+            '**Text damage.** The ticket can lose its last sentence ("Change type: …"), gain a legacy system name, or, for every '
+            'seventh change, gain a misleading "control impact: N/A" note. Control texts are single sentences without legacy '
+            "names, so in practice they stay clean."
+        )
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "Damage": "None",
+                        "Key controls the rules find (test changes)": "100%",
+                        "Missed": 0,
+                    },
+                    {
+                        "Damage": "30% near the change (main)",
+                        "Key controls the rules find (test changes)": "11.1%",
+                        "Missed": 144,
+                    },
+                    {
+                        "Damage": "30% random",
+                        "Key controls the rules find (test changes)": "43%",
+                        "Missed": 93,
+                    },
+                    {
+                        "Damage": "60% near the change",
+                        "Key controls the rules find (test changes)": "7.4%",
+                        "Missed": 150,
+                    },
+                ]
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+
 # ------------------------------------------------------------------ 3. how it works
 
 
 def page_how():
     st.markdown(
-        '<div class="eyebrow">Section 3 · the system</div>', unsafe_allow_html=True
+        '<div class="eyebrow">Section 4 · the system</div>', unsafe_allow_html=True
     )
     st.title("How one change is investigated")
     st.graphviz_chart(
@@ -484,7 +777,7 @@ def per_case_chart(metrics):
 
 def page_evidence():
     st.markdown(
-        '<div class="eyebrow">Section 4 · results, read live from the run files</div>',
+        '<div class="eyebrow">Section 5 · results, read live from the run files</div>',
         unsafe_allow_html=True,
     )
     st.title("Evidence")
@@ -695,7 +988,7 @@ OUTCOME_COLORS = {
 
 def page_explorer():
     st.markdown(
-        '<div class="eyebrow">Section 5 · see the agent work</div>',
+        '<div class="eyebrow">Section 6 · see the agent work</div>',
         unsafe_allow_html=True,
     )
     st.title("Case explorer")
@@ -816,7 +1109,7 @@ def page_explorer():
 
 def page_limits():
     st.markdown(
-        '<div class="eyebrow">Section 6 · what is not solved yet</div>',
+        '<div class="eyebrow">Section 7 · what is not solved yet</div>',
         unsafe_allow_html=True,
     )
     st.title("Limits and next steps")
@@ -841,7 +1134,7 @@ def page_limits():
 
 def page_faq():
     st.markdown(
-        '<div class="eyebrow">Section 7 · questions people ask</div>',
+        '<div class="eyebrow">Section 8 · questions people ask</div>',
         unsafe_allow_html=True,
     )
     st.title("FAQ")
@@ -852,7 +1145,7 @@ def page_faq():
         if audience in ("Everyone", who):
             with st.expander(f"{q}  ·  {who}"):
                 st.markdown(a)
-    st.caption("Not answered here? Ask in section 8.")
+    st.caption("Not answered here? Ask in section 9.")
 
 
 # ------------------------------------------------------------------ 8. ask
@@ -860,7 +1153,7 @@ def page_faq():
 
 def page_ask():
     st.markdown(
-        '<div class="eyebrow">Section 8 · ask anything about the project</div>',
+        '<div class="eyebrow">Section 9 · ask anything about the project</div>',
         unsafe_allow_html=True,
     )
     st.title("Ask a question")
@@ -898,7 +1191,7 @@ def page_ask():
                         question, st.session_state.chat, results_summary_text()
                     )
                 except Exception as exc:  # endpoint missing or not permitted
-                    answer = f"The model endpoint could not be reached ({type(exc).__name__}). The FAQ in section 7 covers the common questions."
+                    answer = f"The model endpoint could not be reached ({type(exc).__name__}). The FAQ in section 8 covers the common questions."
             st.markdown(answer)
         st.session_state.chat += [
             {"role": "user", "content": question},
@@ -911,7 +1204,7 @@ def page_ask():
 
 def page_appendix():
     st.markdown(
-        '<div class="eyebrow">Section 9 · for technical reviewers</div>',
+        '<div class="eyebrow">Section 10 · for technical reviewers</div>',
         unsafe_allow_html=True,
     )
     st.title("Technical appendix")
@@ -933,6 +1226,7 @@ PAGES = dict(
         [
             page_executive,
             page_context,
+            page_synthetic,
             page_how,
             page_evidence,
             page_explorer,

@@ -325,6 +325,12 @@ BROKEN_LINK_HTML = """
   #anim[data-step="2"] .c012 rect { fill:#EEF0F3; stroke:#B4BCC7; }
   #anim[data-step="3"] .c012 rect { fill:#BFE3D0; stroke:#2E9468; }
   #anim[data-step="3"] .agent { stroke-dasharray:none; stroke-dashoffset:0; }
+  .ctl button { padding:12px 16px; border-radius:4px; font-weight:600; letter-spacing:.01em; cursor:pointer; }
+  .ctl button[aria-pressed="true"] { background:#152B3A; color:#fff; border-color:#152B3A; }
+  .ctl button:hover { border-color:#152B3A; }
+  #anim .flow { animation:none !important; }
+  .stage { font-size:18px; font-weight:600; }
+  @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
 </style></head><body>
 <div class="ctl" role="group" aria-label="Explore the investigation"><button data-step="1" type="button" aria-pressed="false">1 · Full dependency map</button><button data-step="2" type="button" aria-pressed="true">2 · Remove a link</button><button data-step="3" type="button" aria-pressed="false">3 · Investigate with AI</button></div><p id="step-description" aria-live="polite" style="font-size:13px;line-height:1.5;color:#5B6675;margin:0 0 8px">The current map hides a key control. Explore the complete reference or activate the investigation.</p>
 <svg id="anim" data-step="2" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">

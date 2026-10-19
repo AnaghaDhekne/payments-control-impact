@@ -98,10 +98,40 @@ python -m scripts.detective_job status <run_id>
 
 Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 
-The results are presented in a Databricks App (`app/`): an executive summary,
-context for newcomers, how it works, live evidence from the run files, a case
-explorer, FAQ and a question box answered from the project documents. Deploy
-with `python -m scripts.deploy_app` from a Databricks terminal.
+## The client experience (Databricks App)
+
+The POC is presented as an investigation experience (`app/web`), served by a
+standard-library Python server (`app/server.py`, the command in `app.yaml`).
+It walks through five moments on any of the 18 held-out changes (flagship:
+CHG-003, a creditor town-name change the lineage check clears):
+
+1. **The change**: the change record and the reassuring conventional assessment.
+2. **The blind spot**: an interactive dependency map, switching between what the
+   lineage records and what is actually connected; click a control to trace the
+   missing link.
+3. **The investigation**: a step-by-step replay of the recorded agent run (not a
+   live model call); click a control for its evidence: the quoted ticket and
+   procedure text, the agent's and the independent checker's reasoning, the
+   routing and a proposed reviewer action. The answer key is hidden until asked.
+4. **The consequence**: the same 101 controls seen by the check, by the
+   investigation and by the ground truth; all 162 key-control impacts; review
+   workload (331 of 406 added items are genuinely affected); consistency; the one
+   silent miss.
+5. **The decision**: what is demonstrated, what is uncertain, what to validate
+   before a pilot, and the options.
+
+An **evidence room** holds the method, results, every test change with every
+decision, the pre-registered version tests, architecture, limits,
+reproduction steps and a question box answered from the project documents.
+
+Every figure comes from `python -m scripts.build_experience_data`, which exports
+`app/web/data` from the benchmark code and the recorded run archive;
+`tests/test_experience_data.py` checks the export against the archive. Run
+locally with `python app/server.py` (http://localhost:8000). Deploy from the
+repository root with the Deploy button or `python -m scripts.deploy_app`.
+
+The earlier Streamlit workbench remains available for local use:
+`streamlit run app/app.py`.
 
 ## Repository layout
 
@@ -117,7 +147,8 @@ with `python -m scripts.deploy_app` from a Databricks terminal.
 | `scripts/baseline.py`, `evaluate_baseline.py` | Rules baseline and its evaluation |
 | `scripts/generate_benchmark.py`, `generate_observable.py`, `ground_truth.py`, `validate_graph.py` | Benchmark and answer key |
 | `scripts/case_io.py`, `export_case.py` | Observable-case helpers and export |
-| `app/`, `scripts/deploy_app.py` | Databricks App presenting the POC (executive summary to case explorer); deploy script |
+| `app/web`, `app/server.py`, `scripts/build_experience_data.py` | Client experience (HTML, CSS, JavaScript modules), its server and its data export |
+| `app/app.py`, `scripts/deploy_app.py` | Earlier Streamlit workbench; deploy script |
 | `data/` | Hidden graph and change set ([data/README.md](data/README.md)) |
 | `tests/` | Offline tests with scripted model responses |
 | `archive/` | Earlier phases' raw results ([archive/README.md](archive/README.md)) |

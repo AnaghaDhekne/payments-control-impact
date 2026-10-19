@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control Impact Detective</title>
+  <meta name="description" content="Change-impact review for payments: what an AI investigation finds when the lineage map is incomplete. Synthetic proof of concept, recorded results.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2150'/%3E%3Ccircle cx='14' cy='14' r='6.5' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <a class="sr" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="mark" href="#/change" aria-label="Control Impact Detective, start">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b2150"/><circle cx="14" cy="14" r="6.5" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M19 19l6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M10.5 14h7M14 10.5v7" stroke="#5e95d9" stroke-width="1.6"/></svg>
+      <div><b>Control Impact Detective</b><span>Change-impact review · payments</span></div>
+    </a>
+    <nav aria-label="Journey"><ol class="journey" id="journey"></ol></nav>
+    <div class="tools">
+      <label class="sr" for="case">Payment change</label>
+      <select class="select" id="case" title="Payment change under review"></select>
+      <a class="btn" id="room-link" href="#/room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Evidence room</span></a>
+    </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="provenance" id="provenance" aria-label="Where these results come from"></footer>
+  <aside class="inspector" id="inspector" aria-label="Evidence inspector" aria-hidden="true"></aside>
+  <div class="tip" id="tip" role="tooltip"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

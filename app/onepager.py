@@ -83,9 +83,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
             "262 of 280",
         ),
         (
-            f"{h['avoidable_review_items_per_case']:.1f}",
-            "unaffected items / change",
-            "of about 26 per change",
+            "4 of 26",
+            "items per change wasted",
+            "unaffected: wasted effort",
         ),
         (
             f"{100 * cons['agreement']:.0f}%",
@@ -202,7 +202,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         (
             "Unaffected items (overhead)",
             "Reported",
-            "75 of 406 added (18.5%); 4.2 per change",
+            "75 of 406 added (18.5%); about 4 of 26 per change",
         ),
         ("Same key decision across 5 runs >= 95%", "Not met", "80%"),
     ):

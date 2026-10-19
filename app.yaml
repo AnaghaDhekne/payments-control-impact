@@ -1,13 +1,12 @@
 # Databricks App definition. Deploy with the repository root folder as the
 # source (Deploy button) or with python -m scripts.deploy_app.
+#
+# Serves the client-facing experience (app/web) with a standard-library Python
+# server; it listens on DATABRICKS_APP_PORT. The earlier Streamlit workbench is
+# still in the repository: streamlit run app/app.py
 command:
-  - streamlit
-  - run
-  - app/app.py
+  - python
+  - app/server.py
 env:
-  - name: RESULTS_ROOT
-    value: /Volumes/workspace/default/detective_runs
   - name: QA_ENDPOINT
     value: databricks-gpt-oss-120b
-  - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
-    value: "false"

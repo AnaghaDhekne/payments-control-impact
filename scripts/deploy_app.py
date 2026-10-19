@@ -27,12 +27,23 @@ BUNDLE = [
     ("app/content.py", "app/content.py"),
     ("app/data.py", "app/data.py"),
     ("app/qa.py", "app/qa.py"),
+    ("app/server.py", "app/server.py"),
+    ("app/onepager.py", "app/onepager.py"),
     ("app.yaml", "app.yaml"),
     ("requirements.txt", "requirements.txt"),
     ("README.md", "README.md"),
     ("data/README.md", "data/README.md"),
 ]
-BUNDLE_GLOBS = ["scripts/*.py", "docs/*.md", "data/ground_truth/*.json"]
+BUNDLE_GLOBS = [
+    "scripts/*.py",
+    "docs/*.md",
+    "data/ground_truth/*.json",
+    "app/web/*.html",
+    "app/web/css/*.css",
+    "app/web/js/*.js",
+    "app/web/data/*.json",
+    "app/web/data/cases/*.json",
+]
 
 
 def bundle_files():
@@ -146,7 +157,12 @@ def main():
         )
         src = dep.get("source_code_path")
         if src:
-            for rel in ("app.yaml", "requirements.txt", "app/app.py", "app/data.py"):
+            for rel in (
+                "app.yaml",
+                "requirements.txt",
+                "app/server.py",
+                "app/web/index.html",
+            ):
                 try:
                     info = _do(
                         w,

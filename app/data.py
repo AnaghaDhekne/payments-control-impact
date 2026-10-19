@@ -333,7 +333,7 @@ def describe_step(e: dict) -> str:
         n = r["node"]
         return f"Explored {n.get('id')} ({n.get('name', '')}): {len(r.get('outgoing', []))} outgoing, {len(r.get('incoming', []))} incoming visible links"
     if a == "trace_metadata":
-        return f"Ran the rules baseline: {len(r) if isinstance(r, list) else '?'} controls reachable through visible lineage"
+        return f"Ran the current check: {len(r) if isinstance(r, list) else '?'} controls reachable through visible lineage"
     if a == "search_controls":
         return f"Searched control procedures: {len(r) if isinstance(r, list) else '?'} results"
     if a == "inspect_control":

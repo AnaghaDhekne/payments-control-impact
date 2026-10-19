@@ -1,0 +1,744 @@
+{
+ "provenance": {
+  "job": "862812162377923",
+  "date": "2026-10-16",
+  "version": "A",
+  "code": "d149a52",
+  "model": "databricks-gpt-oss-120b",
+  "condition": "30% of lineage links removed, nearest the change first (main seed)",
+  "archive": "results/detective_runs.tar.gz"
+ },
+ "flagship": "CHG-003",
+ "portfolio": {
+  "changes": 18,
+  "key_affected": 162,
+  "check_found_key": 18,
+  "key_misses": 144,
+  "agent_found_key": 113,
+  "key_routed": 30,
+  "key_silent": 1,
+  "silent": [
+   {
+    "change": "CHG-024",
+    "control": "C03"
+   }
+  ],
+  "recovery": 0.7847222222222222,
+  "recovery_interval": [
+   0.711,
+   0.844
+  ],
+  "precision": 0.9357142857142857,
+  "new_right": 262,
+  "new_total": 280,
+  "check_items": 64,
+  "added_items": 406,
+  "added_affected": 331,
+  "added_unaffected": 75,
+  "per_change": {
+   "check": 3.6,
+   "real": 18.4,
+   "unaffected": 4.2,
+   "total": 26.1
+  },
+  "uncertain": 126,
+  "model_calls": 1280,
+  "consistency": {
+   "agreement": 0.8,
+   "pairs": 10,
+   "runs": 5,
+   "target": 0.95,
+   "cases": [
+    "CHG-014",
+    "CHG-025",
+    "CHG-017"
+   ]
+  },
+  "by_type": {
+   "Creditor town-name mapping change": {
+    "changes": 3,
+    "key_misses": 57,
+    "found": 48,
+    "routed": 9,
+    "silent": 0
+   },
+   "Screening field-set change": {
+    "changes": 3,
+    "key_misses": 22,
+    "found": 15,
+    "routed": 6,
+    "silent": 1
+   },
+   "Screening interface change": {
+    "changes": 3,
+    "key_misses": 30,
+    "found": 30,
+    "routed": 0,
+    "silent": 0
+   },
+   "Payment reject report change": {
+    "changes": 3,
+    "key_misses": 0,
+    "found": 0,
+    "routed": 0,
+    "silent": 0
+   },
+   "Screening engine change": {
+    "changes": 3,
+    "key_misses": 20,
+    "found": 5,
+    "routed": 15,
+    "silent": 0
+   },
+   "Ledger-posting feed change": {
+    "changes": 3,
+    "key_misses": 15,
+    "found": 15,
+    "routed": 0,
+    "silent": 0
+   }
+  },
+  "targets": [
+   {
+    "target": "Find ≥ 50% of the key controls the check misses",
+    "status": "Met",
+    "value": 0.7847222222222222
+   },
+   {
+    "target": "Added review volume ≤ 25% of the check's",
+    "status": "Not met as defined",
+    "value": 6.34375
+   },
+   {
+    "target": "Same key decision across 5 runs ≥ 95%",
+    "status": "Not met",
+    "value": null
+   }
+  ]
+ },
+ "cases": [
+  {
+   "id": "CHG-003",
+   "title": "Creditor town-name mapping change — release 1",
+   "changed": [
+    "D07"
+   ],
+   "affected": 49,
+   "key_affected": 19,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 43,
+   "agent_recommended_right": 37,
+   "routed": 11,
+   "routed_affected": 1,
+   "key_misses": 19,
+   "key_found_by_agent": 18,
+   "key_routed": 1,
+   "key_silent": 0,
+   "affected_silent": 11,
+   "steps": 52,
+   "verify_calls": 54,
+   "model_calls": 106
+  },
+  {
+   "id": "CHG-006",
+   "title": "Screening field-set change — release 1",
+   "changed": [
+    "R03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 7,
+   "check_found_key": 3,
+   "agent_recommended": 9,
+   "agent_recommended_right": 8,
+   "routed": 5,
+   "routed_affected": 5,
+   "key_misses": 7,
+   "key_found_by_agent": 4,
+   "key_routed": 3,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 57,
+   "verify_calls": 21,
+   "model_calls": 78
+  },
+  {
+   "id": "CHG-009",
+   "title": "Screening interface change — release 1",
+   "changed": [
+    "I02"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 20,
+   "agent_recommended_right": 20,
+   "routed": 0,
+   "routed_affected": 0,
+   "key_misses": 10,
+   "key_found_by_agent": 10,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 49,
+   "verify_calls": 20,
+   "model_calls": 69
+  },
+  {
+   "id": "CHG-012",
+   "title": "Payment reject report change — release 1",
+   "changed": [
+    "RP02"
+   ],
+   "affected": 10,
+   "key_affected": 0,
+   "check_found": 7,
+   "check_found_key": 0,
+   "agent_recommended": 3,
+   "agent_recommended_right": 3,
+   "routed": 0,
+   "routed_affected": 0,
+   "key_misses": 0,
+   "key_found_by_agent": 0,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 48,
+   "verify_calls": 10,
+   "model_calls": 58
+  },
+  {
+   "id": "CHG-015",
+   "title": "Screening engine change — release 1",
+   "changed": [
+    "S03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 7,
+   "check_found_key": 3,
+   "agent_recommended": 3,
+   "agent_recommended_right": 3,
+   "routed": 10,
+   "routed_affected": 10,
+   "key_misses": 7,
+   "key_found_by_agent": 2,
+   "key_routed": 5,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 44,
+   "verify_calls": 20,
+   "model_calls": 64
+  },
+  {
+   "id": "CHG-018",
+   "title": "Ledger-posting feed change — release 1",
+   "changed": [
+    "I05"
+   ],
+   "affected": 20,
+   "key_affected": 5,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 14,
+   "agent_recommended_right": 14,
+   "routed": 11,
+   "routed_affected": 6,
+   "key_misses": 5,
+   "key_found_by_agent": 5,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 42,
+   "verify_calls": 25,
+   "model_calls": 67
+  },
+  {
+   "id": "CHG-021",
+   "title": "Creditor town-name mapping change — release 2",
+   "changed": [
+    "D07"
+   ],
+   "affected": 49,
+   "key_affected": 19,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 40,
+   "agent_recommended_right": 39,
+   "routed": 8,
+   "routed_affected": 8,
+   "key_misses": 19,
+   "key_found_by_agent": 15,
+   "key_routed": 4,
+   "key_silent": 0,
+   "affected_silent": 2,
+   "steps": 52,
+   "verify_calls": 48,
+   "model_calls": 100
+  },
+  {
+   "id": "CHG-024",
+   "title": "Screening field-set change — release 2",
+   "changed": [
+    "R03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 7,
+   "check_found_key": 2,
+   "agent_recommended": 8,
+   "agent_recommended_right": 7,
+   "routed": 12,
+   "routed_affected": 5,
+   "key_misses": 8,
+   "key_found_by_agent": 5,
+   "key_routed": 2,
+   "key_silent": 1,
+   "affected_silent": 1,
+   "steps": 36,
+   "verify_calls": 27,
+   "model_calls": 63
+  },
+  {
+   "id": "CHG-027",
+   "title": "Screening interface change — release 2",
+   "changed": [
+    "I02"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 20,
+   "agent_recommended_right": 20,
+   "routed": 0,
+   "routed_affected": 0,
+   "key_misses": 10,
+   "key_found_by_agent": 10,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 40,
+   "verify_calls": 20,
+   "model_calls": 60
+  },
+  {
+   "id": "CHG-030",
+   "title": "Payment reject report change — release 2",
+   "changed": [
+    "RP02"
+   ],
+   "affected": 10,
+   "key_affected": 0,
+   "check_found": 7,
+   "check_found_key": 0,
+   "agent_recommended": 3,
+   "agent_recommended_right": 3,
+   "routed": 9,
+   "routed_affected": 0,
+   "key_misses": 0,
+   "key_found_by_agent": 0,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 49,
+   "verify_calls": 19,
+   "model_calls": 68
+  },
+  {
+   "id": "CHG-033",
+   "title": "Screening engine change — release 2",
+   "changed": [
+    "S03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 7,
+   "check_found_key": 3,
+   "agent_recommended": 3,
+   "agent_recommended_right": 3,
+   "routed": 11,
+   "routed_affected": 10,
+   "key_misses": 7,
+   "key_found_by_agent": 1,
+   "key_routed": 6,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 42,
+   "verify_calls": 21,
+   "model_calls": 63
+  },
+  {
+   "id": "CHG-036",
+   "title": "Ledger-posting feed change — release 2",
+   "changed": [
+    "I05"
+   ],
+   "affected": 20,
+   "key_affected": 5,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 23,
+   "agent_recommended_right": 19,
+   "routed": 8,
+   "routed_affected": 1,
+   "key_misses": 5,
+   "key_found_by_agent": 5,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 47,
+   "verify_calls": 31,
+   "model_calls": 78
+  },
+  {
+   "id": "CHG-039",
+   "title": "Creditor town-name mapping change — release 3",
+   "changed": [
+    "D07"
+   ],
+   "affected": 49,
+   "key_affected": 19,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 37,
+   "agent_recommended_right": 34,
+   "routed": 11,
+   "routed_affected": 6,
+   "key_misses": 19,
+   "key_found_by_agent": 15,
+   "key_routed": 4,
+   "key_silent": 0,
+   "affected_silent": 9,
+   "steps": 53,
+   "verify_calls": 48,
+   "model_calls": 101
+  },
+  {
+   "id": "CHG-042",
+   "title": "Screening field-set change — release 3",
+   "changed": [
+    "R03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 7,
+   "check_found_key": 3,
+   "agent_recommended": 10,
+   "agent_recommended_right": 9,
+   "routed": 8,
+   "routed_affected": 4,
+   "key_misses": 7,
+   "key_found_by_agent": 6,
+   "key_routed": 1,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 42,
+   "verify_calls": 25,
+   "model_calls": 67
+  },
+  {
+   "id": "CHG-045",
+   "title": "Screening interface change — release 3",
+   "changed": [
+    "I02"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 20,
+   "agent_recommended_right": 20,
+   "routed": 0,
+   "routed_affected": 0,
+   "key_misses": 10,
+   "key_found_by_agent": 10,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 39,
+   "verify_calls": 20,
+   "model_calls": 59
+  },
+  {
+   "id": "CHG-048",
+   "title": "Payment reject report change — release 3",
+   "changed": [
+    "RP02"
+   ],
+   "affected": 10,
+   "key_affected": 0,
+   "check_found": 7,
+   "check_found_key": 0,
+   "agent_recommended": 2,
+   "agent_recommended_right": 2,
+   "routed": 1,
+   "routed_affected": 1,
+   "key_misses": 0,
+   "key_found_by_agent": 0,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 38,
+   "verify_calls": 10,
+   "model_calls": 48
+  },
+  {
+   "id": "CHG-051",
+   "title": "Screening engine change — release 3",
+   "changed": [
+    "S03"
+   ],
+   "affected": 20,
+   "key_affected": 10,
+   "check_found": 8,
+   "check_found_key": 4,
+   "agent_recommended": 4,
+   "agent_recommended_right": 3,
+   "routed": 9,
+   "routed_affected": 9,
+   "key_misses": 6,
+   "key_found_by_agent": 2,
+   "key_routed": 4,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 39,
+   "verify_calls": 21,
+   "model_calls": 60
+  },
+  {
+   "id": "CHG-054",
+   "title": "Ledger-posting feed change — release 3",
+   "changed": [
+    "I05"
+   ],
+   "affected": 20,
+   "key_affected": 5,
+   "check_found": 0,
+   "check_found_key": 0,
+   "agent_recommended": 18,
+   "agent_recommended_right": 18,
+   "routed": 11,
+   "routed_affected": 2,
+   "key_misses": 5,
+   "key_found_by_agent": 5,
+   "key_routed": 0,
+   "key_silent": 0,
+   "affected_silent": 0,
+   "steps": 42,
+   "verify_calls": 29,
+   "model_calls": 71
+  }
+ ],
+ "version_tests": [
+  {
+   "version": "B",
+   "name": "Stricter evidence rule",
+   "source": "docs/results.md · Pre-registered: proposer chain requirement, A/B test",
+   "test": "8 unseen development changes, one run",
+   "rule": "Unaffected items at least 30% fewer, and no more than 3 fewer key controls found",
+   "result": "Unaffected items 56 → 46 (−18%); key controls found 32 → 27",
+   "decision": "Not adopted"
+  },
+  {
+   "version": "C",
+   "name": "Extra checks and a three-run vote",
+   "source": "docs/results.md · Pre-registered: version C with majority vote",
+   "test": "18 test changes under fresh random damage; 6 runs of C, 2 of A",
+   "rule": "Two votes agree on ≥ 95% of key decisions; recovery ≥ 50%; unaffected ≤ 3 per change and below A",
+   "result": "Votes agree on 94.4% (153 of 162; 154 needed); recovery 52.7% vs 50.0%; unaffected 0.33 vs 0.61 per change; about 4× model calls",
+   "decision": "Not adopted"
+  },
+  {
+   "version": "D",
+   "name": "Tie-break step",
+   "source": "docs/results.md · Pre-registered: final bounded round, variant D vs A",
+   "test": "5 fresh-damage development changes, two runs each of A and D",
+   "rule": "Recovery ≥ A; unaffected ≤ A; undecided ≤ A; repeatability ≥ A",
+   "result": "Key misses found 18 vs 20 of 32; unaffected 16 vs 30; repeatability 76% both",
+   "decision": "Not adopted"
+  },
+  {
+   "version": "A + tie-break",
+   "name": "Tie-break applied to A's saved runs",
+   "source": "docs/results.md · Pre-registered: tie-break applied to saved A runs",
+   "test": "7 saved A runs, paired, 412 tie-break calls",
+   "rule": "Recovery not lower; unaffected ≥ 25% fewer; ≤ 10% of truly affected review items dismissed; repeatability not lower",
+   "result": "Found 258 → 267 of 411; unaffected 183 → 114 (−38%); 59 of 271 truly affected review items dismissed (21.8%)",
+   "decision": "Not adopted"
+  }
+ ],
+ "development_runs": {
+  "frozen_check": {
+   "cases": 8,
+   "key_misses": 49,
+   "key_recovered": 32,
+   "key_miss_recovery": 0.6530612244897959,
+   "target_key_miss_recovery": 0.5,
+   "new_control_precision": 0.9080459770114943,
+   "baseline_workload": 38,
+   "added_review_items": 169,
+   "added_workload_vs_baseline": 4.447368421052632,
+   "target_added_workload_max": 0.25,
+   "avoidable_review_items": 56,
+   "avoidable_review_items_per_case": 7.0,
+   "review_queue_true_share": 0.6686390532544378,
+   "uncertain_controls": 82,
+   "uninvestigated_controls": 2,
+   "model_calls": 584,
+   "statuses": [
+    "FINISHED"
+   ],
+   "note": "Development split only; prompts may have been tuned on these cases. Not a held-out result."
+  },
+  "variant_b": {
+   "cases": 8,
+   "key_misses": 49,
+   "key_recovered": 27,
+   "key_miss_recovery": 0.5510204081632653,
+   "target_key_miss_recovery": 0.5,
+   "new_control_precision": 1.0,
+   "baseline_workload": 38,
+   "added_review_items": 136,
+   "added_workload_vs_baseline": 3.5789473684210527,
+   "target_added_workload_max": 0.25,
+   "avoidable_review_items": 46,
+   "avoidable_review_items_per_case": 5.75,
+   "review_queue_true_share": 0.6617647058823529,
+   "uncertain_controls": 86,
+   "uninvestigated_controls": 42,
+   "model_calls": 626,
+   "statuses": [
+    "BUDGET_EXHAUSTED",
+    "FINISHED"
+   ],
+   "note": "Development split only; prompts may have been tuned on these cases. Not a held-out result."
+  }
+ },
+ "limits": [
+  {
+   "issue": "Review burden",
+   "evidence": "Held-out (A): about 4 unnecessary items per change. Version C with a 3-run vote: 0.3 on a fresh test.",
+   "response": "Variant B tried and rejected (fewer wrong flags, but lower recall and more review). Next: verifier changes, tested only on fresh cases."
+  },
+  {
+   "issue": "Agent over-claims across functional areas",
+   "evidence": "CHG-025: message mapping flagged against reconciliation controls; the verifier withheld approval.",
+   "response": "Variant B (cited chain) removed wrong flags but cost recall: 27 vs 32 of 49."
+  },
+  {
+   "issue": "Verifier too strict on clear text links",
+   "evidence": "CHG-026: a threshold change vs 'payments exceeding configured thresholds' left in review.",
+   "response": "Let direct text evidence count as a chain."
+  },
+  {
+   "issue": "Unaffected decisions are never re-checked",
+   "evidence": "CHG-029: two key family members marked unaffected, no second look.",
+   "response": "Verify unaffected decisions on key controls."
+  },
+  {
+   "issue": "Run-to-run variation",
+   "evidence": "Five runs of three cases: 80% of key-control pairs got the same decision every time (target 95%); review items on one case ranged 6 to 36.",
+   "response": "3-run vote reached 94.4% (target 95%); next: 5-run vote on new cases."
+  },
+  {
+   "issue": "Synthetic benchmark",
+   "evidence": "Control families share dependencies by construction.",
+   "response": "Practitioner review of a sample of findings."
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Control",
+   "meaning": "A check that prevents or detects a problem in the payment flow, owned by a person or team."
+  },
+  {
+   "term": "Key control",
+   "meaning": "A control the bank relies on most (30 of the 101 here). Missing one is the costliest error, so the main metric is about key controls."
+  },
+  {
+   "term": "Change",
+   "meaning": "A release that alters a field mapping, rule, report, interface or system. The benchmark has 54."
+  },
+  {
+   "term": "Lineage",
+   "meaning": "The map of dependencies: which fields feed which rules, systems, reports and controls."
+  },
+  {
+   "term": "Degradation",
+   "meaning": "Deliberately removing lineage links near the change (30% in the main test) to mimic real, incomplete metadata."
+  },
+  {
+   "term": "Rules baseline",
+   "meaning": "The non-AI method: follow visible lineage links from the changed item to every control they reach."
+  },
+  {
+   "term": "Key miss",
+   "meaning": "An affected key control the rules baseline does not find. Recovering these is the agent's job."
+  },
+  {
+   "term": "Agent / detective",
+   "meaning": "An LLM that chooses read-only tools step by step (explore the map, search and read procedures) and submits findings."
+  },
+  {
+   "term": "Finding",
+   "meaning": "A decision on one control (AFFECTED, UNAFFECTED, UNCERTAIN) with exact quotes from the ticket and procedure and a stated reason."
+  },
+  {
+   "term": "Verifier",
+   "meaning": "A second, independent model call that checks each finding. If it disagrees, the control goes to a human."
+  },
+  {
+   "term": "UNCERTAIN / review item",
+   "meaning": "A control sent to a person to decide. Counted as workload, never as a recovery."
+  },
+  {
+   "term": "Precision",
+   "meaning": "Of the controls the agent newly recommends, the share that are truly affected."
+  },
+  {
+   "term": "Answer key",
+   "meaning": "The true affected controls, computed from the complete hidden map. The agent never sees it."
+  },
+  {
+   "term": "Development vs held-out",
+   "meaning": "Development cases may be looked at while building; the 18 held-out cases are run once, at the end, with everything frozen."
+  },
+  {
+   "term": "Frozen check",
+   "meaning": "A run on development cases never inspected during fixing, with code fixed in advance: the fairest result before the held-out run."
+  },
+  {
+   "term": "Variant A / B",
+   "meaning": "Two versions of the agent. B must cite a chain from the change to the control before claiming AFFECTED."
+  }
+ ],
+ "rules_by_damage": [
+  {
+   "damage": "None",
+   "found": 1.0
+  },
+  {
+   "damage": "30% nearest the change (main)",
+   "found": 0.1111111111111111
+  },
+  {
+   "damage": "30% random",
+   "found": 0.42592592592592593
+  },
+  {
+   "damage": "60% nearest the change",
+   "found": 0.07407407407407407
+  }
+ ],
+ "benchmark": {
+  "items": 148,
+  "links": 238,
+  "controls": 101,
+  "key_controls": 30,
+  "changes": 54,
+  "held_out": 18
+ }
+}

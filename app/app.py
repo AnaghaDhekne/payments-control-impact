@@ -442,19 +442,17 @@ def page_case():
         synthetic=True,
     )
     st.markdown(
-        '<div class="journey">'
-        '<div><div class="jn">1</div><div class="jh">Change request</div>'
-        "<p>“Release changes Screening request interface.” The interface sends payment-party data to the "
-        "screening engine, which runs sanctions checks.</p></div>"
-        '<div><div class="jn">2</div><div class="jh">Current check</div>'
-        "<p>The links from the engine to its controls are missing from the map. The check stops and finds "
-        "<b>0 of 20</b> affected controls.</p></div>"
-        '<div><div class="jn">3</div><div class="jh">Agent investigates</div>'
-        "<p>Explores the interface and the engine, reads the screening procedures, submits findings: "
-        f"{len(data.step_rows(res)) if res else 40} steps.</p></div>"
-        '<div><div class="jn">4</div><div class="jh">Recommendation</div>'
-        "<p><b>20 recommended</b>, all correct against the answer key; 0 for review. In a production workflow a reviewer would then re-test them.</p></div>"
-        "</div>",
+        '<div class="verdict-strip"><div class="verdict-primary">'
+        '<span>CHG-027 / SCREENING INTERFACE CHANGE</span>'
+        '<strong>0 → 20 <small>of 20</small></strong>'
+        '<p>The lineage-only check sees no affected controls. '
+        'The recorded agent identifies all 20; each recommendation remains subject '
+        'to practitioner review.</p></div>'
+        '<div class="verdict-secondary">'
+        '<b>01</b><span>Change request</span>'
+        '<b>02</b><span>Broken engine-to-control links</span>'
+        '<b>03</b><span>Document evidence and recommendation</span>'
+        '</div></div>',
         unsafe_allow_html=True,
     )
     investigation_workbench()
@@ -465,7 +463,7 @@ def page_case():
             ("Link missing from the map the check uses", ui.RED),
         ]
     )
-    st.markdown("### Step 4 · One recommendation, with its evidence")
+    st.markdown("### A recommendation you can audit")
     f = next(
         (
             v
@@ -503,7 +501,7 @@ def page_case():
                 ),
             ]
         )
-    st.markdown("### What the reviewer receives: this change and the hardest type")
+    st.markdown("### Inspect the reviewer handoff")
     good, hard = st.tabs(
         ["This change (CHG-027)", "Hardest type: screening engine change (CHG-015)"]
     )

@@ -1,0 +1,111 @@
+{
+  "cases": [
+    {
+      "key_misses": 0,
+      "key_recovered": 0,
+      "key_miss_recovery": null,
+      "new_control_precision": 1.0,
+      "new_true_controls": 4,
+      "new_false_controls": 0,
+      "remaining_key_misses": [],
+      "uncertain_controls": 0,
+      "uninvestigated_controls": 0,
+      "review_items": 4,
+      "uncertain_true_controls": 0,
+      "avoidable_review_items": 0,
+      "review_queue_true_share": 1.0,
+      "model_calls": 50,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-014",
+      "status": "FINISHED",
+      "baseline_controls": 6,
+      "seconds": 1021.5,
+      "step_errors": 0
+    },
+    {
+      "key_misses": 3,
+      "key_recovered": 2,
+      "key_miss_recovery": 0.6666666666666666,
+      "new_control_precision": 0.6,
+      "new_true_controls": 3,
+      "new_false_controls": 2,
+      "remaining_key_misses": [
+        "C059"
+      ],
+      "uncertain_controls": 6,
+      "uninvestigated_controls": 0,
+      "review_items": 11,
+      "uncertain_true_controls": 2,
+      "avoidable_review_items": 6,
+      "review_queue_true_share": 0.45454545454545453,
+      "model_calls": 63,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-025",
+      "status": "FINISHED",
+      "baseline_controls": 6,
+      "seconds": 2151.1,
+      "step_errors": 2
+    },
+    {
+      "key_misses": 5,
+      "key_recovered": 5,
+      "key_miss_recovery": 1.0,
+      "new_control_precision": 1.0,
+      "new_true_controls": 12,
+      "new_false_controls": 0,
+      "remaining_key_misses": [],
+      "uncertain_controls": 5,
+      "uninvestigated_controls": 0,
+      "review_items": 17,
+      "uncertain_true_controls": 3,
+      "avoidable_review_items": 2,
+      "review_queue_true_share": 0.8823529411764706,
+      "model_calls": 72,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-017",
+      "status": "FINISHED",
+      "baseline_controls": 7,
+      "seconds": 2057.7,
+      "step_errors": 0
+    }
+  ],
+  "summary": {
+    "cases": 3,
+    "key_misses": 8,
+    "key_recovered": 7,
+    "key_miss_recovery": 0.875,
+    "target_key_miss_recovery": 0.5,
+    "new_control_precision": 0.9047619047619048,
+    "baseline_workload": 19,
+    "added_review_items": 32,
+    "added_workload_vs_baseline": 1.6842105263157894,
+    "target_added_workload_max": 0.25,
+    "avoidable_review_items": 8,
+    "avoidable_review_items_per_case": 2.6666666666666665,
+    "review_queue_true_share": 0.75,
+    "uncertain_controls": 11,
+    "uninvestigated_controls": 0,
+    "model_calls": 185,
+    "statuses": [
+      "FINISHED"
+    ],
+    "note": "Development split only; prompts may have been tuned on these cases. Not a held-out result."
+  },
+  "key_decisions": {
+    "CHG-014": {},
+    "CHG-025": {
+      "C057": "REC",
+      "C060": "REC",
+      "C06": "REC",
+      "C059": "NOT",
+      "C058": "REC"
+    },
+    "CHG-017": {
+      "C075": "REC",
+      "C077": "REC",
+      "C08": "REC",
+      "C078": "REC",
+      "C076": "REC"
+    }
+  }
+}

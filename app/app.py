@@ -1,7 +1,11 @@
 """Control Impact Detective: a Databricks App that explains and evidences the POC.
 
-Run locally:  RESULTS_ROOT=<folder> streamlit run app/app.py
-On Databricks: deployed by scripts/deploy_app.py; reads the results volume.
+Run locally:  streamlit run app/app.py   (reads RESULTS_ROOT, else the bundled copies)
+On Databricks: deployed from the repository root; reads the results volume.
+
+Reading order: Start here (the problem, how it works) is common to everyone; then
+the Executive view (results, decision) or the Technical view (data, evidence,
+case explorer, architecture). Each page leads with its message (Minto).
 """
 
 from __future__ import annotations
@@ -15,7 +19,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import content, data, synthetic  # noqa: E402
+from app import content, data, synthetic, ui  # noqa: E402
 
 st.set_page_config(
     page_title="Control Impact Detective",
@@ -23,25 +27,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-st.markdown(
-    """
-<style>
-:root { --ink:#18212b; --accent:#1d5b86; --ok:#2f7d4f; --bad:#b23b32; --warn:#9a6a12; }
-.block-container { padding-top: 2rem; max-width: 1200px; }
-h1, h2, h3 { letter-spacing: -0.01em; }
-.eyebrow { font: 600 12px/1.2 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: #6a7480; }
-.verdict { font-size: 1.25rem; line-height: 1.5; border-left: 4px solid var(--accent); padding: .4rem 0 .4rem 1rem; margin: .5rem 0 1rem; }
-.pill { display:inline-block; font: 600 11px/1 ui-monospace, Menlo, monospace; text-transform: uppercase; letter-spacing:.05em; padding: 5px 8px; border-radius: 3px; }
-.pill.ok { background:#e3f1e8; color:#2f7d4f } .pill.bad { background:#f7e3e1; color:#b23b32 }
-.pill.warn { background:#f6ecd6; color:#9a6a12 } .pill.dim { background:#eef0f2; color:#5b6672 }
-.small { font-size: .9rem; color: #5b6672; }
-</style>
-""",
-    unsafe_allow_html=True,
-)
+ui.style()
 
 GATE_RECOVERY, GATE_WORKLOAD, GATE_CONSISTENCY = 0.50, 0.25, 0.95
+FROZEN_ON = "2026-10-19"
 
 # ------------------------------------------------------------------ data
 
@@ -80,10 +69,6 @@ def summary_of(run):
 
 def pct(x, digits=1):
     return "–" if x is None else f"{100 * x:.{digits}f}%"
-
-
-def pill(text, kind):
-    return f'<span class="pill {kind}">{text}</span>'
 
 
 runs = load_runs()
@@ -194,191 +179,449 @@ def results_summary_text():
     return "\n".join(lines)
 
 
-# ------------------------------------------------------------------ navigation
+# ------------------------------------------------------------------ diagrams
 
-SECTIONS = [
-    "1 · Executive summary",
-    "2 · Context: the problem",
-    "3 · The synthetic data",
-    "4 · How it works",
-    "5 · Evidence",
-    "6 · Case explorer",
-    "7 · Limits and next steps",
-    "8 · FAQ",
-    "9 · Ask a question",
-    "10 · Technical appendix",
-]
-with st.sidebar:
-    st.markdown("### 🔎 Control Impact Detective")
-    st.caption("Payments control-impact proof of concept · synthetic benchmark")
-    section = st.radio("Sections", SECTIONS, label_visibility="collapsed")
-    st.divider()
-    st.caption(
-        "New here? Read sections 1, 2 and 3 first. Numbers on the Evidence page are read live "
-        "from the run results."
-    )
-    st.caption(
-        f"Results source: `{data.RESULTS_ROOT}`"
-        + ("" if frozen_live else " (recorded figures shown; live files not found)")
-    )
-    if st.button("Refresh results"):
-        st.cache_data.clear()
-        st.rerun()
+# ------------------------------------------------------------------ start here
 
 
-# ------------------------------------------------------------------ 1. executive
-
-
-def page_executive():
-    st.markdown(
-        '<div class="eyebrow">Section 1 · for leadership</div>', unsafe_allow_html=True
-    )
-    st.title(
-        "Can an AI agent find the controls a payment change affects when lineage is broken?"
+def page_problem():
+    ui.page_head(
+        "Start here",
+        "Payment changes can silently break controls, because the map that links them is incomplete",
+        "A one-minute read for everyone, before any results. It sets out the situation, the problem, "
+        "the question this proof of concept answers, and the short answer.",
+        step="1 of 2",
     )
     st.markdown(
-        f'<div class="verdict"><b>Yes. On 18 held-out cases it had never seen, the agent recovered '
-        f'<b>{H["key_recovered"]} of {H["key_misses"]}</b> affected key controls that the rules-based method missed '
-        f'(<b>{pct(H["key_miss_recovery"], 0)}</b>, target 50%; 95% interval 71–84%).</b> '
-        f'<b>{pct(H["new_control_precision"], 0)}</b> of its new recommendations were correct. Additional review includes useful discoveries: '
-        f"331 of 406 additional items concern genuinely affected controls; 75 concern unaffected controls. "
-        f"The 126 UNCERTAIN items include 69 affected and 57 unaffected controls, based on synthetic labels. "
-        f"Item counts do not measure review time.</div>",
+        '<div class="scq">'
+        '<div><div class="s">Situation</div><p>A bank relies on about a hundred controls on its payment flow, '
+        "such as blocking sanctioned parties before release. Each depends on fields, rules and systems.</p></div>"
+        '<div><div class="s">Complication</div><p>Every change must be checked against the controls it touches. '
+        "The lineage map used for this is incomplete exactly where change happens; with 30% of links missing, "
+        "a rules engine finds only 11% of the affected key controls.</p></div>"
+        '<div><div class="s">Question</div><p>Can an AI agent find the affected controls the rules miss, by reading '
+        "the ticket and the control procedures as a reviewer would, and show its evidence?</p></div>"
+        '<div class="answer"><div class="s">Answer</div><p>Mostly yes. On 18 changes it had never seen it recovered '
+        "78% of the key controls the rules missed, 94% of its additions correct. Its review list is still too long "
+        "and not yet repeatable enough for production.</p></div>"
+        "</div>",
         unsafe_allow_html=True,
     )
-    c = st.columns(4)
-    c[0].metric("Recovered (held-out)", pct(H["key_miss_recovery"], 0))
-    c[1].metric("Precision of new flags", pct(H["new_control_precision"], 0))
-    c[2].metric(
-        "Unaffected items / change",
-        f'{H["avoidable_review_items_per_case"]:.1f}',
-    )
-    c[3].metric("Same decision, 5 runs", pct(cons["agreement"], 0))
-
-    st.subheader("Where things stand")
-    winner, why = ab_decision()
-    rows = [
-        (
-            "Agentic path runs end to end on Databricks",
-            pill("Done", "ok"),
-            "Live jobs on gpt-oss-120b; every step logged and replayable.",
-        ),
-        (
-            "Recover ≥ 50% of key controls the rules miss",
-            pill("Met", "ok"),
-            f"Held-out: {pct(H['key_miss_recovery'])} ({H['key_recovered']} of {H['key_misses']}) on 18 test cases. Development check: {pct(F['key_miss_recovery'])} on 8 unseen cases.",
-        ),
-        (
-            "Original additional-volume gate ≤ 25% vs rules",
-            pill("Not met", "bad"),
-            f"Held-out: {H['added_review_items']} added items vs {H['baseline_workload']} rules items: 331 affected (useful additional coverage), 75 unaffected (review overhead). This counts volume, not wasted effort or elapsed time. Original gate unchanged; see FAQ.",
-        ),
-        (
-            "Same key decision across 5 runs ≥ 95%",
-            (
-                pill("Met", "ok")
-                if cons and cons.get("agreement", 0) >= GATE_CONSISTENCY
-                else (pill("Not met", "bad") if cons else pill("Running", "warn"))
-            ),
-            (
-                f"{pct(cons['agreement'])} on {cons['key_pairs']} key pairs"
-                if cons
-                else "Five repeat runs on three cases in progress."
-            ),
-        ),
-        (
-            "Final round: version D (A + tie-break), 5 cases x 2 runs",
-            pill("Not adopted", "warn"),
-            "Recovery 18 vs A 20 of 32 (rule not met); unaffected review items 16 vs 30; repeatability 76% both. "
-            "Version A is the final version.",
-        ),
-        (
-            "Fix: version C with 3-run vote (fresh-damage test)",
-            pill("Not adopted", "warn"),
-            "Recovery 52.7% vs A 50.0% (met); unnecessary review items 0.33 vs 0.61 per change (met); "
-            "two votes agree on 94.4% vs 95% target (not met, by one control). By the pre-agreed rule, A stays.",
-        ),
-        (
-            "Stricter agent (variant B) A/B test",
-            (
-                pill("B rejected" if winner == "A" else "B adopted", "ok")
-                if winner
-                else pill("Running", "warn")
-            ),
-            why,
-        ),
-    ]
+    st.markdown("### One change, traced")
+    ui.broken_link_animation()
     st.markdown(
-        "<table style='width:100%'>"
-        + "".join(
-            f"<tr><td style='width:42%'>{a}</td><td style='width:12%'>{b}</td><td class='small'>{c}</td></tr>"
-            for a, b, c in rows
-        )
-        + "</table>",
-        unsafe_allow_html=True,
+        "A release changes the debtor town-name field. In the complete map it feeds an address rule, "
+        "which feeds the required-field controls. That one link is missing, so a rules engine walking the map "
+        "stops and reports nothing for those controls. A person reading the ticket and the control procedures "
+        "would still see the connection. That reading is what the agent automates."
     )
-    left, right = st.columns(2)
-    with left:
-        st.subheader("What it means")
-        st.markdown(
-            "- Where lineage is incomplete, the agent finds most of what the rules miss, with quoted evidence a reviewer can check.\n"
-            "- It does not replace control owners: it produces a review list with reasons, and sends disagreements to a person.\n"
-            "- The held-out result (78%) is higher than the development check (65%), so the method was not overfitted to the cases used for fixing.\n"
-            "- Review noise can be fixed: version C with a 3-run vote cut unnecessary review items to 0.3 per change on a fresh test.\n"
-            "- Consistency is the remaining gap: 80% for one run, 94.4% for a 3-run vote, against 95%."
+    with st.expander("Terms used in this dashboard"):
+        st.dataframe(
+            pd.DataFrame(content.GLOSSARY, columns=["Term", "Meaning"]),
+            hide_index=True,
+            use_container_width=True,
         )
-    with right:
-        st.subheader("Decision needed")
-        st.markdown(
-            "- **Continue:** the stop rule agreed in advance (held-out below 50%) was not triggered.\n"
-            "- **Next:** a practitioner review of real findings; optionally a 5-run vote on new cases to close the last 0.6% of consistency.\n"
-            "- Not yet: a production pilot, because consistency is below 95% and no practitioner has reviewed findings."
-        )
-    st.caption(
-        "All data is synthetic. Headline figures: held-out test split, variant A, code frozen, one run. Details in sections 5 and 7."
+    ui.next_hint(
+        "Next: <b>How it works</b>, the steps from change ticket to review list."
     )
 
 
-# ------------------------------------------------------------------ 2. context
-
-
-def page_context():
+def page_how():
+    ui.page_head(
+        "Start here",
+        "The agent reads what a reviewer would read, and every finding is checked twice before anyone sees it",
+        "From a change ticket to a review list in four steps. Nothing is assumed safe, and every claim carries "
+        "evidence a person can check.",
+        step="2 of 2",
+    )
+    ui.flow_diagram()
+    ui.keylines(
+        [
+            (
+                "It starts where the rules stop",
+                "The rules method walks the visible links. The agent starts from that result and reads the ticket, "
+                "the items' descriptions and the control procedures to find what the broken links hide.",
+            ),
+            (
+                "Every finding is checked twice",
+                "Quotes must appear word for word in the ticket and the procedure, or the finding is rejected. "
+                "A second, independent model call then agrees or disagrees.",
+            ),
+            (
+                "People decide the uncertain cases",
+                "Agreed findings are recommended. Disagreements go to a person with both arguments. "
+                "Controls without a decision are reported, never assumed safe.",
+            ),
+        ],
+        [ui.BLUE, ui.GREEN, ui.AMBER],
+    )
+    st.markdown("### What a reviewer receives")
     st.markdown(
-        '<div class="eyebrow">Section 2 · start here if you are new</div>',
-        unsafe_allow_html=True,
+        "One real output: a screening-engine change from the held-out test (CHG-015), the hardest change type."
     )
-    st.title("The problem, in plain words")
-    st.markdown(content.CONTEXT_INTRO)
-    st.graphviz_chart(
-        """
-digraph { rankdir=LR; node [shape=box, style="rounded,filled", fillcolor="#f5f6f3", color="#9aa6b2", fontname="Helvetica"];
-  D03 [label="Field changed\\nD03 Debtor town name", fillcolor="#e3edf5"];
-  R01 [label="Rule\\nR01 Structured address validation"];
-  R03 [label="Rule\\nR03 Screening field set"];
-  S03 [label="System\\nS03 Screening engine"];
-  C012 [label="Key control\\nC012 Required-field validation", fillcolor="#e3f1e8"];
-  C02 [label="Key control\\nC02 Sanctions screening", fillcolor="#e3f1e8"];
-  D03 -> R01; D03 -> R03; R03 -> S03 [label=" via I02"]; S03 -> C02;
-  R01 -> C012 [style=dashed, color="#b23b32", fontcolor="#b23b32", label=" link missing\\n in the metadata"];
-}""",
+    r = find_run(runs, "heldout")
+    res = data.case_result(r["folder"], "run1", "CHG-015") if r else None
+    if res:
+        reviewer_queue(data.decisions_table(res), compact=True)
+    with st.expander("The agent's tools (all read-only)"):
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    ("trace_metadata", "Runs the rules method on the visible links"),
+                    (
+                        "explore_node",
+                        "Shows a field, rule or system with its visible links",
+                    ),
+                    ("search_controls", "Ranks control procedures by matching words"),
+                    (
+                        "inspect_control",
+                        "Reads up to 15 procedures; required before a finding",
+                    ),
+                    (
+                        "submit_findings",
+                        "Up to 8 decisions with quotes, reason, counter-evidence",
+                    ),
+                    ("finish", "Stops; refused while controls are undecided"),
+                ],
+                columns=["Tool", "What it does"],
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
+    ui.next_hint(
+        "Next: <b>Executive view · Results</b> for the outcome, or <b>Technical view</b> for the test data and evidence."
+    )
+
+
+# ------------------------------------------------------------------ executive
+
+
+def page_results():
+    rules_found = 162 - H["key_misses"]
+    still = H["key_misses"] - H["key_recovered"]
+    ui.page_head(
+        "Executive view",
+        "The agent recovers four in five of the key controls the rules miss; the review list is not yet lean or repeatable",
+        f"Measured on 18 payment changes the agent had never seen, with 30% of the lineage removed. "
+        f"Version A, frozen before the test, one run.",
+    )
+    ui.kpis(
+        [
+            (
+                pct(H["key_miss_recovery"], 0),
+                "of missed key controls recovered",
+                "Target 50%. 95% range 71–84%.",
+            ),
+            (
+                pct(H["new_control_precision"], 0),
+                "of its recommendations correct",
+                f"{262} of {280} new recommendations",
+            ),
+            (
+                f"{H['avoidable_review_items_per_case']:.1f}",
+                "unaffected review items per change",
+                "75 across 18 changes",
+            ),
+            (pct(cons["agreement"], 0), "same decision across 5 runs", "Target 95%"),
+        ]
+    )
+    st.markdown("### Where the 162 affected key controls ended up")
+    parts = pd.DataFrame(
+        [
+            {"part": "Found by the rules method", "n": rules_found, "o": 1},
+            {"part": "Recovered by the agent", "n": H["key_recovered"], "o": 2},
+            {"part": "Still missed", "n": still, "o": 3},
+        ]
+    )
+    colors = [ui.BLUE, ui.GREEN, ui.GREY]
+    bar = (
+        alt.Chart(parts)
+        .mark_bar(height=46, stroke="white", strokeWidth=2)
+        .encode(
+            x=alt.X(
+                "n:Q",
+                stack="zero",
+                axis=None,
+                scale=alt.Scale(domain=[0, 162], nice=False),
+            ),
+            color=alt.Color(
+                "part:N",
+                scale=alt.Scale(domain=list(parts["part"]), range=colors),
+                legend=None,
+            ),
+            order=alt.Order("o:Q"),
+            tooltip=[
+                alt.Tooltip("part", title=""),
+                alt.Tooltip("n", title="Key controls"),
+            ],
+        )
+    )
+    text = (
+        alt.Chart(parts)
+        .transform_window(end="sum(n)", sort=[alt.SortField("o")])
+        .transform_calculate(mid="datum.end - datum.n / 2")
+        .mark_text(
+            fontSize=14,
+            fontWeight=600,
+            font="IBM Plex Sans, Helvetica, Arial, sans-serif",
+        )
+        .encode(
+            x="mid:Q",
+            text="n:Q",
+            color=alt.condition("datum.o == 3", alt.value(ui.INK), alt.value("white")),
+        )
+    )
+    st.altair_chart(
+        (bar + text).properties(height=60).configure_view(strokeWidth=0),
         use_container_width=True,
     )
-    st.markdown(content.CONTEXT_EXAMPLE)
-    st.subheader("Why it matters")
-    st.markdown(
-        "- A missed control can stop working after a release with nobody noticing until an audit or an incident.\n"
-        "- Impact reviews are manual and depend on lineage that is often out of date exactly where change happens.\n"
-        "- The proof of concept tests whether an agent can close that gap, and was designed so that the answer could be no."
+    ui.legend(list(zip(parts["part"], colors)))
+    ui.keylines(
+        [
+            (
+                "It finds what the rules miss",
+                f"{H['key_recovered']} of {H['key_misses']} missed key controls recovered, each with quoted evidence; "
+                "18 of 280 new recommendations were wrong. 30 of the 31 still missed reached a person as review items.",
+            ),
+            (
+                "The review list is long, but mostly real",
+                "406 items beyond the rules method's 64. 331 of them are truly affected controls; "
+                "75 (4.2 per change) are not. The original volume target counts the useful finds as burden.",
+            ),
+            (
+                "It is not yet repeatable enough",
+                "Across five runs, 80% of key decisions were identical, against a 95% target. "
+                "Recovery itself was stable; which items go to review varied.",
+            ),
+        ],
+        [ui.GREEN, ui.AMBER, ui.RED],
     )
-    st.subheader("Glossary")
+    st.markdown("### Scorecard against the targets set at the start")
+    ui.score_table(
+        [
+            (
+                "Runs end to end on Databricks",
+                ui.badge("Done", "ok"),
+                "Live jobs on gpt-oss-120b; every step logged and replayable.",
+            ),
+            (
+                "Recover ≥ 50% of missed key controls",
+                ui.badge("Met", "ok"),
+                f"{pct(H['key_miss_recovery'])} on unseen changes.",
+            ),
+            (
+                "Added review volume ≤ 25%",
+                ui.badge("Not met", "bad"),
+                "406 added items vs 64; 81% of them truly affected.",
+            ),
+            (
+                "Same key decision across 5 runs ≥ 95%",
+                ui.badge("Not met", "bad"),
+                f"{pct(cons['agreement'], 0)}.",
+            ),
+        ]
+    )
+    ui.callout(
+        "<b>Final version: A.</b> Three alternatives aimed at the two unmet targets were each tested against a rule "
+        "written before the run. None met all of its rule, so none was adopted. Details under Technical view · Evidence."
+    )
+    ui.next_hint("Next: <b>Decision and next steps</b>.")
+
+
+def page_decision():
+    ui.page_head(
+        "Executive view",
+        "Continue to a practitioner review; a production pilot should wait",
+        "The stop rule agreed in advance was not triggered. The two gaps that remain have candidate fixes, tested but not yet good enough.",
+    )
+    ui.keylines(
+        [
+            (
+                "Continue",
+                "Held-out recovery was 78% against a stop line of 50%, on changes never used for tuning. "
+                "The development check (65%) was lower, so the method was not overfitted.",
+            ),
+            (
+                "Next: control owners review real output",
+                "A sample of recommended and review items from the held-out run, judged by practitioners. "
+                "This is the evidence the benchmark cannot give.",
+            ),
+            (
+                "Not yet: a production pilot",
+                "Decisions are 80% repeatable against 95%, and no practitioner has reviewed findings. "
+                "Both must close first.",
+            ),
+        ],
+        [ui.GREEN, ui.BLUE, ui.AMBER],
+    )
+    st.markdown("### Next steps, in order")
+    st.markdown(
+        "1. **Practitioner review** of a held-out sample: are the recommendations and review items right and useful?\n"
+        "2. **Repeatability:** a five-run vote, registered in advance and tested on changes not used before "
+        "(a three-run vote reached 94.4%).\n"
+        "3. **Review volume:** a tie-break that may only promote findings. It was right in 68 of 70 promotions; "
+        "it was its dismissals that dropped real impacts.\n"
+        "4. **Pilot decision** on a small real change set with control owners."
+    )
+    st.markdown("### Known limits")
+    ui.score_table(
+        [
+            (
+                ui.esc(i),
+                "",
+                f"{ui.esc(e)}<br><span style='color:#5B6675'>{ui.esc(r)}</span>",
+            )
+            for i, e, r in content.LIMITS
+        ]
+    )
+
+
+# ------------------------------------------------------------------ technical: evidence
+
+
+def page_evidence():
+    ui.page_head(
+        "Technical view",
+        "Every result comes from a run whose plan and adoption rule were fixed before it ran",
+        "Development results are labelled as such. Only the held-out run is the headline.",
+    )
+    st.markdown("### Main runs")
+    table = []
+    for r in runs:
+        s = summary_of(r)
+        if not s:
+            continue
+        table.append(
+            {
+                "Run": r["label"],
+                "Changes": s.get("cases"),
+                "Key misses recovered": f"{s['key_recovered']} of {s['key_misses']}",
+                "Recovery": pct(s.get("key_miss_recovery")),
+                "Precision": pct(s.get("new_control_precision")),
+                "For review": s.get("uncertain_controls"),
+                "Unaffected items": s.get("avoidable_review_items"),
+            }
+        )
+    st.dataframe(pd.DataFrame(table), hide_index=True, use_container_width=True)
+
+    st.markdown("### By change")
+    options = [r for r in runs if r["kind"] in ("heldout", "frozen") and r["metrics"]]
+    if options:
+        pick = st.radio(
+            "Run",
+            [r["label"] for r in options],
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+        fr = options[[r["label"] for r in options].index(pick)]
+        chart = per_case_chart(fr["metrics"][0])
+        if chart is not None:
+            st.altair_chart(chart, use_container_width=True)
+            ui.legend([("Recovered by the agent", ui.GREEN), ("Still missed", ui.GREY)])
+        st.caption(
+            "Changes where the rules already found every key control are not shown."
+        )
+
+    st.markdown("### Versions tested to close the two gaps")
     st.dataframe(
-        pd.DataFrame(content.GLOSSARY, columns=["Term", "Meaning"]),
+        pd.DataFrame(
+            [
+                {
+                    "Version": "B · stricter agent",
+                    "Test": "8 unseen development changes",
+                    "Rule fixed in advance": "Unaffected items ≥ 30% fewer; recovery within 3",
+                    "Result": "Unaffected 56 → 46 (−18%); recovered 32 → 27",
+                    "Decision": "Not adopted",
+                },
+                {
+                    "Version": "C · sweep, re-check, tie-break, 3-run vote",
+                    "Test": "18 test changes, fresh random damage",
+                    "Rule fixed in advance": "Two votes agree ≥ 95%; recovery ≥ 50%; unaffected ≤ 3 per change",
+                    "Result": "Agree 94.4% (needed 95%); recovery 52.7%; unaffected 0.33 per change; ≈ 4× cost",
+                    "Decision": "Not adopted",
+                },
+                {
+                    "Version": "D · A + tie-break",
+                    "Test": "5 fresh development changes, 2 runs each",
+                    "Rule fixed in advance": "Recovery ≥ A; unaffected ≤ A; repeatability ≥ A",
+                    "Result": "Recovered 18 vs 20 of 32; unaffected 16 vs 30",
+                    "Decision": "Not adopted",
+                },
+                {
+                    "Version": "A + tie-break on A's saved runs",
+                    "Test": "7 saved runs, paired",
+                    "Rule fixed in advance": "≤ 10% of truly affected review items dismissed",
+                    "Result": "Recovered 258 → 267 of 411; unaffected −38%; 21.8% dismissed",
+                    "Decision": "Not adopted",
+                },
+            ]
+        ),
         hide_index=True,
         use_container_width=True,
     )
+    with st.expander("Repeatability: three changes, five runs"):
+        cr = find_run(runs, "consistency")
+        if cr and cr["metrics"]:
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "Run": i + 1,
+                            "Key misses recovered": f"{m['summary']['key_recovered']} of {m['summary']['key_misses']}",
+                            "Precision": pct(m["summary"].get("new_control_precision")),
+                            "For review": m["summary"].get("uncertain_controls"),
+                            "Unaffected items": m["summary"].get(
+                                "avoidable_review_items"
+                            ),
+                        }
+                        for i, m in enumerate(cr["metrics"])
+                    ]
+                ),
+                hide_index=True,
+                use_container_width=True,
+            )
+        st.markdown(
+            f"Identical recommend / not-recommend decisions on {pct(cons['agreement'], 0)} of "
+            f"{cons['key_pairs']} affected key controls (target 95%)."
+        )
 
 
-# ------------------------------------------------------------------ 3. synthetic data
+# ------------------------------------------------------------------ technical: architecture
+
+
+def page_architecture():
+    ui.page_head(
+        "Technical view",
+        "Everything runs inside one Databricks workspace, and the answer key never reaches the model",
+        "How the parts fit, and how to reproduce any number in this dashboard.",
+    )
+    ui.architecture_diagram()
+    ui.keylines(
+        [
+            (
+                "Built on standard Databricks parts",
+                "Code in a Git folder, runs as Jobs, the model on Model Serving, results in a Unity Catalog volume, "
+                "this dashboard as a Databricks App.",
+            ),
+            (
+                "Scoring is separate from solving",
+                "The answer key is computed offline from the complete map and used only by the scorer. "
+                "Tests check it never appears in a prompt.",
+            ),
+            (
+                "Every run can be replayed",
+                "Each step, finding and model reply is saved. Interrupted runs resume where they stopped.",
+            ),
+        ],
+        [ui.BLUE, ui.INK, ui.GREEN],
+    )
+    with st.expander("Reproduce the results"):
+        st.markdown(content.REPRO)
+    with st.expander("Results summary used by the assistant"):
+        st.code(results_summary_text())
+
+
+# ------------------------------------------------------------------ technical: synthetic data
 
 
 @st.cache_data(show_spinner=False)
@@ -400,23 +643,53 @@ def syn_dot(change_id, level, mode, show, focused):
     )
 
 
+AGENT_WORDS = {
+    "Rules already had it": "rules had it",
+    "Correct recovery": "recommended ✓",
+    "Sent to review (affected)": "sent to review",
+    "Missed": "missed (marked unaffected)",
+    "Not investigated": "not decided",
+}
+
+
+@st.cache_data(show_spinner=False)
+def agent_outcomes(change_id):
+    """Outcome per control from the scored agent run that covers this change."""
+    for kind, label in (("heldout", "held-out run"), ("frozen", "frozen check")):
+        r = find_run(runs, kind)
+        if r and change_id in r["cases"]:
+            res = data.case_result(r["folder"], "run1", change_id)
+            if res:
+                return {
+                    row["control"]: row["outcome"] for row in data.decisions_table(res)
+                }, label
+    return None, None
+
+
 def page_synthetic():
-    st.markdown(
-        '<div class="eyebrow">Section 3 · the test world, in full</div>',
-        unsafe_allow_html=True,
+    ui.page_head(
+        "Technical view",
+        "A complete, known map of 148 items lets every answer be scored exactly",
+        "An invented but realistic model of one bank's outbound cross-border payments. The full map is known, "
+        "so the right answer for every change is known; the agent only ever sees a damaged copy. "
+        "No real bank, customer or control data is used.",
     )
-    st.title("The synthetic data")
-    st.markdown(
-        "Every result in this app is measured on a made-up but realistic model of one bank's outbound "
-        "cross-border payments. The complete map of how everything depends on everything else is known, "
-        "so the right answer for every change is known. The AI is shown only a damaged copy of the map and "
-        "is scored against the complete one. No real bank, customer or control data is used."
+    ui.kpis(
+        [
+            (
+                "148",
+                "items in the map",
+                "fields, rules, interfaces, systems, processes, reports, evidence, controls",
+            ),
+            (
+                "238",
+                "links between them",
+                "each with a direction: impact flows along it",
+            ),
+            ("101", "controls", "30 key, 60 standard, 11 supporting"),
+            ("54", "change scenarios", "36 for development, 18 held out for the test"),
+        ]
     )
-    c = st.columns(4)
-    c[0].metric("Items in the map", 148)
-    c[1].metric("Links between them", 238)
-    c[2].metric("Controls (30 key)", 101)
-    c[3].metric("Changes (18 held out)", 54)
 
     t1, t2, t3, t4 = st.tabs(
         [
@@ -428,13 +701,13 @@ def page_synthetic():
     )
 
     with t1:
-        st.subheader("Items, by type")
+        st.markdown("### Items, by type")
         st.dataframe(
             pd.DataFrame(synthetic.type_counts()),
             hide_index=True,
             use_container_width=True,
         )
-        st.subheader("Links, by type")
+        st.markdown("### Links, by type")
         st.markdown(
             "Links have a direction: impact flows from source to target. All link types carry impact except "
             "COMPENSATED_BY (a manual fallback)."
@@ -444,7 +717,7 @@ def page_synthetic():
             hide_index=True,
             use_container_width=True,
         )
-        st.subheader("How the answer key is built")
+        st.markdown("### How the answer key is built")
         st.markdown(
             "A control is **affected** by a change when the changed item reaches it by following impact-carrying "
             "links in their direction through the complete map (at most 6 steps; a path stops at the first control). "
@@ -508,12 +781,37 @@ def page_synthetic():
         st.graphviz_chart(
             syn_dot(cid, 30, "correlated", "overlay", True), use_container_width=True
         )
+        agent, agent_run = agent_outcomes(cid)
+        table = pd.DataFrame(ex["rows"])
+        if agent:
+            table["Step 3 · AI agent"] = [
+                AGENT_WORDS.get(agent.get(c), "not decided") for c in table["Control"]
+            ]
         st.markdown(
-            "**Every affected control, with its path and what damage did to it**"
+            "**Every affected control, with its path, what damage did to it"
+            + (
+                f", and what the AI agent decided in the {agent_run}**"
+                if agent
+                else "**"
+            )
         )
-        st.dataframe(
-            pd.DataFrame(ex["rows"]), hide_index=True, use_container_width=True
-        )
+        st.dataframe(table, hide_index=True, use_container_width=True)
+        if agent:
+            missed = [
+                c for c in ex["affected"] if c not in set(ex["rules_found_affected"])
+            ]
+            rec = sum(agent.get(c) == "Correct recovery" for c in missed)
+            rev = sum(agent.get(c) == "Sent to review (affected)" for c in missed)
+            st.markdown(
+                f"**Step 3 · What the AI agent did.** Of the {len(missed)} affected controls the rules missed, "
+                f"the agent recommended **{rec}** and sent **{rev}** to a person for review; "
+                f"{len(missed) - rec - rev} were missed."
+            )
+        else:
+            st.caption(
+                "This change was not part of a scored agent run under this damage, so step 3 is not shown. "
+                "The 18 test changes (held-out run) and 8 development changes (frozen check) have it."
+            )
         a, b = st.columns(2)
         with a:
             st.markdown("**The ticket the AI receives**")
@@ -534,7 +832,7 @@ def page_synthetic():
                 )
         st.caption(
             "The detective's job is to recover the pink controls the rules miss, using the item names, descriptions "
-            "and control texts, and to cite its evidence. On this benchmark's held-out run it recovered 113 of 144 such key misses."
+            "and control texts, and to cite its evidence. Across the whole held-out run it recovered 113 of 144 such key misses."
         )
 
     with t3:
@@ -597,21 +895,25 @@ def page_synthetic():
                 ),
             )
         ex4 = syn_example(cid4, level, mode)
-        m = st.columns(4)
-        m[0].metric("Links in the complete map", ex4["edges_total"])
-        m[1].metric(
-            "Links the AI sees",
-            ex4["edges_visible"],
-            f"-{len(ex4['removed'])} removed",
-            delta_color="normal",
-        )
-        m[2].metric(
-            "Affected controls found by rules",
-            f"{len(ex4['rules_found_affected'])} of {len(ex4['affected'])}",
-        )
-        m[3].metric(
-            "Key controls missed by rules",
-            f"{len(ex4['key_misses'])} of {len(ex4['key'])}",
+        ui.kpis(
+            [
+                (str(ex4["edges_total"]), "links in the complete map", None),
+                (
+                    str(ex4["edges_visible"]),
+                    "links the agent sees",
+                    f"{len(ex4['removed'])} removed",
+                ),
+                (
+                    f"{len(ex4['rules_found_affected'])} of {len(ex4['affected'])}",
+                    "affected controls the rules find",
+                    None,
+                ),
+                (
+                    f"{len(ex4['key_misses'])} of {len(ex4['key'])}",
+                    "key controls the rules miss",
+                    None,
+                ),
+            ]
         )
         st.markdown(
             "**How the damage is chosen.** One link is never exposed (internal). Of the other 237, the stated share is removed. "
@@ -670,67 +972,7 @@ def page_synthetic():
         )
 
 
-# ------------------------------------------------------------------ 3. how it works
-
-
-def page_how():
-    st.markdown(
-        '<div class="eyebrow">Section 4 · the system</div>', unsafe_allow_html=True
-    )
-    st.title("How one change is investigated")
-    st.graphviz_chart(
-        """
-digraph { rankdir=LR; node [shape=box, style="rounded,filled", fillcolor="#ffffff", color="#9aa6b2", fontname="Helvetica"];
-  T [label="Change ticket\\n+ degraded lineage\\n+ control procedures"];
-  B [label="Rules baseline\\nfollow visible links"];
-  A [label="Agent loop (≤60 steps)\\nexplore · search · read", fillcolor="#e3edf5"];
-  F [label="Findings\\nquotes + reason\\n+ counter-evidence", fillcolor="#e3edf5"];
-  V [label="Verifier\\nindependent check", fillcolor="#e3edf5"];
-  R [label="Recommend", fillcolor="#e3f1e8"]; H [label="Human review\\n(UNCERTAIN)", fillcolor="#f6ecd6"];
-  T -> B -> A -> F -> V; V -> R [label=" agree"]; V -> H [label=" disagree"];
-}""",
-        use_container_width=True,
-    )
-    st.subheader("The agent's tools (all read-only)")
-    st.dataframe(
-        pd.DataFrame(
-            [
-                ("trace_metadata", "Runs the rules baseline on the visible links"),
-                (
-                    "explore_node",
-                    "Shows a field, rule or system: its description and visible links",
-                ),
-                (
-                    "search_controls",
-                    "Ranks control procedures by matching words (never hides any)",
-                ),
-                (
-                    "inspect_control",
-                    "Reads up to 15 control procedures; required before a finding",
-                ),
-                (
-                    "submit_findings",
-                    "Up to 8 decisions with exact quotes, reason, counter-evidence and the chain",
-                ),
-                ("finish", "Stops; refused up to 3 times while controls are undecided"),
-            ],
-            columns=["Tool", "What it does"],
-        ),
-        hide_index=True,
-        use_container_width=True,
-    )
-    st.subheader("Safeguards")
-    st.markdown(
-        "- **Evidence is checked mechanically:** quotes must appear word for word in the ticket and the procedure, or the finding is rejected.\n"
-        "- **No side effects:** tools only read; the agent never writes lineage links.\n"
-        "- **Second opinion:** a verifier call checks every non-'unaffected' finding; disagreement goes to a person.\n"
-        "- **Nothing is assumed safe:** controls without a decision are reported as uninvestigated.\n"
-        "- **Answer key isolated:** labels are used only for scoring; tests check they never reach a prompt.\n"
-        "- **Robust runs:** handles the model's reasoning-only or cut-off replies, retries, and resumes interrupted jobs."
-    )
-
-
-# ------------------------------------------------------------------ 4. evidence
+# ------------------------------------------------------------------ technical: case explorer
 
 
 def per_case_chart(metrics):
@@ -752,7 +994,7 @@ def per_case_chart(metrics):
     df = pd.DataFrame(rows)
     return (
         alt.Chart(df)
-        .mark_bar()
+        .mark_bar(size=16)
         .encode(
             y=alt.Y(
                 "case:N",
@@ -764,213 +1006,16 @@ def per_case_chart(metrics):
             color=alt.Color(
                 "part:N",
                 scale=alt.Scale(
-                    domain=["Recovered", "Still missed"], range=["#2f7d4f", "#c9cfd6"]
+                    domain=["Recovered", "Still missed"], range=[ui.GREEN, ui.GREY]
                 ),
-                legend=alt.Legend(title=None, orient="bottom"),
+                legend=None,
             ),
             order=alt.Order("part:N", sort="ascending"),
             tooltip=["case", "part", "count"],
         )
-        .properties(height=max(200, 44 * len(cases)))
+        .properties(height=max(160, 30 * len(cases)))
     )
 
-
-def page_evidence():
-    st.markdown(
-        '<div class="eyebrow">Section 5 · results, read live from the run files</div>',
-        unsafe_allow_html=True,
-    )
-    st.title("Evidence")
-    st.markdown(
-        "Every result below comes from a run whose plan and reading rule were committed before it ran. Development results are labelled as such; only the held-out run counts as final."
-    )
-
-    st.subheader("All runs at a glance")
-    table = []
-    for r in runs:
-        s = summary_of(r)
-        if not s:
-            table.append(
-                {
-                    "Run": r["label"],
-                    "Cases": len(r["cases"]),
-                    "Recovered": "running",
-                    "Recovery": "",
-                    "Precision": "",
-                    "Sent to review": "",
-                    "Avoidable items": "",
-                }
-            )
-            continue
-        table.append(
-            {
-                "Run": r["label"],
-                "Cases": s.get("cases"),
-                "Recovered": f"{s['key_recovered']} / {s['key_misses']}",
-                "Recovery": pct(s.get("key_miss_recovery")),
-                "Precision": pct(s.get("new_control_precision")),
-                "Sent to review": s.get("uncertain_controls"),
-                "Avoidable items": s.get("avoidable_review_items", ""),
-            }
-        )
-    if not any(summary_of(r) for r in runs):
-        for label, rec in (
-            ("Held-out test, variant A (18 cases)", RECORDED_HELDOUT),
-            ("Frozen check, variant A (8 unseen cases)", RECORDED_FROZEN),
-            ("A/B test, variant B (same 8 cases)", RECORDED_B),
-        ):
-            table.append(
-                {
-                    "Run": label + " · recorded",
-                    "Cases": rec["cases"],
-                    "Recovered": f"{rec['key_recovered']} / {rec['key_misses']}",
-                    "Recovery": pct(rec["key_miss_recovery"]),
-                    "Precision": pct(rec["new_control_precision"]),
-                    "Sent to review": rec["uncertain_controls"],
-                    "Avoidable items": rec["avoidable_review_items"],
-                }
-            )
-    table.append(
-        {
-            "Run": "Tuned development cases (earlier workspace)",
-            "Cases": 4,
-            "Recovered": "22 / 27",
-            "Recovery": "81.5%",
-            "Precision": "91.8%",
-            "Sent to review": 41,
-            "Avoidable items": "not measured",
-        }
-    )
-    st.dataframe(pd.DataFrame(table), hide_index=True, use_container_width=True)
-    if not frozen_live:
-        st.info(
-            "Live run files were not found, so recorded figures from docs/results.md are shown where needed."
-        )
-
-    left, right = st.columns(2)
-    with left:
-        st.subheader("Frozen check, by case")
-        fr = find_run(runs, "frozen")
-        chart = per_case_chart(fr["metrics"][0]) if fr and fr["metrics"] else None
-        if chart is not None:
-            st.altair_chart(chart, use_container_width=True)
-        else:
-            st.caption(
-                "Per-case results appear when the frozen-check files are readable."
-            )
-    with right:
-        st.subheader("Recovery across approaches")
-        cmp = [
-            {"approach": a, "detail": d, "recovery": v}
-            for a, d, v in data.EARLIER_RESULTS["phases"]
-        ]
-        cmp.append(
-            {
-                "approach": "Detective, tuned cases",
-                "detail": "4 dev cases",
-                "recovery": 81.5,
-            }
-        )
-        cmp.append(
-            {
-                "approach": "Detective, unseen cases",
-                "detail": "8 dev cases, frozen",
-                "recovery": round(100 * F["key_miss_recovery"], 1),
-            }
-        )
-        if heldout:
-            cmp.append(
-                {
-                    "approach": "Detective, held-out",
-                    "detail": "18 test cases",
-                    "recovery": round(100 * heldout["key_miss_recovery"], 1),
-                }
-            )
-        df = pd.DataFrame(cmp)
-        bars = (
-            alt.Chart(df)
-            .mark_bar(color="#1d5b86")
-            .encode(
-                y=alt.Y(
-                    "approach:N",
-                    sort=None,
-                    title=None,
-                    axis=alt.Axis(labelLimit=320, labelOverlap=False),
-                ),
-                x=alt.X(
-                    "recovery:Q",
-                    title="Key-miss recovery (%)",
-                    scale=alt.Scale(domain=[0, 100]),
-                ),
-                tooltip=["approach", "detail", "recovery"],
-            )
-        )
-        rule = (
-            alt.Chart(pd.DataFrame({"x": [50]}))
-            .mark_rule(color="#b23b32", strokeDash=[4, 3])
-            .encode(x="x:Q")
-        )
-        st.altair_chart((bars + rule).properties(height=220), use_container_width=True)
-        st.caption(
-            "Dashed line: the 50% gate. Earlier phases used different methods and case sets."
-        )
-
-    st.subheader("A/B test: variant A vs variant B")
-    winner, why = ab_decision()
-    st.markdown(
-        f"**Rule (registered before the run):** adopt B only if avoidable review items fall by ≥30% and recovered key controls drop by no more than 3 of 49. **Result:** {('variant ' + winner + ' goes to the held-out run. ') if winner else ''}{why}"
-    )
-    if variant_b:
-        st.dataframe(
-            pd.DataFrame(
-                [
-                    {
-                        "Variant": "A (frozen check)",
-                        "Recovered": f"{F['key_recovered']} / {F['key_misses']}",
-                        "Precision": pct(F["new_control_precision"]),
-                        "Sent to review": F["uncertain_controls"],
-                        "Avoidable items": F.get("avoidable_review_items"),
-                    },
-                    {
-                        "Variant": "B (chain required)",
-                        "Recovered": f"{variant_b['key_recovered']} / {variant_b['key_misses']}",
-                        "Precision": pct(variant_b.get("new_control_precision")),
-                        "Sent to review": variant_b.get("uncertain_controls"),
-                        "Avoidable items": variant_b.get("avoidable_review_items"),
-                    },
-                ]
-            ),
-            hide_index=True,
-            use_container_width=True,
-        )
-
-    st.subheader("Consistency across five runs")
-    cr = find_run(runs, "consistency")
-    if cr and cr["metrics"]:
-        st.dataframe(
-            pd.DataFrame(
-                [
-                    {
-                        "Run": i + 1,
-                        "Recovered": f"{m['summary']['key_recovered']} / {m['summary']['key_misses']}",
-                        "Precision": pct(m["summary"].get("new_control_precision")),
-                        "Sent to review": m["summary"].get("uncertain_controls"),
-                        "Avoidable items": m["summary"].get("avoidable_review_items"),
-                    }
-                    for i, m in enumerate(cr["metrics"])
-                ]
-            ),
-            hide_index=True,
-            use_container_width=True,
-        )
-    st.markdown(
-        f"**Agreement on key-control decisions:** {pct(cons['agreement'])} of {cons['key_pairs']} pairs (target 95%)."
-        if cons
-        else "Agreement is computed when all five runs finish."
-    )
-
-
-# ------------------------------------------------------------------ 5. explorer
 
 OUTCOME_COLORS = {
     "Correct recovery": "🟢",
@@ -986,14 +1031,75 @@ OUTCOME_COLORS = {
 }
 
 
-def page_explorer():
-    st.markdown(
-        '<div class="eyebrow">Section 6 · see the agent work</div>',
-        unsafe_allow_html=True,
+def reviewer_queue(rows, compact=False):
+    """The output as a control reviewer would get it, with the answer key optional."""
+    show_key = st.toggle(
+        "Show the answer key (a real reviewer would not have it)",
+        value=False,
+        key=f"showkey_{compact}",
     )
-    st.title("Case explorer")
+    rules = [r for r in rows if r["outcome"].startswith("Rules")]
+    ai = [r for r in rows if r["outcome"] in ("Correct recovery", "False flag")]
+    review = [r for r in rows if r["outcome"].startswith("Sent to review")]
+
+    def table(items, cols):
+        df = pd.DataFrame(
+            [
+                {
+                    "Control": r["control"] + (" (key)" if r["key"] else ""),
+                    "Procedure": r["title"],
+                    **{k: f(r) for k, f in cols.items()},
+                    **({"Answer key": r["answer_key"]} if show_key else {}),
+                }
+                for r in items
+            ]
+        )
+        st.dataframe(df, hide_index=True, use_container_width=True)
+
+    ui.legend(
+        [
+            (f"Recommended, found by the rules method: {len(rules)}", ui.BLUE),
+            (f"Recommended, added by the agent: {len(ai)}", ui.GREEN),
+            (f"For a person to decide: {len(review)}", ui.AMBER),
+        ]
+    )
     st.markdown(
-        "Pick a run and a case to see every action the agent chose and every decision it made, checked against the answer key it never saw."
+        f"**1 · Recommended: already linked in the lineage ({len(rules)}).** Found by following the visible links."
+    )
+    if rules and not compact:
+        table(rules, {})
+    elif rules:
+        st.caption(", ".join(r["control"] for r in rules))
+    st.markdown(
+        f"**2 · Recommended: added by the AI, agreed by the verifier ({len(ai)}).** Each cites the ticket and the procedure."
+    )
+    if ai:
+        table(ai, {"Why the AI says it is affected": lambda r: r["agent_reason"]})
+    st.markdown(
+        f"**3 · For review: the AI and the verifier disagreed ({len(review)}).** "
+        "Usually because no visible link connects the change to the control. A person decides."
+    )
+    if review:
+        table(
+            review,
+            {
+                "AI: why affected": lambda r: r["agent_reason"],
+                "Verifier: why not sure": lambda r: r["verifier_reason"],
+            },
+        )
+    if show_key and review:
+        true = sum(r["outcome"] == "Sent to review (affected)" for r in review)
+        st.caption(
+            f"{true} of the {len(review)} review items are truly affected in the answer key."
+        )
+
+
+def page_explorer():
+    ui.page_head(
+        "Technical view",
+        "Every decision the agent made, checked against the answer key it never saw",
+        "Pick a run and a change. The first tab is the review list as a control reviewer would get it; "
+        "the others compare each decision with the answer key and list every step.",
     )
     choices = [r for r in runs if r["cases"]]
     if not choices:
@@ -1013,7 +1119,10 @@ def page_explorer():
     cases = data.case_ids(run["folder"], run_name)
     key = load_key()["cases"]
     change_id = c3.selectbox(
-        "Case", cases, format_func=lambda c: f"{c} · {key.get(c, {}).get('title', '')}"
+        "Change",
+        cases,
+        index=cases.index("CHG-015") if "CHG-015" in cases else 0,
+        format_func=lambda c: f"{c} · {key.get(c, {}).get('title', '')}",
     )
     result = load_case(run["folder"], run_name, change_id)
     if not result:
@@ -1033,16 +1142,31 @@ def page_explorer():
         and r["outcome"] != "Rules already had it"
     ]
     rec = sum(r["outcome"] == "Correct recovery" for r in key_miss)
-    m = st.columns(4)
-    m[0].metric("Missed key controls recovered", f"{rec} / {len(key_miss)}")
-    m[1].metric(
-        "Correct new recommendations",
-        sum(r["outcome"] == "Correct recovery" for r in rows),
+    ui.kpis(
+        [
+            (f"{rec} of {len(key_miss)}", "missed key controls recovered", None),
+            (
+                str(sum(r["outcome"] == "Correct recovery" for r in rows)),
+                "correct new recommendations",
+                None,
+            ),
+            (
+                str(sum(r["outcome"] == "False flag" for r in rows)),
+                "wrong new recommendations",
+                None,
+            ),
+            (
+                str(sum(r["final"] == "UNCERTAIN" for r in rows)),
+                "sent to a person",
+                None,
+            ),
+        ]
     )
-    m[2].metric("False flags", sum(r["outcome"] == "False flag" for r in rows))
-    m[3].metric("Sent to review", sum(r["final"] == "UNCERTAIN" for r in rows))
-
-    tab1, tab2 = st.tabs(["Decisions vs answer key", "Investigation steps"])
+    tab0, tab1, tab2 = st.tabs(
+        ["What a reviewer receives", "Decisions vs answer key", "Investigation steps"]
+    )
+    with tab0:
+        reviewer_queue(rows)
     with tab1:
         view = st.radio(
             "Show",
@@ -1072,7 +1196,6 @@ def page_explorer():
         df = pd.DataFrame(
             [
                 {
-                    "Mark": OUTCOME_COLORS.get(r["outcome"], ""),
                     "Control": r["control"] + (" (key)" if r["key"] else ""),
                     "Procedure": r["title"],
                     "Agent": r["agent"],
@@ -1104,40 +1227,13 @@ def page_explorer():
         st.dataframe(pd.DataFrame(steps), hide_index=True, use_container_width=True)
 
 
-# ------------------------------------------------------------------ 6. limits
-
-
-def page_limits():
-    st.markdown(
-        '<div class="eyebrow">Section 7 · what is not solved yet</div>',
-        unsafe_allow_html=True,
-    )
-    st.title("Limits and next steps")
-    st.dataframe(
-        pd.DataFrame(content.LIMITS, columns=["Issue", "Evidence", "Response"]),
-        hide_index=True,
-        use_container_width=True,
-    )
-    st.subheader("Next steps")
-    st.markdown(
-        "Done: A/B test (variant A kept), five-run consistency (80%), held-out run (78% recovery), "
-        "version C test (review noise fixed; votes agree 94.4%, target 95%; not adopted).\n\n"
-        "1. Practitioner review of a sample of recommended and review items from the held-out run.\n"
-        "2. Stability: a 5-run vote, registered in advance and tested on cases not used before.\n"
-        "3. Review volume: target the verifier's over-strict rejections and the UNCERTAIN items that are not affected.\n"
-        "4. Then a pilot decision on a real, small change set with control owners."
-    )
-
-
-# ------------------------------------------------------------------ 7. FAQ
+# ------------------------------------------------------------------ help
 
 
 def page_faq():
-    st.markdown(
-        '<div class="eyebrow">Section 8 · questions people ask</div>',
-        unsafe_allow_html=True,
+    ui.page_head(
+        "Help", "Questions and answers", "Filter by audience, then open a question."
     )
-    st.title("FAQ")
     audience = st.radio(
         "For", ["Everyone", "Leadership", "Technical", "Controls"], horizontal=True
     )
@@ -1145,20 +1241,14 @@ def page_faq():
         if audience in ("Everyone", who):
             with st.expander(f"{q}  ·  {who}"):
                 st.markdown(a)
-    st.caption("Not answered here? Ask in section 9.")
-
-
-# ------------------------------------------------------------------ 8. ask
+    st.caption("Not answered here? Use Ask the assistant.")
 
 
 def page_ask():
-    st.markdown(
-        '<div class="eyebrow">Section 9 · ask anything about the project</div>',
-        unsafe_allow_html=True,
-    )
-    st.title("Ask a question")
-    st.markdown(
-        "Answers come from the project's documents and the results loaded in this app, using the workspace model endpoint. If the material does not cover your question, the answer says so."
+    ui.page_head(
+        "Help",
+        "Ask the assistant about this proof of concept",
+        "Answers come only from the project documents and the recorded results. If they do not cover a question, the answer says so.",
     )
     if "chat" not in st.session_state:
         st.session_state.chat = []
@@ -1191,7 +1281,7 @@ def page_ask():
                         question, st.session_state.chat, results_summary_text()
                     )
                 except Exception as exc:  # endpoint missing or not permitted
-                    answer = f"The model endpoint could not be reached ({type(exc).__name__}). The FAQ in section 8 covers the common questions."
+                    answer = f"The model endpoint could not be reached ({type(exc).__name__}). Questions and answers covers the common ones."
             st.markdown(answer)
         st.session_state.chat += [
             {"role": "user", "content": question},
@@ -1199,42 +1289,52 @@ def page_ask():
         ]
 
 
-# ------------------------------------------------------------------ 9. appendix
+# ------------------------------------------------------------------ navigation
 
 
-def page_appendix():
+def _page(fn, title, default=False):
+    return st.Page(fn, title=title, url_path=fn.__name__[5:], default=default)
+
+
+VIEWS = {
+    "Start here": [
+        _page(page_problem, "1  The problem", default=True),
+        _page(page_how, "2  How it works"),
+    ],
+    "Executive view": [
+        _page(page_results, "Results"),
+        _page(page_decision, "Decision and next steps"),
+    ],
+    "Technical view": [
+        _page(page_synthetic, "The synthetic data"),
+        _page(page_evidence, "Evidence"),
+        _page(page_explorer, "Case explorer"),
+        _page(page_architecture, "Architecture and method"),
+    ],
+    "Help": [
+        _page(page_faq, "Questions and answers"),
+        _page(page_ask, "Ask the assistant"),
+    ],
+}
+nav = st.navigation(VIEWS, position="hidden")
+with st.sidebar:
     st.markdown(
-        '<div class="eyebrow">Section 10 · for technical reviewers</div>',
+        '<div class="brand">Control Impact Detective</div>'
+        '<div class="brand-sub">Payments control-impact proof of concept</div>',
         unsafe_allow_html=True,
     )
-    st.title("Technical appendix")
-    st.markdown(content.REPRO)
-    with st.expander("Live results summary used by the Q&A"):
-        st.code(results_summary_text())
-    with st.expander("Benchmark facts"):
-        st.markdown(
-            "- Hidden graph: 148 nodes (101 controls: 30 key, 60 standard, 11 supporting), 238 links.\n"
-            "- 54 changes: 36 development, 18 held-out test. Labels from graph paths, never from a model.\n"
-            "- Main condition: 30% change-correlated degradation. Rules baseline finds 51 of 276 affected key-control pairs on the development split.\n"
-            "- Model: databricks-gpt-oss-120b, temperature 0; up to 60 agent steps per case plus one verifier call per finding."
-        )
-
-
-PAGES = dict(
-    zip(
-        SECTIONS,
-        [
-            page_executive,
-            page_context,
-            page_synthetic,
-            page_how,
-            page_evidence,
-            page_explorer,
-            page_limits,
-            page_faq,
-            page_ask,
-            page_appendix,
-        ],
+    for view, pages in VIEWS.items():
+        st.markdown(f'<div class="navhead">{view}</div>', unsafe_allow_html=True)
+        for pg in pages:
+            st.page_link(pg)
+    source = (
+        "live run files"
+        if any(r.get("live") for r in runs)
+        else "recorded run files shipped with the app"
     )
-)
-PAGES[section]()
+    st.markdown(
+        f'<div class="sidefoot">Final version A, frozen {FROZEN_ON}.<br>'
+        f"Synthetic benchmark; no real bank data.<br>Results from {source}.</div>",
+        unsafe_allow_html=True,
+    )
+nav.run()

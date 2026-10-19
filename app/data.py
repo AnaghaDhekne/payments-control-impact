@@ -17,6 +17,9 @@ from pathlib import Path
 RESULTS_ROOT = os.environ.get(
     "RESULTS_ROOT", "/Volumes/workspace/default/detective_runs"
 )
+# Compact copies of the main runs, shipped with the app (scripts/bundle_app_results.py).
+# Used for any run folder the results volume does not have.
+RECORDED_ROOT = str(Path(__file__).resolve().parent / "recorded")
 
 # Runs the app knows how to describe. Each entry: folder, label, what it is.
 RUN_CATALOG = [
@@ -132,17 +135,29 @@ def read_json(path: str):
 # ---------------------------------------------------------------- runs
 
 
+@lru_cache(maxsize=64)
+def root_for(folder: str) -> str:
+    """The live results volume if it has this run folder, else the bundled copy."""
+    if any(n.startswith("run") for n in list_names(f"{RESULTS_ROOT}/{folder}")):
+        return RESULTS_ROOT
+    return RECORDED_ROOT
+
+
+def is_live(folder: str) -> bool:
+    return root_for(folder) == RESULTS_ROOT
+
+
 def run_dirs(folder: str) -> list[str]:
-    base = f"{RESULTS_ROOT}/{folder}"
+    base = f"{root_for(folder)}/{folder}"
     return [n for n in list_names(base) if n.startswith("run")]
 
 
 def run_metrics(folder: str, run: str = "run1"):
-    return read_json(f"{RESULTS_ROOT}/{folder}/{run}/metrics.json")
+    return read_json(f"{root_for(folder)}/{folder}/{run}/metrics.json")
 
 
 def case_ids(folder: str, run: str = "run1") -> list[str]:
-    names = list_names(f"{RESULTS_ROOT}/{folder}/{run}")
+    names = list_names(f"{root_for(folder)}/{folder}/{run}")
     return sorted(
         n[:-5]
         for n in names
@@ -151,11 +166,11 @@ def case_ids(folder: str, run: str = "run1") -> list[str]:
 
 
 def case_result(folder: str, run: str, change_id: str):
-    return read_json(f"{RESULTS_ROOT}/{folder}/{run}/{change_id}.json")
+    return read_json(f"{root_for(folder)}/{folder}/{run}/{change_id}.json")
 
 
 def consistency(folder: str = "suite-11"):
-    return read_json(f"{RESULTS_ROOT}/{folder}/consistency.json")
+    return read_json(f"{root_for(folder)}/{folder}/consistency.json")
 
 
 def available_runs() -> list[dict]:
@@ -166,7 +181,15 @@ def available_runs() -> list[dict]:
         metrics = [m for m in (run_metrics(entry["folder"], r) for r in runs) if m]
         cases = case_ids(entry["folder"], runs[0]) if runs else []
         if runs or cases:
-            out.append({**entry, "runs": runs, "metrics": metrics, "cases": cases})
+            out.append(
+                {
+                    **entry,
+                    "runs": runs,
+                    "metrics": metrics,
+                    "cases": cases,
+                    "live": is_live(entry["folder"]),
+                }
+            )
     return out
 
 
@@ -295,7 +318,7 @@ def step_rows(result: dict) -> list[dict]:
             {
                 "step": e.get("step"),
                 "action": e.get("action") or "invalid reply",
-                "what": describe_step(e),
+                "what": e.get("what") or describe_step(e),
                 "rejected": bool(e.get("error")),
             }
         )

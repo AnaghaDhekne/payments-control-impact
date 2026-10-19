@@ -1,0 +1,109 @@
+{
+  "cases": [
+    {
+      "key_misses": 0,
+      "key_recovered": 0,
+      "key_miss_recovery": null,
+      "new_control_precision": 1.0,
+      "new_true_controls": 4,
+      "new_false_controls": 0,
+      "remaining_key_misses": [],
+      "uncertain_controls": 0,
+      "uninvestigated_controls": 0,
+      "review_items": 4,
+      "uncertain_true_controls": 0,
+      "avoidable_review_items": 0,
+      "review_queue_true_share": 1.0,
+      "model_calls": 65,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-014",
+      "status": "FINISHED",
+      "baseline_controls": 6,
+      "seconds": 1633.3,
+      "step_errors": 0
+    },
+    {
+      "key_misses": 3,
+      "key_recovered": 3,
+      "key_miss_recovery": 1.0,
+      "new_control_precision": 0.8571428571428571,
+      "new_true_controls": 6,
+      "new_false_controls": 1,
+      "remaining_key_misses": [],
+      "uncertain_controls": 34,
+      "uninvestigated_controls": 0,
+      "review_items": 41,
+      "uncertain_true_controls": 7,
+      "avoidable_review_items": 28,
+      "review_queue_true_share": 0.3170731707317073,
+      "model_calls": 101,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-025",
+      "status": "FINISHED",
+      "baseline_controls": 6,
+      "seconds": 2149.7,
+      "step_errors": 1
+    },
+    {
+      "key_misses": 5,
+      "key_recovered": 5,
+      "key_miss_recovery": 1.0,
+      "new_control_precision": 1.0,
+      "new_true_controls": 14,
+      "new_false_controls": 0,
+      "remaining_key_misses": [],
+      "uncertain_controls": 6,
+      "uninvestigated_controls": 0,
+      "review_items": 20,
+      "uncertain_true_controls": 6,
+      "avoidable_review_items": 0,
+      "review_queue_true_share": 1.0,
+      "model_calls": 78,
+      "note": "UNCERTAIN counts as workload, not a recovered control. No direct edges asserted.",
+      "change_id": "CHG-017",
+      "status": "FINISHED",
+      "baseline_controls": 7,
+      "seconds": 1380.4,
+      "step_errors": 0
+    }
+  ],
+  "summary": {
+    "cases": 3,
+    "key_misses": 8,
+    "key_recovered": 8,
+    "key_miss_recovery": 1.0,
+    "target_key_miss_recovery": 0.5,
+    "new_control_precision": 0.96,
+    "baseline_workload": 19,
+    "added_review_items": 65,
+    "added_workload_vs_baseline": 3.4210526315789473,
+    "target_added_workload_max": 0.25,
+    "avoidable_review_items": 28,
+    "avoidable_review_items_per_case": 9.333333333333334,
+    "review_queue_true_share": 0.5692307692307692,
+    "uncertain_controls": 40,
+    "uninvestigated_controls": 0,
+    "model_calls": 244,
+    "statuses": [
+      "FINISHED"
+    ],
+    "note": "Development split only; prompts may have been tuned on these cases. Not a held-out result."
+  },
+  "key_decisions": {
+    "CHG-014": {},
+    "CHG-025": {
+      "C057": "REC",
+      "C060": "REC",
+      "C06": "REC",
+      "C059": "REC",
+      "C058": "REC"
+    },
+    "CHG-017": {
+      "C075": "REC",
+      "C077": "REC",
+      "C08": "REC",
+      "C078": "REC",
+      "C076": "REC"
+    }
+  }
+}

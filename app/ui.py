@@ -309,20 +309,25 @@ BROKEN_LINK_HTML = """
   @keyframes s2 { 0%,31% { opacity:0; } 33%,61% { opacity:1; } 63%,100% { opacity:0; } }
   @keyframes s3 { 0%,63% { opacity:0; } 66%,100% { opacity:1; } }
   .stage { font-size:15px; font-weight:600; fill:#1B2430; }
-  .ctl { display:flex; gap:6px; justify-content:flex-end; margin-bottom:-6px; }
-  .ctl button { font:500 12px 'IBM Plex Sans',system-ui,sans-serif; color:#1B2430; background:#fff; border:1px solid #DDE2E8; border-radius:5px; padding:3px 10px; cursor:pointer; }
-  .ctl button:focus-visible { outline:2px solid #2F6FAE; outline-offset:1px; }
+  .ctl { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+  .ctl button { font:600 13px 'IBM Plex Sans',sans-serif; border:1px solid #B8BFC7; padding:9px 13px; background:#fff; color:#202B36; cursor:pointer; }
+  .ctl button[aria-pressed="true"] { background:#202B36; color:white; border-color:#202B36; }
+  .ctl button:focus-visible { outline:3px solid #B75E40; outline-offset:2px; }
   .stepn { font-size:12px; fill:#5B6675; }
-  @media (prefers-reduced-motion: reduce) {
-    * { animation:none !important; }
-    .ok5,.rules5,.s1,.s2 { opacity:0 !important; }
-    .bad5,.gap,.s3,.found,.alab { opacity:1 !important; }
-    .agent { stroke-dashoffset:0 !important; opacity:1 !important; }
-    .c012 rect { fill:#BFE3D0 !important; stroke:#2E9468 !important; }
-  }
+  /* No autoplay. Every state is explicitly selected by a person. */
+  #anim *, #anim *::before, #anim *::after { animation:none !important; transition:opacity .25s ease, fill .25s ease; }
+  #anim .flow { stroke-dasharray:none; }
+  #anim .s1,#anim .s2,#anim .s3,#anim .missed,#anim .found,#anim .alab,#anim .gap,#anim .bad5,#anim .agent { opacity:0; }
+  #anim[data-step="1"] .s1,#anim[data-step="1"] .ok5,#anim[data-step="1"] .rules5 { opacity:1; }
+  #anim[data-step="2"] .s2,#anim[data-step="2"] .missed,#anim[data-step="2"] .gap,#anim[data-step="2"] .bad5 { opacity:1; }
+  #anim[data-step="3"] .s3,#anim[data-step="3"] .found,#anim[data-step="3"] .alab,#anim[data-step="3"] .gap,#anim[data-step="3"] .bad5,#anim[data-step="3"] .agent { opacity:1; }
+  #anim[data-step="2"] .ok5,#anim[data-step="2"] .rules5,#anim[data-step="3"] .ok5,#anim[data-step="3"] .rules5 { opacity:0; }
+  #anim[data-step="2"] .c012 rect { fill:#EEF0F3; stroke:#B4BCC7; }
+  #anim[data-step="3"] .c012 rect { fill:#BFE3D0; stroke:#2E9468; }
+  #anim[data-step="3"] .agent { stroke-dasharray:none; stroke-dashoffset:0; }
 </style></head><body>
-<div class="ctl"><button id="pp" type="button">Pause</button><button id="rp" type="button">Replay</button></div>
-<svg id="anim" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">
+<div class="ctl" role="group" aria-label="Explore the investigation"><button data-step="1" type="button" aria-pressed="true">1 · Full dependency map</button><button data-step="2" type="button" aria-pressed="false">2 · Remove a link</button><button data-step="3" type="button" aria-pressed="false">3 · Investigate with AI</button></div><p id="step-description" aria-live="polite" style="font-size:13px;line-height:1.5;color:#5B6675;margin:0 0 8px">The complete map connects the changed field to both key controls. Select step 2 to break a link.</p>
+<svg id="anim" data-step="1" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">
   <g class="s1"><text class="stepn" x="0" y="-40">Step 1 of 3</text><text class="stage" x="0" y="-18">The complete map: the change reaches both key controls</text></g>
   <g class="s2"><text class="stepn" x="0" y="-40">Step 2 of 3</text><text class="stage" x="0" y="-18">One link is missing, so the current check stops at the address rule</text></g>
   <g class="s3"><text class="stepn" x="0" y="-40">Step 3 of 3</text><text class="stage" x="0" y="-18">The agent reads the ticket and the control procedure, and recovers the control</text></g>
@@ -350,11 +355,18 @@ BROKEN_LINK_HTML = """
   <text x="880" y="262" text-anchor="middle" class="lbl" fill="#5B6675">found by both</text>
 </svg>
 <script>
-  const svg = document.getElementById('anim'), pp = document.getElementById('pp'), rp = document.getElementById('rp');
-  let paused = false;
-  function setState(state) { svg.querySelectorAll('*').forEach(el => el.style.animationPlayState = state); }
-  pp.onclick = () => { paused = !paused; setState(paused ? 'paused' : 'running'); pp.textContent = paused ? 'Play' : 'Pause'; };
-  rp.onclick = () => { const c = svg.cloneNode(true); svg.parentNode.replaceChild(c, svg); location.reload(); };
+  const svg=document.getElementById('anim'), buttons=[...document.querySelectorAll('.ctl button')];
+  const notes={
+    1:'The complete map connects the changed field to both key controls. Select step 2 to break a link.',
+    2:'The lineage link disappears. The rules-only check cannot reach required-field validation, so it misses a real impact.',
+    3:'The detective reads the change and control text, recovers the missing relationship and supplies evidence for review.'
+  };
+  buttons.forEach(btn=>btn.addEventListener('click',()=>{
+    const step=btn.dataset.step;
+    svg.dataset.step=step;
+    buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+    document.getElementById('step-description').textContent=notes[step];
+  }));
 </script>
 </body></html>
 """

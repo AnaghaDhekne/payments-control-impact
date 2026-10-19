@@ -702,26 +702,66 @@ def brief_box():
 
 
 def page_overview():
+    """A single client conversation, with proof available on demand."""
     ui.overview_css()
-    ui.page_head("Client experience", "Your payment change looks safe. Is it?",
-                 "Select what the investigator can see. Watch a critical control disappear when lineage breaks.",
-                 synthetic=True)
+    st.markdown(
+        '<div class="case-masthead"><span>PAYMENTS / CONTROL EXPOSURE</span>'
+        '<span>INTERACTIVE CLIENT BRIEF · SYNTHETIC STUDY</span></div>'
+        '<div class="investigation-hero">'
+        '<div class="hero-eyebrow">THE INVISIBLE CONTROL</div>'
+        '<div class="hero-h">Your payment change looks safe. Is it?</div>'
+        '<p class="hero-deck">One missing dependency can hide a control that needs to be '
+        'assessed before release. Explore how the blind spot appears — and how evidence '
+        'can bring it back into view.</p></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="section-index"><span>01 / EXPLORE THE FAILURE</span>'
+        '<span>CHOOSE WHAT THE INVESTIGATOR SEES</span></div>',
+        unsafe_allow_html=True,
+    )
     ui.broken_link_animation(height=370)
-    st.markdown("### What the experiment revealed")
-    st.markdown("**18 to 131 of 162 affected key-control instances identified**")
-    st.caption("Rules-only versus agent-assisted; 18 held-out synthetic changes; 30% change-correlated lineage degradation.")
-    st.markdown("**113** missed key-control impacts recovered. **75** unaffected additional review items. **1** silent key-control miss.")
-    st.markdown("### The client decision")
-    st.write("Validate with control owners before piloting. Investigate the silent miss, repeatability, reviewer time and actual operating cost.")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.page_link(PAGES["case"], label="Inspect evidence")
-    with c2:
-        st.page_link(PAGES["synthetic"], label="Explore degradation")
-    with c3:
-        st.page_link(PAGES["decision"], label="Assess pilot readiness")
-    with st.expander("Limitations and provenance"):
-        st.caption("Synthetic data only; no measured ROI or completed practitioner review.")
+    st.markdown(
+        '<div class="section-index"><span>02 / THE RESULT</span>'
+        '<span>18 HELD-OUT CHANGES · 30% CORRELATED LINEAGE LOSS</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="verdict-strip"><div class="verdict-primary">'
+        '<span>AFFECTED KEY-CONTROL INSTANCES IDENTIFIED</span>'
+        '<strong>18 → 131 <small>of 162</small></strong>'
+        '<p>Existing lineage-only check versus the AI-assisted investigation. '
+        'The agent recovered 113 impacts the original check missed.</p></div>'
+        '<div class="verdict-secondary">'
+        '<b>331</b><span>new genuine review findings</span>'
+        '<b>75</b><span>unaffected additional review items</span>'
+        '<b>1</b><span>affected key control still silently missed</span>'
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="section-index"><span>03 / THE DECISION</span>'
+        '<span>WHAT SHOULD THE CLIENT DO NEXT?</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('### Validate with control owners before a pilot.')
+    st.write(
+        'The synthetic result supports a limited practitioner evaluation, not deployment. '
+        'Review the remaining silent miss, measure consistency and time real investigations '
+        'before making a cost-saving claim.'
+    )
+    a, b, c = st.columns(3)
+    with a:
+        st.page_link(PAGES['case'], label='Explore the evidence →')
+    with b:
+        st.page_link(PAGES['synthetic'], label='Test the degradation →')
+    with c:
+        st.page_link(PAGES['decision'], label='Evaluate the pilot decision →')
+    with st.expander('Study conditions, limitations and run provenance'):
+        st.caption(
+            'Recorded synthetic evaluation, not live banking data. '
+            'No completed practitioner review, measured savings or production approval.'
+        )
         provenance()
 
 

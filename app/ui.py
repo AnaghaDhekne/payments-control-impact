@@ -16,7 +16,7 @@ INK = "#1B2430"
 MUTED = "#5B6675"
 LINE = "#DDE2E8"
 SURFACE = "#F4F6F9"
-BLUE = "#2F6FAE"  # found by the rules method
+BLUE = "#2F6FAE"  # found by the current check
 GREEN = "#2E9468"  # recovered or recommended by the agent
 AMBER = "#C98A1F"  # sent to a person for review
 GREY = "#C3CAD3"  # still missed / absent
@@ -79,6 +79,11 @@ table.score td:last-child {{ color: #3D4752; }}
 .legend {{ font-size: .85rem; color: {MUTED}; margin: -.2rem 0 1rem; }}
 .legend span {{ display:inline-block; width:10px; height:10px; border-radius:2px; margin: 0 .35rem 0 .9rem; vertical-align: -1px; }}
 .legend span:first-child {{ margin-left: 0; }}
+abbr.t {{ text-decoration: none; border-bottom: 1px dotted {MUTED}; cursor: help; }}
+.navbtns {{ margin-top: 2.4rem; padding-top: 1rem; border-top: 1px solid {LINE}; }}
+.main [data-testid="stPageLink"] a, section.main [data-testid="stPageLink"] a {{ border: 1px solid {LINE}; border-radius: 6px; padding: .45rem .9rem; }}
+.about {{ font-size: .8rem; color: {MUTED}; line-height: 1.55; }}
+.about b {{ color: {INK}; font-weight: 600; }}
 .next {{ margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid {LINE}; color: {MUTED}; font-size: .92rem; }}
 
 section[data-testid="stSidebar"] {{ background: {SURFACE}; border-right: 1px solid {LINE}; }}
@@ -111,9 +116,18 @@ def esc(text) -> str:
     return html.escape(str(text))
 
 
-def page_head(view: str, title: str, lead: str | None = None, step: str | None = None):
+def page_head(
+    view: str,
+    title: str,
+    lead: str | None = None,
+    step: str | None = None,
+    synthetic: bool = False,
+):
     """Where you are, the governing message (as the title), and one lead line."""
     crumb = f"<b>{esc(view)}</b>" + (f" &nbsp;·&nbsp; {esc(step)}" if step else "")
+    if synthetic:
+        crumb += ' &nbsp;<span class="badge dim">Synthetic benchmark data</span>'
+
     st.markdown(f'<div class="crumb">{crumb}</div>', unsafe_allow_html=True)
     st.title(title)
     if lead:
@@ -156,7 +170,10 @@ def badge(text, kind):
 def score_table(rows):
     st.markdown(
         '<table class="score">'
-        + "".join(f"<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>" for a, b, c in rows)
+        + "".join(
+            "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
+            for row in rows
+        )
         + "</table>",
         unsafe_allow_html=True,
     )
@@ -213,6 +230,9 @@ BROKEN_LINK_HTML = """
   @keyframes s2 { 0%,31% { opacity:0; } 33%,61% { opacity:1; } 63%,100% { opacity:0; } }
   @keyframes s3 { 0%,63% { opacity:0; } 66%,100% { opacity:1; } }
   .stage { font-size:15px; font-weight:600; fill:#1B2430; }
+  .ctl { display:flex; gap:6px; justify-content:flex-end; margin-bottom:-6px; }
+  .ctl button { font:500 12px 'IBM Plex Sans',system-ui,sans-serif; color:#1B2430; background:#fff; border:1px solid #DDE2E8; border-radius:5px; padding:3px 10px; cursor:pointer; }
+  .ctl button:focus-visible { outline:2px solid #2F6FAE; outline-offset:1px; }
   .stepn { font-size:12px; fill:#5B6675; }
   @media (prefers-reduced-motion: reduce) {
     * { animation:none !important; }
@@ -222,9 +242,10 @@ BROKEN_LINK_HTML = """
     .c012 rect { fill:#BFE3D0 !important; stroke:#2E9468 !important; }
   }
 </style></head><body>
-<svg viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the rules method misses one control; the agent recovers it by reading the ticket and the control procedure.">
+<div class="ctl"><button id="pp" type="button">Pause</button><button id="rp" type="button">Replay</button></div>
+<svg id="anim" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">
   <g class="s1"><text class="stepn" x="0" y="-40">Step 1 of 3</text><text class="stage" x="0" y="-18">The complete map: the change reaches both key controls</text></g>
-  <g class="s2"><text class="stepn" x="0" y="-40">Step 2 of 3</text><text class="stage" x="0" y="-18">One link is missing, so the rules method stops at the address rule</text></g>
+  <g class="s2"><text class="stepn" x="0" y="-40">Step 2 of 3</text><text class="stage" x="0" y="-18">One link is missing, so the current check stops at the address rule</text></g>
   <g class="s3"><text class="stepn" x="0" y="-40">Step 3 of 3</text><text class="stage" x="0" y="-18">The agent reads the ticket and the control procedure, and recovers the control</text></g>
 
   <path class="edge" d="M175,125 C215,125 215,55 255,55"/><path class="flow" d="M175,125 C215,125 215,55 255,55"/>
@@ -245,14 +266,22 @@ BROKEN_LINK_HTML = """
   <g class="node"><rect x="525" y="188" width="180" height="54" rx="8"/><text class="k" x="539" y="208">System</text><text class="t" x="539" y="228">Screening engine</text></g>
   <g class="node c012"><rect x="775" y="28" width="210" height="54" rx="8"/><text class="k" x="789" y="48">Key control</text><text class="t" x="789" y="68">Required-field validation</text></g>
   <g class="node c02"><rect x="775" y="188" width="210" height="54" rx="8"/><text class="k" x="789" y="208">Key control</text><text class="t" x="789" y="228">Sanctions screening</text></g>
-  <g class="missed"><text x="880" y="102" text-anchor="middle" class="lbl" fill="#5B6675">missed by the rules method</text></g>
+  <g class="missed"><text x="880" y="102" text-anchor="middle" class="lbl" fill="#5B6675">missed by the current check</text></g>
   <g class="found"><text x="880" y="102" text-anchor="middle" class="lbl" fill="#1E6B49">recovered by the agent, with quotes</text></g>
   <text x="880" y="262" text-anchor="middle" class="lbl" fill="#5B6675">found by both</text>
-</svg></body></html>
+</svg>
+<script>
+  const svg = document.getElementById('anim'), pp = document.getElementById('pp'), rp = document.getElementById('rp');
+  let paused = false;
+  function setState(state) { svg.querySelectorAll('*').forEach(el => el.style.animationPlayState = state); }
+  pp.onclick = () => { paused = !paused; setState(paused ? 'paused' : 'running'); pp.textContent = paused ? 'Play' : 'Pause'; };
+  rp.onclick = () => { const c = svg.cloneNode(true); svg.parentNode.replaceChild(c, svg); location.reload(); };
+</script>
+</body></html>
 """
 
 
-def broken_link_animation(height=330):
+def broken_link_animation(height=350):
     import streamlit.components.v1 as components
 
     components.html(BROKEN_LINK_HTML, height=height)
@@ -297,10 +326,10 @@ DIAGRAM_CSS = f"""
 def flow_diagram():
     st.markdown(
         DIAGRAM_CSS
-        + '<div class="flow" role="img" aria-label="Inputs go to the rules method, then the AI agent, then two checks, then one of three outcomes.">'
+        + '<div class="flow" role="img" aria-label="Inputs go to the current check, then the AI agent, then two checks, then one of three outcomes.">'
         '<div class="fbox in"><div class="ft">What comes in</div><ul><li>Change ticket</li><li>Lineage map, incomplete</li><li>101 control procedures</li></ul></div>'
         '<div class="arrow"></div>'
-        '<div class="fbox blue"><div class="ft">Rules method</div><p>Follows the links that are still visible</p></div>'
+        '<div class="fbox blue"><div class="ft">Current check</div><p>Follows the links that are still visible in the map</p></div>'
         '<div class="arrow"></div>'
         '<div class="fbox blue"><div class="ft">AI agent investigates</div><p>Reads, searches and explores, with read-only tools</p></div>'
         '<div class="arrow"></div>'
@@ -334,3 +363,22 @@ def architecture_diagram():
         "</div>",
         unsafe_allow_html=True,
     )
+
+
+def term(word, definition):
+    """A word with its plain-language definition on hover."""
+    return f'<abbr class="t" title="{esc(definition)}">{esc(word)}</abbr>'
+
+
+TERMS = {
+    "key control": "One of the 30 most important controls, whose failure would matter most.",
+    "lineage map": "The record of what feeds what: field to rule to system to control.",
+    "current check": "Today's automated check: it follows the lineage map from the changed item to the controls.",
+    "held-out": "Changes kept aside and never used while building or tuning the agent.",
+    "for review": "The agent and its independent checker disagreed, so a person decides.",
+    "recommended": "The agent says the control is affected and its independent checker agrees.",
+}
+
+
+def t(word, key=None):
+    return term(word, TERMS[key or word])

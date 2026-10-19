@@ -130,8 +130,8 @@ FAQ = [
     ),
     (
         "Leadership",
-        "What decision is needed?",
-        "Whether to fund the next stage: a practitioner review of held-out findings plus work on stability and review volume. The stop rule agreed in advance (held-out below 50%) was not triggered.",
+        "What decisions are open?",
+        "Whether to take the work further, and how: a practitioner review of held-out findings, work on stability and review volume, both, or stopping at the proof of concept. The stop line agreed in advance (held-out below 50%) was not reached.",
     ),
     (
         "Leadership",

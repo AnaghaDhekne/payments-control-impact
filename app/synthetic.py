@@ -209,7 +209,7 @@ def example(change_id, level=30, mode="correlated"):
                 "Key": "key" if k in key else "",
                 "Path in the complete map": " → ".join(path),
                 "Links hidden at this level": ", ".join(broken) or "none",
-                "Rules method finds it": "yes" if k in rules else "no",
+                "Current check finds it": "yes" if k in rules else "no",
             }
         )
     rows.sort(key=lambda r: (r["Key"] != "key", r["Control"]))

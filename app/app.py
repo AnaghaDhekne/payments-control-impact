@@ -2099,10 +2099,14 @@ with st.sidebar:
         '<div class="brand-sub">Payments control-impact proof of concept</div>',
         unsafe_allow_html=True,
     )
-    for view, pages in VIEWS.items():
-        if view:
-            st.markdown(f'<div class="navhead">{view}</div>', unsafe_allow_html=True)
-        for pg in pages:
+    st.markdown('<div class="navhead">CLIENT EXPERIENCE</div>', unsafe_allow_html=True)
+    for pg in VIEWS["Decision"]:
+        st.page_link(pg)
+    st.markdown('<div class="navhead">EXPLORE THE PROOF</div>', unsafe_allow_html=True)
+    for pg in VIEWS["Investigation"]:
+        st.page_link(pg)
+    with st.expander("Technical diligence and reference"):
+        for pg in VIEWS["Technical evidence"] + VIEWS["Reference"]:
             st.page_link(pg)
     source = (
         "live run files"

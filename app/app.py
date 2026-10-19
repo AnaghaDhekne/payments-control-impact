@@ -1902,19 +1902,18 @@ def _page(fn, title, default=False):
 
 
 VIEWS = {
-    "Decision": [
-        _page(page_overview, "The finding", default=True),
-        _page(page_decision, "Decision and value"),
-    ],
-    "Investigation": [
-        _page(page_case, "Investigate a change"),
-        _page(page_results, "Evaluation"),
+    "Client product": [
+        _page(page_overview, "Open experience", default=True),
+        _page(page_case, "Investigation"),
+        _page(page_results, "Evidence room"),
+        _page(page_decision, "Decision room"),
     ],
     "Technical evidence": [
         _page(page_synthetic, "Degradation experiment"),
         _page(page_architecture, "Method and architecture"),
         _page(page_explorer, "Run explorer"),
         _page(page_evidence, "Source evidence"),
+        _page(page_case_detail, "Detailed case dossier"),
     ],
     "Reference": [
         _page(page_problem, "Problem definition"),
@@ -1927,31 +1926,13 @@ VIEWS = {
 nav = st.navigation(VIEWS, position="hidden")
 with st.sidebar:
     st.markdown(
-        '<div class="brand">Control Impact Detective</div>'
-        '<div class="brand-sub">Payments control-impact proof of concept</div>',
+        '<div class="brand">CONTROL / EXPOSURE</div>'
+        '<div class="brand-sub">Payment release assurance · synthetic study</div>',
         unsafe_allow_html=True,
     )
-    st.markdown('<div class="navhead">CLIENT EXPERIENCE</div>', unsafe_allow_html=True)
-    for pg in VIEWS["Decision"]:
-        st.page_link(pg)
-    st.markdown('<div class="navhead">EXPLORE THE PROOF</div>', unsafe_allow_html=True)
-    for pg in VIEWS["Investigation"]:
-        st.page_link(pg)
-    with st.expander("Technical diligence and reference"):
+    st.page_link(PAGES["overview"], label="Open client experience ↗")
+    with st.expander("Technical diligence and source evidence"):
         for pg in VIEWS["Technical evidence"] + VIEWS["Reference"]:
             st.page_link(pg)
-    source = (
-        "live run files"
-        if any(r.get("live") for r in runs)
-        else "recorded run files shipped with the app"
-    )
-    st.markdown(
-        f'<div class="sidefoot about"><b>About this proof of concept</b><br>'
-        f"Status: proof of concept, not in production.<br>"
-        f"Owner: Anagha Dhekne.<br>"
-        f"Built October 2026; final version A frozen {FROZEN_ON}.<br>"
-        f"Synthetic benchmark; no real bank, customer or control data.<br>"
-        f"Results from {source}.</div>",
-        unsafe_allow_html=True,
-    )
+    st.caption("Recorded synthetic evidence · No production approval · October 2026")
 nav.run()

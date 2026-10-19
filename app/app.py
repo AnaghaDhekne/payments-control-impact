@@ -502,24 +502,24 @@ def page_case():
                     ),
                 ]
             )
-    st.markdown("### Inspect the reviewer handoff")
-    good, hard = st.tabs(
-        ["This change (CHG-027)", "Hardest type: screening engine change (CHG-015)"]
-    )
-    for tab, cid in ((good, "CHG-027"), (hard, "CHG-015")):
-        with tab:
-            rr = data.case_result(r["folder"], "run1", cid) if r else None
-            if rr:
-                reviewer_queue(
-                    data.decisions_table(rr), compact=True, key=f"case_{cid}"
+    with st.expander("Explore reviewer handoff and full agent trace"):
+        good, hard = st.tabs(
+            ["This change (CHG-027)", "Hardest type: screening engine change (CHG-015)"]
+        )
+        for tab, cid in ((good, "CHG-027"), (hard, "CHG-015")):
+            with tab:
+                rr = data.case_result(r["folder"], "run1", cid) if r else None
+                if rr:
+                    reviewer_queue(
+                        data.decisions_table(rr), compact=True, key=f"case_{cid}"
+                    )
+        with st.expander("Show details: every step the agent took on CHG-027"):
+            if res:
+                st.dataframe(
+                    pd.DataFrame(data.step_rows(res)),
+                    hide_index=True,
+                    use_container_width=True,
                 )
-    with st.expander("Show details: every step the agent took on CHG-027"):
-        if res:
-            st.dataframe(
-                pd.DataFrame(data.step_rows(res)),
-                hide_index=True,
-                use_container_width=True,
-            )
     provenance()
     nav_buttons("how", "results")
 

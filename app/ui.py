@@ -326,8 +326,8 @@ BROKEN_LINK_HTML = """
   #anim[data-step="3"] .c012 rect { fill:#BFE3D0; stroke:#2E9468; }
   #anim[data-step="3"] .agent { stroke-dasharray:none; stroke-dashoffset:0; }
 </style></head><body>
-<div class="ctl" role="group" aria-label="Explore the investigation"><button data-step="1" type="button" aria-pressed="true">1 · Full dependency map</button><button data-step="2" type="button" aria-pressed="false">2 · Remove a link</button><button data-step="3" type="button" aria-pressed="false">3 · Investigate with AI</button></div><p id="step-description" aria-live="polite" style="font-size:13px;line-height:1.5;color:#5B6675;margin:0 0 8px">The complete map connects the changed field to both key controls. Select step 2 to break a link.</p>
-<svg id="anim" data-step="1" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">
+<div class="ctl" role="group" aria-label="Explore the investigation"><button data-step="1" type="button" aria-pressed="false">1 · Full dependency map</button><button data-step="2" type="button" aria-pressed="true">2 · Remove a link</button><button data-step="3" type="button" aria-pressed="false">3 · Investigate with AI</button></div><p id="step-description" aria-live="polite" style="font-size:13px;line-height:1.5;color:#5B6675;margin:0 0 8px">The current map hides a key control. Explore the complete reference or activate the investigation.</p>
+<svg id="anim" data-step="2" viewBox="0 -62 1000 340" role="img" aria-label="A field change reaches two key controls. One link is missing, so the current check misses one control; the agent recovers it by reading the ticket and the control procedure.">
   <g class="s1"><text class="stepn" x="0" y="-40">Step 1 of 3</text><text class="stage" x="0" y="-18">The complete map: the change reaches both key controls</text></g>
   <g class="s2"><text class="stepn" x="0" y="-40">Step 2 of 3</text><text class="stage" x="0" y="-18">One link is missing, so the current check stops at the address rule</text></g>
   <g class="s3"><text class="stepn" x="0" y="-40">Step 3 of 3</text><text class="stage" x="0" y="-18">The agent reads the ticket and the control procedure, and recovers the control</text></g>
@@ -359,7 +359,7 @@ BROKEN_LINK_HTML = """
   const notes={
     1:'The complete map connects the changed field to both key controls. Select step 2 to break a link.',
     2:'The lineage link disappears. The rules-only check cannot reach required-field validation, so it misses a real impact.',
-    3:'The detective reads the change and control text, recovers the missing relationship and supplies evidence for review.'
+    3:'The agent reads change and control documents and recommends a missing impact with evidence for human review; it does not repair the lineage map.'
   };
   buttons.forEach(btn=>btn.addEventListener('click',()=>{
     const step=btn.dataset.step;

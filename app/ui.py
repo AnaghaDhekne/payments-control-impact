@@ -84,6 +84,19 @@ abbr.t {{ text-decoration: none; border-bottom: 1px dotted {MUTED}; cursor: help
 .main [data-testid="stPageLink"] a, section.main [data-testid="stPageLink"] a {{ border: 1px solid {LINE}; border-radius: 6px; padding: .45rem .9rem; }}
 .about {{ font-size: .8rem; color: {MUTED}; line-height: 1.55; }}
 .about b {{ color: {INK}; font-weight: 600; }}
+.prov {{ font-size:.8rem; color:{MUTED}; border-top:1px solid {LINE}; padding-top:.6rem; margin-top:1.4rem; line-height:1.5; }}
+.prov b {{ color:{INK}; font-weight:600; margin-right:.3rem; }}
+.journey {{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0; margin:.4rem 0 1.6rem; }}
+.journey > div {{ padding:.9rem 1rem; border:1px solid {LINE}; background:#fff; }}
+.journey > div + div {{ border-left:none; }}
+.journey .jn {{ width:24px; height:24px; border-radius:50%; background:{INK}; color:#fff; font-size:.8rem; font-weight:600; display:flex; align-items:center; justify-content:center; margin-bottom:.45rem; }}
+.journey .jh {{ font-weight:600; color:{INK}; margin-bottom:.3rem; }}
+.journey p {{ font-size:.9rem; line-height:1.45; margin:0; color:#3D4752; }}
+.ready {{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:.8rem; margin:.4rem 0 1.4rem; }}
+.ready > div {{ border:1px solid {LINE}; border-radius:8px; padding:.9rem 1rem; background:#fff; }}
+.ready h4 {{ margin:0 0 .4rem; font-size:.98rem; font-weight:600; color:{INK}; }}
+.ready ul {{ margin:0; padding-left:1.05rem; }} .ready li {{ font-size:.88rem; line-height:1.45; color:#3D4752; margin:.15rem 0; }}
+@media (max-width: 900px) {{ .journey, .ready {{ grid-template-columns:1fr; }} .journey > div + div {{ border-left:1px solid {LINE}; border-top:none; }} }}
 .next {{ margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid {LINE}; color: {MUTED}; font-size: .92rem; }}
 
 section[data-testid="stSidebar"] {{ background: {SURFACE}; border-right: 1px solid {LINE}; }}
@@ -395,7 +408,7 @@ OVERVIEW_CSS = f"""
 .brief dt:first-child {{ margin-top:0; }}
 .brief dd {{ margin:.15rem 0 0; font-size:1rem; line-height:1.45; color:#fff; }}
 .brief dd b {{ color:#fff; }}
-.tiles {{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1rem; margin:1.6rem 0 .4rem; }}
+.tiles {{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:1rem; margin:1.6rem 0 .4rem; }}
 .tile {{ border:1px solid {LINE}; border-radius:10px; padding:1rem 1rem .9rem; background:#fff; display:flex; flex-direction:column; }}
 .tile .n {{ font-size:.8rem; color:{MUTED}; }}
 .tile .h {{ font-weight:600; font-size:1.02rem; margin:.15rem 0 .4rem; color:{INK}; }}

@@ -202,11 +202,12 @@ def nav_buttons(prev, nxt, next_label=None):
 
 
 def page_problem():
+    ui.overview_css()
     T = ui.t
     ui.page_head(
         "Understand the problem",
         "Payment changes can silently break controls when the lineage map is incomplete",
-        step="1 of 4",
+        step="1 of 5",
     )
     st.markdown(
         '<div class="scq">'
@@ -232,22 +233,13 @@ def page_problem():
 
 
 def page_how():
+    ui.overview_css()
     ui.page_head(
         "Understand the problem",
         "The agent reads what a reviewer reads, and every finding is checked twice",
-        step="2 of 4",
+        step="2 of 5",
     )
     ui.flow_diagram()
-    st.markdown("### What a reviewer receives")
-    r = find_run(runs, "heldout")
-    good, hard = st.tabs(
-        ["A change where it works (CHG-027)", "The hardest change type (CHG-015)"]
-    )
-    for tab, cid in ((good, "CHG-027"), (hard, "CHG-015")):
-        with tab:
-            res = data.case_result(r["folder"], "run1", cid) if r else None
-            if res:
-                reviewer_queue(data.decisions_table(res), compact=True, key=cid)
     with st.expander("Show details: the safeguards and the agent's tools"):
         ui.keylines(
             [
@@ -290,7 +282,168 @@ def page_how():
             hide_index=True,
             use_container_width=True,
         )
-    nav_buttons("problem", "results")
+    nav_buttons("problem", "case", "One change, end to end")
+
+
+# ------------------------------------------------------------------ one case, end to end
+
+HELDOUT_RUN = {
+    "job": "862812162377923",
+    "date": "16 Oct 2026",
+    "version": "A",
+    "code": "d149a52",
+}
+
+
+def provenance(kind="heldout"):
+    """Where the numbers on this page come from, and that they are a replay."""
+    r = find_run(runs, kind)
+    live = bool(r and r.get("live"))
+    source = (
+        f"loaded from the results volume <code>{data.RESULTS_ROOT}</code>"
+        if live
+        else "recorded copy of the run files, shipped with this app"
+    )
+    st.markdown(
+        f'<div class="prov"><b>Source</b> held-out run · Databricks job {HELDOUT_RUN["job"]} · '
+        f'{HELDOUT_RUN["date"]} · version {HELDOUT_RUN["version"]} (code {HELDOUT_RUN["code"]}) · {source}. '
+        "A replay of a finished evaluation, not a live run of the agent.</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def misses_breakdown():
+    """What happened to the 31 key controls neither the check nor the agent recommended."""
+    ui.segbar(
+        [
+            (
+                None,
+                [
+                    (
+                        30,
+                        "<b>30 put in front of a person</b> the agent said affected; its independent checker "
+                        "was not sure, so they went to review",
+                        ui.AMBER,
+                        False,
+                    ),
+                    (
+                        1,
+                        "<b>1 not surfaced</b>",
+                        ui.RED,
+                        False,
+                    ),
+                ],
+            )
+        ],
+        31,
+    )
+    st.markdown(
+        '<p class="small">The one silent miss: <b>Unresolved sanctions alerts are reviewed</b> (C03) on a '
+        "screening field-set change (CHG-024), marked not affected. By change type, the 31 are screening engine "
+        "15, creditor town name 9, screening field set 7. For safety, review items must be worked, not "
+        "skipped: they hold 30 of the 31 remaining impacts.</p>",
+        unsafe_allow_html=True,
+    )
+
+
+def page_case():
+    ui.overview_css()
+    ex = synthetic.example("CHG-027")
+    res = None
+    r = find_run(runs, "heldout")
+    if r:
+        res = data.case_result(r["folder"], "run1", "CHG-027")
+    ui.page_head(
+        "Understand the problem",
+        "One change, end to end: the check finds none of 20 affected controls; the agent finds all 20",
+        step="3 of 5",
+        synthetic=True,
+    )
+    st.markdown(
+        '<div class="journey">'
+        '<div><div class="jn">1</div><div class="jh">Change request</div>'
+        "<p>“Release changes Screening request interface.” The interface sends payment-party data to the "
+        "screening engine, which runs sanctions checks.</p></div>"
+        '<div><div class="jn">2</div><div class="jh">Current check</div>'
+        "<p>The links from the engine to its controls are missing from the map. The check stops and finds "
+        "<b>0 of 20</b> affected controls.</p></div>"
+        '<div><div class="jn">3</div><div class="jh">Agent investigates</div>'
+        "<p>Explores the interface and the engine, reads the screening procedures, submits findings: "
+        f"{len(data.step_rows(res)) if res else 40} steps.</p></div>"
+        '<div><div class="jn">4</div><div class="jh">Recommendation</div>'
+        "<p><b>20 recommended</b>, all right; 0 for review. The reviewer re-tests these controls before release.</p></div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("### Step 2 · What the map hides")
+    st.graphviz_chart(
+        syn_dot("CHG-027", 30, "correlated", "overlay", True), use_container_width=True
+    )
+    ui.legend(
+        [
+            ("Changed item", "#F0997B"),
+            ("Affected control", "#ED93B1"),
+            ("Link missing from the map the check uses", ui.RED),
+        ]
+    )
+    st.markdown("### Step 4 · One recommendation, with its evidence")
+    f = next(
+        (
+            v
+            for v in (res or {}).get("verified_findings", [])
+            if v["control_id"] == "C02"
+        ),
+        None,
+    )
+    doc = next(d for d in ex["case"]["control_documents"] if d["control_id"] == "C02")
+    if f:
+        ui.score_table(
+            [
+                (
+                    "Control",
+                    "Payment parties are sanctions screened before release (C02, key)",
+                ),
+                ("Quote from the ticket", f"“{ui.esc(f['ticket_quote'])}”"),
+                (
+                    "Quote from the procedure",
+                    f"“{ui.esc(f['control_quote'])}” <span style='color:#5B6675'>— full text: "
+                    f"{ui.esc(doc['text'])}</span>",
+                ),
+                (
+                    "Agent's reason",
+                    ui.esc(f.get("proposer_causal_reason") or f["causal_reason"]),
+                ),
+                ("Independent checker", "Agreed: " + ui.esc(f["causal_reason"])),
+                (
+                    "Decision",
+                    ui.badge("Recommended", "ok") + " &nbsp;Answer key: affected",
+                ),
+                (
+                    "Reviewer action",
+                    "Re-test the control against the changed interface before release.",
+                ),
+            ]
+        )
+    st.markdown("### What the reviewer receives: this change and the hardest type")
+    good, hard = st.tabs(
+        ["This change (CHG-027)", "Hardest type: screening engine change (CHG-015)"]
+    )
+    for tab, cid in ((good, "CHG-027"), (hard, "CHG-015")):
+        with tab:
+            rr = data.case_result(r["folder"], "run1", cid) if r else None
+            if rr:
+                reviewer_queue(
+                    data.decisions_table(rr), compact=True, key=f"case_{cid}"
+                )
+    with st.expander("Show details: every step the agent took on CHG-027"):
+        if res:
+            st.dataframe(
+                pd.DataFrame(data.step_rows(res)),
+                hide_index=True,
+                use_container_width=True,
+            )
+    provenance()
+    nav_buttons("how", "results")
 
 
 # ------------------------------------------------------------------ executive
@@ -496,18 +649,28 @@ def page_overview():
         '<div class="big">11%</div><p>of affected important controls found by today\'s check when 30% of links are missing.</p></div>'
         '<div class="tile"><div class="n">2 · How it works</div><div class="h">Reads like a reviewer, checked twice</div>'
         '<div class="big">2 <small>checks</small></div><p>Every finding needs exact quotes and an independent second opinion.</p></div>'
-        '<div class="tile"><div class="n">3 · Results</div><div class="h">Finds most of what was missed</div>'
+        '<div class="tile"><div class="n">3 · One change</div><div class="h">Followed end to end</div>'
+        '<div class="big">20 <small>of 20</small></div><p>controls found by the agent where the check found none, each with quotes.</p></div>'
+        '<div class="tile"><div class="n">4 · Results</div><div class="h">Finds most of what was missed</div>'
         '<div class="big">78%</div><p>of missed important controls found; 94% of its recommendations right.</p></div>'
-        '<div class="tile"><div class="n">4 · Options</div><div class="h">Two gaps, four options</div>'
+        '<div class="tile"><div class="n">5 · Options</div><div class="h">Two gaps, four options</div>'
         '<div class="big">80% <small>of 95%</small></div><p>repeatability; options range from a practitioner review to stopping here.</p></div>'
         "</div>",
         unsafe_allow_html=True,
     )
-    cols = st.columns(4)
-    for col, key in zip(cols, ["problem", "how", "results", "decision"]):
+    cols = st.columns(5)
+    for col, key in zip(cols, ["problem", "how", "case", "results", "decision"]):
         col.page_link(
             PAGES[key], label=f"Open {PAGES[key].title.split('  ')[-1].lower()}"
         )
+    st.markdown(
+        '<p class="small" style="margin-top:1.2rem"><b>The value, if it holds on real data:</b> control impacts '
+        "that today's lineage check misses reach a reviewer before release, each with the evidence for it. "
+        "<b>The residual risk:</b> 31 of 162 key impacts were not recommended; 30 of them still reached a "
+        "person for review, 1 did not.</p>",
+        unsafe_allow_html=True,
+    )
+    provenance()
 
 
 # ------------------------------------------------------------------ present
@@ -619,13 +782,14 @@ def page_present():
 
 
 def page_results():
+    ui.overview_css()
     T = ui.t
     ui.page_head(
         "Results and options",
         "The agent finds four in five controls the current check misses",
         f"18 synthetic payment changes it had never seen ({T('held-out')}), 30% of the {T('lineage map')} "
         "removed, original agent frozen before the test.",
-        step="3 of 4",
+        step="4 of 5",
         synthetic=True,
     )
     ui.kpis(
@@ -649,6 +813,11 @@ def page_results():
         "All 162 important controls affected by the 18 test changes. 30 of the 31 still missed reached a person for review.",
     )
     key_controls_bar(agent=True, height=78)
+    ui.chart_title(
+        "What happened to the 31 still missed",
+        "Neither the check nor the agent recommended them.",
+    )
+    misses_breakdown()
     ui.chart_title(
         "Reviewers get about 26 items per change instead of 4; about 18 of them are real impacts",
         "Average over the 18 test changes.",
@@ -706,8 +875,9 @@ def page_results():
                 ),
             ]
         )
+    provenance()
     download_summary()
-    nav_buttons("how", "decision")
+    nav_buttons("case", "decision")
 
 
 def download_summary():
@@ -731,7 +901,7 @@ def page_decision():
         "Results and options",
         "Two gaps remain; four options are open",
         "The choice of next step rests with leadership.",
-        step="4 of 4",
+        step="5 of 5",
         synthetic=True,
     )
     st.markdown(
@@ -754,6 +924,27 @@ def page_decision():
         "the fixes use new runs.</p></div>"
         '<div class="opt"><div class="h">Stop here</div><p>Keep the benchmark, code and results as documented. '
         "Nothing runs in production.</p></div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("### Demonstrated so far, and what production would need")
+    st.markdown(
+        '<div class="ready">'
+        "<div><h4>Demonstrated in this proof of concept</h4><ul>"
+        "<li>Runs end to end on Databricks, every step logged</li>"
+        "<li>Finds 78% of the key impacts the lineage check misses, on unseen synthetic changes</li>"
+        "<li>Cites exact quotes; a second model call checks each finding</li>"
+        "<li>Sends disagreements to a person; never assumes a control is safe</li></ul></div>"
+        "<div><h4>Not yet demonstrated</h4><ul>"
+        "<li>Accuracy on real changes and real control documents</li>"
+        "<li>Usefulness to control owners, and reviewer time</li>"
+        "<li>Repeatability at 95%</li>"
+        "<li>Behaviour at other levels of lineage completeness on real data</li></ul></div>"
+        "<div><h4>Needed before production</h4><ul>"
+        "<li>Access to real change tickets, lineage and procedures</li>"
+        "<li>Model-risk review and approval</li>"
+        "<li>Integration with the change process and an audit trail</li>"
+        "<li>Monitoring of accuracy and drift over time</li></ul></div>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -911,6 +1102,42 @@ def page_architecture():
             ),
         ],
         [ui.BLUE, ui.INK, ui.GREEN],
+    )
+    st.markdown("### Who decides what")
+    st.markdown(
+        '<div class="ready">'
+        "<div><h4>Fixed code (same answer every time)</h4><ul>"
+        "<li>Benchmark, damage and answer key</li><li>The current check (follows visible links)</li>"
+        "<li>Quote check: quotes must match word for word</li><li>Scoring against the answer key</li></ul></div>"
+        "<div><h4>The model (gpt-oss-120b)</h4><ul>"
+        "<li>Which items to explore and procedures to read</li><li>Each control: affected or not, with reason</li>"
+        "<li>The independent second opinion</li></ul></div>"
+        "<div><h4>People</h4><ul>"
+        "<li>Every item the two model calls disagree on</li><li>Final call on any control impact</li>"
+        "<li>Any change to lineage or controls (the agent changes nothing)</li></ul></div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("### Boundaries")
+    ui.score_table(
+        [
+            (
+                "Inside",
+                "One Databricks workspace: Git folder, Jobs, Model Serving, a Unity Catalog volume, this App.",
+            ),
+            (
+                "Read-only",
+                "The agent's tools only read. It never writes lineage links or edits controls.",
+            ),
+            (
+                "Not connected",
+                "No real payment systems, change tools or control repositories; all data is synthetic.",
+            ),
+            (
+                "Answer key",
+                "Used only by the scorer; tests check it never reaches a prompt.",
+            ),
+        ]
     )
     with st.expander("Reproduce the results"):
         st.markdown(content.REPRO)
@@ -1625,10 +1852,11 @@ VIEWS = {
     "Understand the problem (everyone)": [
         _page(page_problem, "1  The problem"),
         _page(page_how, "2  How it works"),
+        _page(page_case, "3  One change, end to end"),
     ],
     "Results and options (executive)": [
-        _page(page_results, "3  Results"),
-        _page(page_decision, "4  Options"),
+        _page(page_results, "4  Results"),
+        _page(page_decision, "5  Options"),
     ],
     "Technical detail": [
         _page(page_synthetic, "The synthetic data"),

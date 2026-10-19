@@ -917,39 +917,48 @@ def download_summary():
 
 
 def executive_value_case():
-    """Separate useful coverage from avoidable false-positive workload."""
-    st.markdown("### Executive value case | Coverage versus avoidable effort")
+    """Compare rules baseline with agent review capacity, not invented ROI."""
+    st.markdown("### Executive value case | Baseline versus AI-assisted review")
     st.caption(
-        "Illustrative extrapolation from 18 synthetic changes, not observed staff hours, "
-        "bank costs, prevented losses or ROI. Baseline = existing lineage-only rules check."
+        "Scenario extrapolated from 18 synthetic changes; not measured staff time or ROI. "
+        "Baseline = existing rules-based lineage check (64 review items / 18 changes)."
     )
     c1, c2, c3 = st.columns(3)
     changes = c1.number_input("Changes assessed per month", min_value=1, max_value=10000, value=100, step=10)
-    minutes = c2.number_input("Minutes to review an unaffected item", min_value=1, max_value=240, value=5)
+    minutes = c2.number_input("Minutes per review item (assumption)", min_value=1, max_value=240, value=5)
     rate = c3.number_input("Fully loaded reviewer cost ($/hour)", min_value=1, max_value=1000, value=75, step=5)
-    baseline_items, real_items, avoidable_items = 64 / 18, 331 / 18, 75 / 18
-    baseline = changes * baseline_items
-    useful = changes * real_items
-    avoidable = changes * avoidable_items
-    hours = avoidable * minutes / 60
-    cost = hours * rate
-    a, b, c = st.columns(3)
-    a.metric("Real impacts newly surfaced / month", f"{useful:,.0f}")
-    b.metric("Avoidable review hours / month", f"{hours:,.1f}")
-    c.metric("Avoidable review labor / month", f"${cost:,.0f}")
+    baseline_items = changes * 64 / 18
+    useful_items = changes * 331 / 18
+    avoidable_items = changes * 75 / 18
+    assisted_items = baseline_items + useful_items + avoidable_items
+    baseline_hours = baseline_items * minutes / 60
+    useful_hours = useful_items * minutes / 60
+    avoidable_hours = avoidable_items * minutes / 60
+    assisted_hours = assisted_items * minutes / 60
+    st.markdown("#### Like-for-like review workload")
+    left, right = st.columns(2)
+    with left:
+        st.metric("Baseline hours / month", f"{baseline_hours:,.1f}")
+        st.metric("Baseline labor / month", f"${baseline_hours * rate:,.0f}")
+    with right:
+        st.metric("AI-assisted hours / month", f"{assisted_hours:,.1f}")
+        st.metric("AI-assisted labor / month", f"${assisted_hours * rate:,.0f}")
+    st.markdown("#### What explains the difference?")
     st.markdown(
-        f"**Existing baseline:** about {baseline:,.0f} review items/month from the "
-        "rules-based lineage check. **AI detective:** adds about "
-        f"{useful:,.0f} genuinely affected items requiring appropriate review, "
-        f"plus {avoidable:,.0f} unaffected items. Only the latter are classified "
-        "as **avoidable overhead**; real impacts are necessary control work, "
-        "not a time saving or wasted effort."
+        f"- **Existing review:** {baseline_items:,.0f} items, "
+        f"{baseline_hours:,.1f} hours, ${baseline_hours * rate:,.0f} labor.\n"
+        f"- **New genuine impacts:** {useful_items:,.0f} items, "
+        f"{useful_hours:,.1f} hours, ${useful_hours * rate:,.0f} labor. "
+        "Necessary control work, **not avoidable overhead**.\n"
+        f"- **Unaffected additional items:** {avoidable_items:,.0f} items, "
+        f"{avoidable_hours:,.1f} hours, ${avoidable_hours * rate:,.0f} labor. "
+        "Potentially avoidable overhead."
     )
-    st.markdown(
-        "**Capacity note:** Reviewing newly discovered real impacts still takes time. "
-        "This page intentionally does not treat that necessary work as inefficiency. "
-        "Total staffing demand, net time savings, model costs, and ROI require "
-        "measured end-to-end review and investigation times in a practitioner pilot."
+    st.caption(
+        "A lower baseline review cost reflects fewer items being surfaced, including missed "
+        "real impacts; it does not prove better efficiency. These totals exclude investigation "
+        "time, model serving costs, integration costs and prevented incidents. "
+        "Net savings or ROI cannot be inferred without a timed practitioner pilot."
     )
 
 

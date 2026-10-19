@@ -856,10 +856,10 @@ def page_results():
                 f"{pct(cons['agreement'], 0)}. How much it found was stable; which items were routed for review varied.",
             ),
             (
-                "Added review volume ≤ 25% (original definition)",
-                ui.badge("Not met as defined", "warn"),
-                "406 added vs 64, but 331 (81%) are real impacts; the target counts them as burden. "
-                "Unaffected items: 75 (18.5%), 4.2 per change.",
+                "Original ≤25% added-volume gate (historical; flawed efficiency proxy)",
+                ui.badge("Superseded for interpretation", "warn"),
+                "406 added, of which 331 are genuine impacts and 75 unaffected (18.5%). "
+                "The original gate counts useful findings as burden. Replacement measure proposed, not retrospectively passed.",
             ),
         ]
     )
@@ -885,8 +885,9 @@ def page_results():
                 ),
                 (
                     "Review volume target",
-                    "Noted before any results (15 Oct): no method that finds 50% of the misses can meet it on this "
-                    "benchmark. Kept unchanged rather than redefined. Reviewer time was not measured.",
+                    "Original target retained for audit. Proposed future measure: unaffected share of additional items "
+                    "(75/406 = 18.5%), with an acceptance threshold agreed before the next evaluation. "
+                    "This is not a retrospective pass. Reviewer time was not measured.",
                 ),
                 (
                     "Final version",

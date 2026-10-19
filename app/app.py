@@ -252,7 +252,7 @@ def page_how():
                     "Quotes must appear word for word; then an independent model call agrees or disagrees.",
                 ),
                 (
-                    "People decide the uncertain cases",
+                    "Disagreements are routed to people",
                     "Disagreements go to a person with both arguments. Nothing is assumed safe.",
                 ),
             ],
@@ -312,6 +312,19 @@ def provenance(kind="heldout"):
     )
 
 
+def safety_finding():
+    """The one affected key control that nobody would have looked at."""
+    ui.callout(
+        '<span class="tag">Remaining control-coverage risk</span>'
+        "<b>1 of the 162 affected key controls was neither recommended nor routed for review:</b> "
+        "Unresolved sanctions alerts are reviewed (C03), on a screening field-set change (CHG-024). The agent "
+        "marked it not affected. The 78% headline does not cover it; in a production workflow this is the kind "
+        "of impact that would reach release unchecked. The other 30 misses were routed for human review, so "
+        "their safety depends on those items being worked.",
+        "risk",
+    )
+
+
 def misses_breakdown():
     """What happened to the 31 key controls neither the check nor the agent recommended."""
     ui.segbar(
@@ -321,14 +334,14 @@ def misses_breakdown():
                 [
                     (
                         30,
-                        "<b>30 put in front of a person</b> the agent said affected; its independent checker "
-                        "was not sure, so they went to review",
+                        "<b>30 routed for human review</b> the agent said affected; its independent checker "
+                        "was not sure. No reviewer worked them in this POC.",
                         ui.AMBER,
                         False,
                     ),
                     (
                         1,
-                        "<b>1 not surfaced</b>",
+                        "<b>1 silent miss</b>",
                         ui.RED,
                         False,
                     ),
@@ -371,7 +384,7 @@ def page_case():
         "<p>Explores the interface and the engine, reads the screening procedures, submits findings: "
         f"{len(data.step_rows(res)) if res else 40} steps.</p></div>"
         '<div><div class="jn">4</div><div class="jh">Recommendation</div>'
-        "<p><b>20 recommended</b>, all right; 0 for review. The reviewer re-tests these controls before release.</p></div>"
+        "<p><b>20 recommended</b>, all correct against the answer key; 0 for review. In a production workflow a reviewer would then re-test them.</p></div>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -419,8 +432,8 @@ def page_case():
                     ui.badge("Recommended", "ok") + " &nbsp;Answer key: affected",
                 ),
                 (
-                    "Reviewer action",
-                    "Re-test the control against the changed interface before release.",
+                    "Proposed reviewer action",
+                    "Re-test the control against the changed interface before release. Not performed in this POC: the benchmark shows the recommendation, not a completed review.",
                 ),
             ]
         )
@@ -609,7 +622,10 @@ def brief_box():
         "<dt>What works</dt><dd>On synthetic test data, the agent found <b>113 of the 144</b> important controls "
         "today's automated check missed, and <b>94%</b> of what it recommended was right.</dd>"
         "<dt>What is not ready</dt><dd>Its decisions are <b>80%</b> repeatable (target 95%), and it adds about "
-        "<b>4</b> unaffected items per change for reviewers. It has not yet been tried on real data.</dd>"
+        "<b>4</b> unaffected items per change for reviewers. It has not yet been tried on real data, and no "
+        "reviewer has worked its output.</dd>"
+        "<dt>Remaining coverage risk</dt><dd><b>1 of 162</b> affected key controls was neither recommended nor "
+        "routed for review.</dd>"
         "<dt>What is open</dt><dd>A practitioner review, closing the two gaps first, both, or stopping here.</dd>"
         "</dl></div>",
         unsafe_allow_html=True,
@@ -639,10 +655,11 @@ def page_overview():
             "With 30% of the map's links missing",
         )
         key_controls_bar(agent=True, height=78)
-        ui.chart_title("What a reviewer gets per change")
+        ui.chart_title("What a reviewer would get per change")
         reviewer_chart()
     with right:
         brief_box()
+    safety_finding()
     st.markdown(
         '<div class="tiles">'
         '<div class="tile"><div class="n">1 · The problem</div><div class="h">The check misses most impacts</div>'
@@ -659,15 +676,18 @@ def page_overview():
         unsafe_allow_html=True,
     )
     cols = st.columns(5)
+    short = {
+        "problem": "the problem",
+        "how": "how it works",
+        "case": "the case",
+        "results": "results",
+        "decision": "options",
+    }
     for col, key in zip(cols, ["problem", "how", "case", "results", "decision"]):
-        col.page_link(
-            PAGES[key], label=f"Open {PAGES[key].title.split('  ')[-1].lower()}"
-        )
+        col.page_link(PAGES[key], label=f"Open {short[key]}")
     st.markdown(
         '<p class="small" style="margin-top:1.2rem"><b>The value, if it holds on real data:</b> control impacts '
-        "that today's lineage check misses reach a reviewer before release, each with the evidence for it. "
-        "<b>The residual risk:</b> 31 of 162 key impacts were not recommended; 30 of them still reached a "
-        "person for review, 1 did not.</p>",
+        "that today's lineage check misses reach a reviewer before release, each with the evidence for it.</p>",
         unsafe_allow_html=True,
     )
     provenance()
@@ -726,7 +746,7 @@ def page_present():
     elif i == 4:
         _slide_head(
             4,
-            "Reviewers get more to look at, and most of it is real",
+            "A reviewer would get more to look at, and most of it is real",
             "About 26 items per change instead of 4: about 18 are real impacts that were being missed, about 4 are not affected.",
         )
         reviewer_chart()
@@ -804,13 +824,14 @@ def page_results():
                 f"of {T('recommended')} controls right",
                 "262 of 280",
             ),
-            ("4.2", "unaffected items per change", "of about 26 a reviewer gets"),
+            ("4.2", "unaffected items per change", "of about 26 a reviewer would get"),
             (pct(cons["agreement"], 0), "same decision across 5 runs", "Target 95%"),
         ]
     )
+    safety_finding()
     ui.chart_title(
         f"The agent finds {H['key_recovered']} of the {H['key_misses']} important controls the check misses",
-        "All 162 important controls affected by the 18 test changes. 30 of the 31 still missed reached a person for review.",
+        "All 162 important controls affected by the 18 test changes. 30 of the 31 still missed were routed for human review; 1 was not surfaced.",
     )
     key_controls_bar(agent=True, height=78)
     ui.chart_title(
@@ -819,7 +840,7 @@ def page_results():
     )
     misses_breakdown()
     ui.chart_title(
-        "Reviewers get about 26 items per change instead of 4; about 18 of them are real impacts",
+        "A reviewer would get about 26 items per change instead of 4; about 18 of them are real impacts",
         "Average over the 18 test changes.",
     )
     reviewer_chart()
@@ -834,7 +855,7 @@ def page_results():
             (
                 "Same key decision across 5 runs ≥ 95%",
                 ui.badge("Not met", "bad"),
-                f"{pct(cons['agreement'], 0)}. How much it found was stable; which items went to review varied.",
+                f"{pct(cons['agreement'], 0)}. How much it found was stable; which items were routed for review varied.",
             ),
             (
                 "Added review volume ≤ 25% (original definition)",

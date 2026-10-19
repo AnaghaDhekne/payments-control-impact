@@ -132,10 +132,37 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.set_y(y + 11)
     text(
         8.5,
-        "Blue: found by the current check   Green: found by the agent   Grey: still missed (30 of 31 reached a person for review)",
+        "Blue: found by the current check   Green: found by the agent   Grey: still missed (30 of 31 routed for human review; 1 silent miss)",
         MUTED,
     )
     pdf.ln(3)
+
+    # Safety finding
+    y = pdf.get_y()
+    pdf.set_fill_color(251, 239, 238)
+    pdf.rect(18, y, w, 15, "F")
+    pdf.set_fill_color(179, 38, 30)
+    pdf.rect(18, y, 1.2, 15, "F")
+    pdf.set_xy(22, y + 2)
+    pdf.set_font("Helvetica", "B", 9.5)
+    pdf.set_text_color(156, 34, 25)
+    pdf.multi_cell(
+        w - 6, 4.6, "Remaining control-coverage risk", new_x="LMARGIN", new_y="NEXT"
+    )
+    pdf.set_x(22)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(*INK)
+    pdf.multi_cell(
+        w - 6,
+        4.4,
+        _p(
+            "1 of 162 affected key controls was neither recommended nor routed for review (C03, unresolved "
+            "sanctions alerts, change CHG-024). The other 30 misses were routed for human review."
+        ),
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
+    pdf.set_y(y + 18)
 
     # Key lines
     lines = [
@@ -145,7 +172,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         ),
         (
             "The review list is long, but mostly real",
-            "Per change a reviewer gets about 26 items instead of 4: about 18 are real impacts the current check misses, about 4 are not affected.",
+            "Per change a reviewer would get about 26 items instead of 4: about 18 are real impacts the current check misses, about 4 are not affected.",
         ),
         (
             "It is not yet repeatable enough",

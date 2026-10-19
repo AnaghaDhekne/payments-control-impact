@@ -64,6 +64,8 @@ p, li {{ color: {INK}; }}
 .callout {{ border-left: 4px solid {BLUE}; background: {SURFACE}; padding: .9rem 1.1rem; margin: .6rem 0 1.4rem; border-radius: 0 4px 4px 0; }}
 .callout p {{ margin: 0; line-height: 1.55; }}
 .callout.warn {{ border-left-color: {AMBER}; }}
+.callout.risk {{ border-left-color: {RED}; background: #FBEFEE; }}
+.callout .tag {{ display:block; font-size:.8rem; font-weight:600; color:{RED}; margin-bottom:.2rem; }}
 
 table.score {{ width:100%; border-collapse: collapse; margin: .3rem 0 1rem; font-size: .93rem; border: none !important; }}
 table.score tr {{ border: none !important; background: transparent !important; }}
@@ -388,7 +390,7 @@ TERMS = {
     "lineage map": "The record of what feeds what: field to rule to system to control.",
     "current check": "Today's automated check: it follows the lineage map from the changed item to the controls.",
     "held-out": "Changes kept aside and never used while building or tuning the agent.",
-    "for review": "The agent and its independent checker disagreed, so a person decides.",
+    "for review": "The agent and its independent checker disagreed, so the item is routed to a person to decide.",
     "recommended": "The agent says the control is affected and its independent checker agrees.",
 }
 

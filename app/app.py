@@ -429,16 +429,19 @@ def investigation_workbench():
 
 
 def page_case():
-    """Immersive investigation first; technical dossier is a separate reference page."""
-    r = find_run(runs, "heldout")
-    case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
+    """Client investigation — opens the same product, not a separate dashboard."""
+    client_product("investigate")
+
+
+def client_product(initial="investigate"):
     st.markdown("""<style>
     [data-testid="stMainBlockContainer"], .block-container {max-width:100%!important;padding:0!important;}
     [data-testid="stMain"] {background:#0b1019;}
     iframe {border:0!important;display:block;}
     </style>""", unsafe_allow_html=True)
-    client_experience.show(case)
-    st.page_link(PAGES["evidence"], label="Inspect the full source evidence →")
+    r = find_run(runs, "heldout")
+    case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
+    client_experience.show(case, initial=initial)
 
 
 def page_case_detail():
@@ -714,29 +717,8 @@ def brief_box():
 
 
 def page_overview():
-    """Purpose-built, full-screen client investigation; evidence is an optional drill-down."""
-    r = find_run(runs, "heldout")
-    case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
-    st.markdown(
-        """<style>
-        [data-testid="stSidebar"] {background:#101a27;}
-        [data-testid="stMainBlockContainer"], .block-container {
-            max-width:100% !important; padding:0 !important;
-        }
-        [data-testid="stMain"] {background:#0b1019;}
-        [data-testid="stVerticalBlock"] {gap:0 !important;}
-        iframe {border:0 !important;display:block;}
-        </style>""",
-        unsafe_allow_html=True,
-    )
-    client_experience.show(case)
-    st.markdown(
-        '<div style="background:#0b1019;color:#a6b8c7;padding:8px 4vw 8px;'
-        'font-size:12px;letter-spacing:.04em">THE EVIDENCE IS OPEN TO CHALLENGE '
-        '· RECORDED SYNTHETIC STUDY · NO PRODUCTION APPROVAL</div>',
-        unsafe_allow_html=True,
-    )
-    st.page_link(PAGES["case"], label="Open the full case evidence →")
+    """The client product starts with the release-signoff dilemma."""
+    client_product("investigate")
 
 
 # ------------------------------------------------------------------ present
@@ -848,15 +830,8 @@ def page_present():
 
 
 def page_results():
-    """Interactive client room; recorded technical evidence remains accessible."""
-    st.markdown("""<style>
-    [data-testid="stMainBlockContainer"], .block-container {max-width:100%!important;padding:0!important;}
-    [data-testid="stMain"] {background:#0b1019;}
-    iframe {border:0!important;display:block;}
-    </style>""", unsafe_allow_html=True)
-    client_rooms.show("evaluation")
-    st.page_link(PAGES["evidence"], label="Inspect supporting evidence →")
-
+    """Evaluation room within the same client product."""
+    client_product("evaluate")
 
 
 def download_summary():
@@ -970,14 +945,8 @@ def delivery_readiness():
 
 
 def page_decision():
-    """Interactive client room; recorded technical evidence remains accessible."""
-    st.markdown("""<style>
-    [data-testid="stMainBlockContainer"], .block-container {max-width:100%!important;padding:0!important;}
-    [data-testid="stMain"] {background:#0b1019;}
-    iframe {border:0!important;display:block;}
-    </style>""", unsafe_allow_html=True)
-    client_rooms.show("decision")
-    st.page_link(PAGES["case"], label="Inspect supporting evidence →")
+    """Decision room within the same client product."""
+    client_product("decide")
 
 
 # ------------------------------------------------------------------ technical: evidence

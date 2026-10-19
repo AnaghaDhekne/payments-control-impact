@@ -11,6 +11,7 @@ model-call logs (`*.calls.json`) are left out.
 | `suite-10/`, `suite-12/` | Frozen check (A) and A/B test (B), 8 cases |
 | `suite-11/` | Consistency, 3 cases x 5 runs |
 | `fresh-C/run1..6`, `fresh-A/run1..2` | Fresh-damage test of version C vs A, complete (18 cases each) |
+| `freshdev_runs.tar.gz` (separate file) | Final bounded round: A vs D, 5 development cases, 2 runs each |
 | `suite-09/` | Tuned development cases CHG-014, 025, 017 |
 
 Restore into a workspace's volume (from the repository folder):

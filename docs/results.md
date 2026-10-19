@@ -122,6 +122,26 @@ workspace).
 Submitted 12:19 CT: A runs 1–2 `137347372014836`, `1113596348362003` (first
 workspace).
 
+**Result (2026-10-19, all 5 cases finished in both runs of both versions):**
+
+| Pooled over 2 runs | A (unchanged) | D (A + tie-break) | Rule | Status |
+|---|---|---|---|---|
+| Key misses recovered (of 32) | **20 (62.5%)** | 18 (56.3%) | D ≥ A | **Not met** |
+| Avoidable (unaffected) review items | 30 | **16** | D ≤ A | Met |
+| Undecided key controls | 0 | 0 | D ≤ A | Met (equal) |
+| Repeatability (25 key pairs, run 1 vs 2) | 76% | 76% | D ≥ A | Met (equal) |
+| New-control precision | 86.4% | 87.2% | | |
+| UNCERTAIN | 63 | 55 | | |
+| Model calls | 682 | 738 | | |
+
+**Decision: D is not adopted; A stays** (rule 1 failed). Run-to-run noise is
+larger than the difference: A recovered 12 then 8, D 7 then 11, as the caveat
+anticipated. The tie-break resolved 86 disagreements: 3 to AFFECTED (all
+correct), 34 to UNAFFECTED (26 correct, 8 wrongly dismissed affected controls),
+49 left UNCERTAIN (41 affected). It is conservative: it removes noise (avoidable
+items 30 to 16) but rarely promotes a finding, and sometimes dismisses a true
+one. No further tuning; the POC closes with version A.
+
 **Keep D only if all hold** (pooled over the two runs of each version):
 1. key-miss recovery equal to or higher than A's;
 2. unaffected review items (avoidable items) not higher than A's;

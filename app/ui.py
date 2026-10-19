@@ -257,8 +257,8 @@ BROKEN_LINK_HTML = """
   <path class="bad5" d="M455,55 L590,55 M640,55 L775,55"/>
   <g class="gap"><text x="615" y="60" text-anchor="middle" font-size="18" font-weight="600" fill="#B3261E">×</text>
     <text x="615" y="40" text-anchor="middle" class="lbl" fill="#B3261E">link missing from the map</text></g>
-  <path class="agent" d="M100,108 C140,-20 760,-30 870,28"/>
-  <g class="alab"><text x="470" y="12" text-anchor="middle" class="lbl" fill="#1E6B49">the agent connects them from the text it reads</text></g>
+  <path class="agent" d="M100,108 C170,12 720,6 870,28"/>
+  <g class="alab"><text x="560" y="6" text-anchor="middle" class="lbl" fill="#1E6B49">the agent connects them from the text it reads</text></g>
 
   <g class="node changed"><rect x="20" y="108" width="155" height="54" rx="8"/><text class="k" x="34" y="128">Field changed</text><text class="t" x="34" y="148">Debtor town name</text></g>
   <g class="node"><rect x="255" y="28" width="200" height="54" rx="8"/><text class="k" x="269" y="48">Rule</text><text class="t" x="269" y="68">Address validation</text></g>
@@ -382,3 +382,101 @@ TERMS = {
 
 def t(word, key=None):
     return term(word, TERMS[key or word])
+
+
+OVERVIEW_CSS = f"""
+<style>
+.hero-h {{ font-family:'Source Serif 4', Georgia, serif; font-weight:600; font-size:2.6rem; line-height:1.12;
+          color:{INK}; letter-spacing:-0.015em; max-width:32ch; margin:.2rem 0 .7rem; }}
+.brief {{ background:{INK}; color:#F4F6F9; border-radius:10px; padding:1.2rem 1.3rem; height:100%; }}
+.brief .bt {{ font-size:.82rem; color:#AEB8C5; margin-bottom:.6rem; }}
+.brief dl {{ margin:0; }}
+.brief dt {{ font-size:.82rem; color:#AEB8C5; margin-top:.75rem; }}
+.brief dt:first-child {{ margin-top:0; }}
+.brief dd {{ margin:.15rem 0 0; font-size:1rem; line-height:1.45; color:#fff; }}
+.brief dd b {{ color:#fff; }}
+.tiles {{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1rem; margin:1.6rem 0 .4rem; }}
+.tile {{ border:1px solid {LINE}; border-radius:10px; padding:1rem 1rem .9rem; background:#fff; display:flex; flex-direction:column; }}
+.tile .n {{ font-size:.8rem; color:{MUTED}; }}
+.tile .h {{ font-weight:600; font-size:1.02rem; margin:.15rem 0 .4rem; color:{INK}; }}
+.tile .big {{ font-size:1.9rem; font-weight:500; color:{INK}; line-height:1.1; font-variant-numeric:tabular-nums; }}
+.tile .big small {{ font-size:.9rem; color:{MUTED}; font-weight:400; }}
+.tile p {{ font-size:.9rem; color:#3D4752; line-height:1.45; margin:.35rem 0 0; }}
+.chart-h {{ font-weight:600; font-size:1.05rem; color:{INK}; margin:.4rem 0 .1rem; }}
+.chart-s {{ font-size:.88rem; color:{MUTED}; margin:0 0 .4rem; }}
+.slide-meta {{ display:flex; justify-content:space-between; align-items:center; font-size:.85rem; color:{MUTED}; margin-bottom:.4rem; }}
+.dots span {{ display:inline-block; width:26px; height:4px; border-radius:2px; background:{LINE}; margin-left:4px; }}
+.dots span.on {{ background:{INK}; }}
+.slide-h {{ font-family:'Source Serif 4', Georgia, serif; font-weight:600; font-size:2.35rem; line-height:1.15;
+           color:{INK}; max-width:30ch; margin:.6rem 0 .6rem; letter-spacing:-0.01em; }}
+.slide-s {{ font-size:1.12rem; color:#3D4752; line-height:1.55; max-width:68ch; margin:0 0 1.4rem; }}
+.gaps {{ display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }}
+.gap {{ border-top:4px solid {AMBER}; padding-top:.8rem; }}
+.gap .v {{ font-size:3rem; font-weight:500; color:{INK}; line-height:1; }}
+.gap .v small {{ font-size:1rem; color:{MUTED}; font-weight:400; }}
+.gap p {{ font-size:1rem; color:#3D4752; margin:.5rem 0 0; line-height:1.5; }}
+.opts {{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1rem; margin-bottom:1.2rem; }}
+.opt {{ border:1px solid {LINE}; border-radius:10px; padding:1rem; }}
+.opt .h {{ font-weight:600; margin-bottom:.35rem; }}
+.opt p {{ font-size:.92rem; color:#3D4752; line-height:1.45; margin:0; }}
+@media (max-width: 900px) {{ .tiles, .opts, .gaps {{ grid-template-columns:1fr; }} .hero-h {{ font-size:2rem; }} }}
+</style>
+"""
+
+
+def overview_css():
+    st.markdown(OVERVIEW_CSS, unsafe_allow_html=True)
+
+
+def chart_title(title, sub=None):
+    st.markdown(
+        f'<div class="chart-h">{title}</div>'
+        + (f'<div class="chart-s">{sub}</div>' if sub else ""),
+        unsafe_allow_html=True,
+    )
+
+
+SEGBAR_CSS = f"""
+<style>
+.segbar {{ margin: .4rem 0 1.4rem; }}
+.segbar .row {{ display:flex; align-items:stretch; gap:0; }}
+.segbar .rowlabel {{ width: 120px; flex: none; font-size:.9rem; font-weight:500; color:{INK}; display:flex; align-items:center; }}
+.segbar .track {{ flex:1; display:flex; }}
+.segbar .seg {{ height: 44px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:1rem;
+               border-right: 2px solid #fff; font-variant-numeric: tabular-nums; }}
+.segbar .seg.light {{ color:{INK}; }}
+.segbar .labels {{ display:flex; margin-top:.35rem; }}
+.segbar .labels div {{ font-size:.84rem; color:#3D4752; line-height:1.3; padding-right:.5rem; }}
+.segbar .labels b {{ display:block; color:{INK}; font-weight:600; }}
+.segbar .row + .row {{ margin-top:.5rem; }}
+</style>
+"""
+
+
+def segbar(rows, total, show_labels=True):
+    """Stacked bars drawn in HTML, with each segment named underneath.
+
+    rows: [(row_label or None, [(value, label, color, light_text), ...]), ...]
+    """
+    out = [SEGBAR_CSS, '<div class="segbar">']
+    for row_label, segs in rows:
+        out.append('<div class="row">')
+        if row_label is not None:
+            out.append(f'<div class="rowlabel">{esc(row_label)}</div>')
+        out.append('<div class="track">')
+        for v, _, color, light in segs:
+            w = 100 * v / total
+            shown = f"{v:.0f}" if isinstance(v, float) else str(v)
+            out.append(
+                f'<div class="seg{" light" if light else ""}" style="width:{w:.2f}%;background:{color}">{shown}</div>'
+            )
+        out.append("</div></div>")
+    if show_labels:
+        last = rows[-1]
+        pad = '<div style="width:120px;flex:none"></div>' if last[0] is not None else ""
+        out.append(f'<div class="labels">{pad}<div style="flex:1;display:flex">')
+        for v, label, _, _ in last[1]:
+            out.append(f'<div style="width:{100 * v / total:.2f}%">{label}</div>')
+        out.append("</div></div>")
+    out.append("</div>")
+    st.markdown("".join(out), unsafe_allow_html=True)

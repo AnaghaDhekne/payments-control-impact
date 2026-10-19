@@ -204,105 +204,68 @@ def nav_buttons(prev, nxt, next_label=None):
 def page_problem():
     T = ui.t
     ui.page_head(
-        "Start here",
+        "Understand the problem",
         "Payment changes can silently break controls when the lineage map is incomplete",
-        "A one-minute read for everyone, before any results: the situation, the problem, the question "
-        "this proof of concept answers, and the short answer.",
-        step="1 of 2",
+        step="1 of 4",
     )
     st.markdown(
         '<div class="scq">'
-        '<div><div class="s">Situation</div><p>A bank relies on about a hundred controls on its payment flow, '
-        "such as blocking sanctioned parties before a payment is released. Each depends on fields, rules and systems.</p></div>"
-        f'<div><div class="s">Complication</div><p>Every change must be checked against the controls it touches. '
-        f"The {T('lineage map')} used for this is incomplete exactly where change happens. With 30% of its links missing, "
-        f"the {T('current check')} finds only 11% of the affected {T('key control', 'key control')}s.</p></div>"
-        '<div><div class="s">Question</div><p>Can an AI agent find the affected controls the current check misses, '
-        "by reading the change ticket and the control procedures as a reviewer would, and show its evidence?</p></div>"
-        '<div class="answer"><div class="s">Answer, on synthetic test data</div><p>Mostly yes. On 18 invented changes it had '
-        "never seen, it found 78% of the key controls the current check missed, and 94% of what it recommended was right. "
-        "It falls short of two targets set at the start: its list for review is long, and its decisions are not yet "
-        "repeatable enough.</p></div>"
+        '<div><div class="s">Situation</div><p>Banks run about 100 controls on payments. Each depends on fields, '
+        "rules and systems.</p></div>"
+        f'<div><div class="s">Complication</div><p>The {T("lineage map")} linking them has gaps. With 30% missing, '
+        f"the {T('current check')} finds only 11% of affected {T('key control')}s.</p></div>"
+        '<div><div class="s">Question</div><p>Can an AI agent find what the check misses, and show its evidence?</p></div>'
+        '<div class="answer"><div class="s">Answer, on synthetic data</div><p>Mostly yes: it finds 78% of what the '
+        "check misses, and 94% of its recommendations are right. Not yet repeatable enough.</p></div>"
         "</div>",
         unsafe_allow_html=True,
     )
     st.markdown("### One change, traced")
     ui.broken_link_animation()
-    st.markdown(
-        "A release changes the debtor town-name field. In the complete map it feeds an address rule, "
-        "which feeds the required-field controls. That one link is missing, so the current check, walking the map, "
-        "stops and reports nothing for those controls. A person reading the ticket and the control procedures "
-        "would still see the connection. That reading is what the agent automates."
-    )
     with st.expander("Terms used in this dashboard"):
         st.dataframe(
             pd.DataFrame(content.GLOSSARY, columns=["Term", "Meaning"]),
             hide_index=True,
             use_container_width=True,
         )
-    nav_buttons(None, "how")
+    nav_buttons("overview", "how")
 
 
 def page_how():
     ui.page_head(
-        "Start here",
+        "Understand the problem",
         "The agent reads what a reviewer reads, and every finding is checked twice",
-        "From a change ticket to a review list in four steps. Nothing is assumed safe, and every claim "
-        "carries evidence a person can check.",
-        step="2 of 2",
+        step="2 of 4",
     )
     ui.flow_diagram()
-    ui.keylines(
-        [
-            (
-                "It starts where the current check stops",
-                "The current check follows the visible links. The agent starts from its result and reads the ticket, "
-                "the descriptions and the control procedures to find what the broken links hide.",
-            ),
-            (
-                "Every finding is checked twice",
-                "Quotes must appear word for word in the ticket and the procedure, or the finding is rejected. "
-                "A second, independent model call then agrees or disagrees.",
-            ),
-            (
-                "People decide the uncertain cases",
-                "Findings both agree on are recommended. Disagreements go to a person with both arguments. "
-                "Controls without a decision are reported, never assumed safe.",
-            ),
-        ],
-        [ui.BLUE, ui.GREEN, ui.AMBER],
-    )
     st.markdown("### What a reviewer receives")
-    st.markdown(
-        "Two real outputs from the held-out test (synthetic data): one change where the agent did well, "
-        "and the hardest change type."
-    )
     r = find_run(runs, "heldout")
     good, hard = st.tabs(
-        [
-            "Where it works: screening interface change (CHG-027)",
-            "The hardest case: screening engine change (CHG-015)",
-        ]
+        ["A change where it works (CHG-027)", "The hardest change type (CHG-015)"]
     )
-    for tab, cid, note in (
-        (
-            good,
-            "CHG-027",
-            "The current check finds none of the 20 affected controls. The agent recommends all 20, and all are right.",
-        ),
-        (
-            hard,
-            "CHG-015",
-            "Engine changes are the weak spot: the independent checker often withholds agreement because no visible "
-            "link connects the engine to the control, so most findings go to a person.",
-        ),
-    ):
+    for tab, cid in ((good, "CHG-027"), (hard, "CHG-015")):
         with tab:
-            st.caption(note)
             res = data.case_result(r["folder"], "run1", cid) if r else None
             if res:
                 reviewer_queue(data.decisions_table(res), compact=True, key=cid)
-    with st.expander("The agent's tools (all read-only)"):
+    with st.expander("Show details: the safeguards and the agent's tools"):
+        ui.keylines(
+            [
+                (
+                    "It starts where the current check stops",
+                    "It begins from the check's result and reads the ticket, the descriptions and the control procedures.",
+                ),
+                (
+                    "Every finding is checked twice",
+                    "Quotes must appear word for word; then an independent model call agrees or disagrees.",
+                ),
+                (
+                    "People decide the uncertain cases",
+                    "Disagreements go to a person with both arguments. Nothing is assumed safe.",
+                ),
+            ],
+            [ui.BLUE, ui.GREEN, ui.AMBER],
+        )
         st.dataframe(
             pd.DataFrame(
                 [
@@ -322,12 +285,12 @@ def page_how():
                     ),
                     ("finish", "Stops; refused while controls are undecided"),
                 ],
-                columns=["Tool", "What it does"],
+                columns=["Tool (read-only)", "What it does"],
             ),
             hide_index=True,
             use_container_width=True,
         )
-    nav_buttons("problem", "results", "Results (executive view)")
+    nav_buttons("problem", "results")
 
 
 # ------------------------------------------------------------------ executive
@@ -341,177 +304,37 @@ PER_CHANGE = {
 }
 
 
-def page_results():
-    T = ui.t
+# ------------------------------------------------------------------ shared visuals
+
+
+def key_controls_bar(agent=True, height=70):
+    """Where the 162 affected key controls ended up (or, without the agent, what the current check finds)."""
     rules_found = 162 - H["key_misses"]
-    still = H["key_misses"] - H["key_recovered"]
-    total = PER_CHANGE["today"] + PER_CHANGE["real"] + PER_CHANGE["unaffected"]
-    ui.page_head(
-        "Executive view",
-        "The agent finds four in five controls the current check misses",
-        f"On 18 synthetic payment changes it had never seen ({T('held-out')}), with 30% of the "
-        f"{T('lineage map')} removed. The original agent (version A), frozen before the test, one run.",
-        synthetic=True,
-    )
-    ui.kpis(
-        [
-            (
-                pct(H["key_miss_recovery"], 0),
-                f"of missed {T('key control')}s found",
-                "Target 50%. 95% range 71–84%.",
-            ),
-            (
-                pct(H["new_control_precision"], 0),
-                f"of its {T('recommended')} controls right",
-                "262 of 280",
-            ),
-            (
-                f"{H['avoidable_review_items_per_case']:.1f}",
-                "unaffected items per change",
-                f"of about {total:.0f} items a reviewer gets per change",
-            ),
-            (pct(cons["agreement"], 0), "same decision across 5 runs", "Target 95%"),
+    if agent:
+        rows = [
+            ("Found by the current check", rules_found, ui.BLUE),
+            ("Found by the agent", H["key_recovered"], ui.GREEN),
+            ("Still missed", H["key_misses"] - H["key_recovered"], ui.GREY),
         ]
-    )
-    st.markdown("### Where the 162 affected key controls ended up")
+    else:
+        rows = [
+            ("Found by the current check", rules_found, ui.BLUE),
+            ("Missed by the current check", H["key_misses"], ui.GREY),
+        ]
     parts = pd.DataFrame(
-        [
-            {"part": "Found by the current check", "n": rules_found, "o": 1},
-            {"part": "Found by the agent", "n": H["key_recovered"], "o": 2},
-            {"part": "Still missed", "n": still, "o": 3},
-        ]
+        [{"part": p, "n": n, "o": i + 1} for i, (p, n, _) in enumerate(rows)]
     )
-    stacked_bar(parts, [ui.BLUE, ui.GREEN, ui.GREY], 162)
-    st.caption(
-        "30 of the 31 still missed were in front of a person as items for review."
-    )
-
-    st.markdown("### What changes for a reviewer, per change")
-    per = pd.DataFrame(
-        [
-            {
-                "row": "Today",
-                "part": "From the current check",
-                "n": PER_CHANGE["today"],
-                "o": 1,
-            },
-            {
-                "row": "With the agent",
-                "part": "From the current check",
-                "n": PER_CHANGE["today"],
-                "o": 1,
-            },
-            {
-                "row": "With the agent",
-                "part": "Real impacts the check missed",
-                "n": PER_CHANGE["real"],
-                "o": 2,
-            },
-            {
-                "row": "With the agent",
-                "part": "Not affected (review overhead)",
-                "n": PER_CHANGE["unaffected"],
-                "o": 3,
-            },
-        ]
-    )
-    reviewer_bars(per)
-    ui.keylines(
-        [
-            (
-                "It finds what the current check misses",
-                f"{H['key_recovered']} of {H['key_misses']} missed key controls found, each with quoted evidence. "
-                "18 of its 280 recommendations were wrong.",
-            ),
-            (
-                "The review list is longer, but mostly real work",
-                f"About {total:.0f} items per change instead of {PER_CHANGE['today']:.0f}: about "
-                f"{PER_CHANGE['real']:.0f} are real impacts the check missed, about {PER_CHANGE['unaffected']:.0f} are not affected.",
-            ),
-            (
-                "It is not yet repeatable enough",
-                "Across five runs, 80% of key decisions were identical, against a 95% target. "
-                "How much it found was stable; which items went to review varied.",
-            ),
-        ],
-        [ui.GREEN, ui.AMBER, ui.RED],
-    )
-    st.markdown("### Read this before quoting the numbers")
-    ui.score_table(
-        [
-            (
-                "Synthetic data",
-                "An invented bank's payments, built so every right answer is known. Real-world accuracy is what the "
-                "practitioner review will test.",
-            ),
-            (
-                "Compared with today's automated check, not a person",
-                "The current check follows the lineage map. How the agent compares with an experienced reviewer is not "
-                "measured yet.",
-            ),
-            (
-                "30% of the map removed",
-                "A stress level fixed in advance; how incomplete real lineage is varies and is not known here. "
-                "At 60% removed the current check finds 7%.",
-            ),
-            (
-                "Cost and speed",
-                f"About {PER_CHANGE['calls']:.0f} model calls and a median of {PER_CHANGE['minutes_median']} minutes "
-                "per change, on a shared Free Edition endpoint running several changes at once.",
-            ),
-        ]
-    )
-    st.markdown("### Scorecard against the targets set at the start")
-    ui.score_table(
-        [
-            (
-                "Runs end to end on Databricks",
-                ui.badge("Done", "ok"),
-                "Every step logged and replayable.",
-            ),
-            (
-                "Find ≥ 50% of missed key controls",
-                ui.badge("Met", "ok"),
-                f"{pct(H['key_miss_recovery'])} on unseen changes.",
-            ),
-            (
-                "Added review volume ≤ 25% (original definition)",
-                ui.badge("Not met as defined", "warn"),
-                "406 added items vs 64. This target counts every added item as burden, including the 331 (81%) "
-                "that are real impacts the current check missed. Noted before any results (15 Oct): no method that "
-                "finds 50% of the misses can meet it on this benchmark. Kept unchanged rather than redefined.",
-            ),
-            (
-                "Review overhead: unaffected items",
-                ui.badge("Reported", "dim"),
-                "75 of the 406 added items (18.5%), 4.2 per change. No target was set in advance for this measure. "
-                "Reviewer time was not measured; the practitioner review can measure it.",
-            ),
-            (
-                "Same key decision across 5 runs ≥ 95%",
-                ui.badge("Not met", "bad"),
-                f"{pct(cons['agreement'], 0)}.",
-            ),
-        ]
-    )
-    ui.callout(
-        "<b>Final version: the original agent (A).</b> Three alternatives aimed at the two unmet targets were each "
-        "tested against a rule written before the run. None met all of its rule, so none was adopted."
-    )
-    download_summary()
-    nav_buttons("how", "decision")
-
-
-def stacked_bar(parts, colors, total):
+    colors = [c for _, _, c in rows]
+    last = len(rows)
     bar = (
         alt.Chart(parts)
-        .mark_bar(height=46, stroke="white", strokeWidth=2)
+        .mark_bar(size=height - 14, stroke="white", strokeWidth=3)
         .encode(
             x=alt.X(
                 "n:Q",
                 stack="zero",
                 axis=None,
-                scale=alt.Scale(domain=[0, total], nice=False),
+                scale=alt.Scale(domain=[0, 162], nice=False),
             ),
             color=alt.Color(
                 "part:N",
@@ -530,75 +353,361 @@ def stacked_bar(parts, colors, total):
         .transform_window(end="sum(n)", sort=[alt.SortField("o")])
         .transform_calculate(mid="datum.end - datum.n / 2")
         .mark_text(
-            fontSize=14,
+            fontSize=18,
             fontWeight=600,
             font="IBM Plex Sans, Helvetica, Arial, sans-serif",
         )
         .encode(
             x="mid:Q",
             text="n:Q",
-            color=alt.condition("datum.o == 3", alt.value(ui.INK), alt.value("white")),
+            color=alt.condition(
+                f"datum.o == {last}", alt.value(ui.INK), alt.value("white")
+            ),
         )
     )
     st.altair_chart(
-        (bar + text).properties(height=60).configure_view(strokeWidth=0),
+        (bar + text).properties(height=height).configure_view(strokeWidth=0),
         use_container_width=True,
     )
-    ui.legend(list(zip(parts["part"], colors)))
+    ui.legend([(p, c) for p, _, c in rows])
 
 
-def reviewer_bars(per):
-    colors = [ui.BLUE, ui.GREEN, ui.GREY]
+def reviewer_chart():
+    """Items a reviewer gets per change: today vs with the agent, labelled at the end."""
     domain = [
         "From the current check",
         "Real impacts the check missed",
-        "Not affected (review overhead)",
+        "Not affected (overhead)",
     ]
-    per = per.assign(label=per["n"].round(1).astype(str))
+    colors = [ui.BLUE, ui.GREEN, ui.GREY]
+    p = PER_CHANGE
+    per = pd.DataFrame(
+        [
+            {"row": "Today", "part": domain[0], "n": p["today"], "o": 1},
+            {"row": "With the agent", "part": domain[0], "n": p["today"], "o": 1},
+            {"row": "With the agent", "part": domain[1], "n": p["real"], "o": 2},
+            {"row": "With the agent", "part": domain[2], "n": p["unaffected"], "o": 3},
+        ]
+    )
+    totals = pd.DataFrame(
+        [
+            {"row": "Today", "x": p["today"], "t": f"  about {p['today']:.0f} items"},
+            {
+                "row": "With the agent",
+                "x": p["today"] + p["real"] + p["unaffected"],
+                "t": f"  about {p['today'] + p['real'] + p['unaffected']:.0f} items",
+            },
+        ]
+    )
+    y = alt.Y(
+        "row:N",
+        sort=["Today", "With the agent"],
+        title=None,
+        axis=alt.Axis(
+            labelFont="IBM Plex Sans, Helvetica, Arial",
+            labelFontSize=14,
+            labelColor=ui.INK,
+            domain=False,
+            ticks=False,
+            labelPadding=10,
+        ),
+    )
     bars = (
         alt.Chart(per)
-        .mark_bar(size=24, stroke="white", strokeWidth=2)
+        .mark_bar(size=30, stroke="white", strokeWidth=2)
         .encode(
-            y=alt.Y(
-                "row:N",
-                sort=["Today", "With the agent"],
-                title=None,
-                axis=alt.Axis(
-                    labelFont="IBM Plex Sans, Helvetica, Arial",
-                    labelFontSize=13,
-                    labelColor=ui.INK,
-                    domain=False,
-                    ticks=False,
-                    labelPadding=10,
-                ),
-            ),
+            y=y,
             x=alt.X(
                 "n:Q",
                 stack="zero",
-                title="Items a reviewer gets per change (average of 18 changes)",
-                axis=alt.Axis(
-                    grid=False,
-                    labelColor=ui.MUTED,
-                    titleColor=ui.MUTED,
-                    titleFontWeight="normal",
-                ),
+                axis=None,
+                scale=alt.Scale(domain=[0, 48], nice=False),
             ),
             color=alt.Color(
                 "part:N", scale=alt.Scale(domain=domain, range=colors), legend=None
             ),
             order=alt.Order("o:Q"),
             tooltip=[
-                alt.Tooltip("row", title=""),
                 alt.Tooltip("part", title=""),
-                alt.Tooltip("label", title="Items"),
+                alt.Tooltip("n", format=".1f", title="Items"),
             ],
         )
     )
+    labels = (
+        alt.Chart(totals)
+        .mark_text(
+            align="left",
+            fontSize=14,
+            font="IBM Plex Sans, Helvetica, Arial, sans-serif",
+            color=ui.INK,
+        )
+        .encode(y=y, x="x:Q", text="t:N")
+    )
     st.altair_chart(
-        bars.properties(height=150).configure_view(strokeWidth=0),
+        (bars + labels).properties(height=110).configure_view(strokeWidth=0),
         use_container_width=True,
     )
     ui.legend(list(zip(domain, colors)))
+
+
+def brief_box():
+    st.markdown(
+        '<div class="brief"><div class="bt">In one minute</div><dl>'
+        "<dt>What works</dt><dd>On synthetic test data, the agent found <b>113 of the 144</b> important controls "
+        "today's automated check missed, and <b>94%</b> of what it recommended was right.</dd>"
+        "<dt>What is not ready</dt><dd>Its decisions are <b>80%</b> repeatable (target 95%), and it adds about "
+        "<b>4</b> unaffected items per change for reviewers. It has not yet been tried on real data.</dd>"
+        "<dt>What is open</dt><dd>A practitioner review, closing the two gaps first, both, or stopping here.</dd>"
+        "</dl></div>",
+        unsafe_allow_html=True,
+    )
+
+
+# ------------------------------------------------------------------ overview
+
+
+def page_overview():
+    ui.overview_css()
+    st.markdown(
+        '<div class="crumb"><b>Overview</b> &nbsp;<span class="badge dim">Synthetic benchmark data</span></div>'
+        '<div class="hero-h">An AI agent finds four in five of the important controls today\'s check misses</div>'
+        '<p class="lead">When a payment system changes, every control it could break must be found and re-checked. '
+        "Today's automated check depends on a map of links that is often incomplete. This proof of concept tested "
+        "whether an AI agent can find what that check misses.</p>",
+        unsafe_allow_html=True,
+    )
+    st.page_link(
+        PAGES["present"], label="Present the story: 7 screens, about 3 minutes"
+    )
+    left, right = st.columns([3, 2], gap="large")
+    with left:
+        ui.chart_title(
+            "Of 162 important controls affected by 18 test changes",
+            "With 30% of the map's links missing",
+        )
+        key_controls_bar(agent=True, height=78)
+        ui.chart_title("What a reviewer gets per change")
+        reviewer_chart()
+    with right:
+        brief_box()
+    st.markdown(
+        '<div class="tiles">'
+        '<div class="tile"><div class="n">1 · The problem</div><div class="h">The check misses most impacts</div>'
+        '<div class="big">11%</div><p>of affected important controls found by today\'s check when 30% of links are missing.</p></div>'
+        '<div class="tile"><div class="n">2 · How it works</div><div class="h">Reads like a reviewer, checked twice</div>'
+        '<div class="big">2 <small>checks</small></div><p>Every finding needs exact quotes and an independent second opinion.</p></div>'
+        '<div class="tile"><div class="n">3 · Results</div><div class="h">Finds most of what was missed</div>'
+        '<div class="big">78%</div><p>of missed important controls found; 94% of its recommendations right.</p></div>'
+        '<div class="tile"><div class="n">4 · Options</div><div class="h">Two gaps, four options</div>'
+        '<div class="big">80% <small>of 95%</small></div><p>repeatability; options range from a practitioner review to stopping here.</p></div>'
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    cols = st.columns(4)
+    for col, key in zip(cols, ["problem", "how", "results", "decision"]):
+        col.page_link(
+            PAGES[key], label=f"Open {PAGES[key].title.split('  ')[-1].lower()}"
+        )
+
+
+# ------------------------------------------------------------------ present
+
+
+SLIDES = 7
+
+
+def _slide_head(i, title, sub):
+    dots = "".join(
+        f'<span class="{"on" if j <= i else ""}"></span>' for j in range(SLIDES)
+    )
+    st.markdown(
+        f'<div class="slide-meta"><span>{i + 1} of {SLIDES} &nbsp;·&nbsp; Synthetic benchmark data</span>'
+        f'<span class="dots">{dots}</span></div>'
+        f'<div class="slide-h">{title}</div><p class="slide-s">{sub}</p>',
+        unsafe_allow_html=True,
+    )
+
+
+def page_present():
+    ui.overview_css()
+    i = st.session_state.setdefault("slide", 0)
+    if i == 0:
+        _slide_head(
+            0,
+            "Payment changes can silently break controls",
+            "Each change must be checked against every control it could affect. One missing link in the map, "
+            "and today's automated check never reaches the control.",
+        )
+        ui.broken_link_animation()
+    elif i == 1:
+        _slide_head(
+            1,
+            "With 30% of the links missing, today's check finds 11% of what a change affects",
+            "Across 18 test changes, 162 important controls were affected. The check found 18.",
+        )
+        key_controls_bar(agent=False, height=90)
+    elif i == 2:
+        _slide_head(
+            2,
+            "The agent reads what a reviewer would read, and every finding is checked twice",
+            "It works from the change ticket and the control procedures, not only the map. Disagreements go to a person.",
+        )
+        ui.flow_diagram()
+    elif i == 3:
+        _slide_head(
+            3,
+            "It finds 113 of the 144 the check misses, and 94% of what it recommends is right",
+            "Tested on changes it had never seen, with its design frozen beforehand.",
+        )
+        key_controls_bar(agent=True, height=90)
+    elif i == 4:
+        _slide_head(
+            4,
+            "Reviewers get more to look at, and most of it is real",
+            "About 26 items per change instead of 4: about 18 are real impacts that were being missed, about 4 are not affected.",
+        )
+        reviewer_chart()
+    elif i == 5:
+        _slide_head(
+            5,
+            "Two things are not good enough yet",
+            "Both were measured against targets set before the tests.",
+        )
+        st.markdown(
+            '<div class="gaps">'
+            '<div class="gap"><div class="v">80% <small>target 95%</small></div><p><b>Repeatability.</b> Run the same '
+            "change five times: four in five important decisions come out the same. A three-run vote reached 94.4%.</p></div>"
+            '<div class="gap"><div class="v">4.2 <small>per change</small></div><p><b>Unaffected items for review.</b> '
+            "Alongside about 18 real finds per change. A tie-break step cut these but also dismissed some real ones.</p></div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        _slide_head(
+            6,
+            "The options open from here",
+            "The evidence is from synthetic data; the choice of next step rests with leadership.",
+        )
+        st.markdown(
+            '<div class="opts">'
+            '<div class="opt"><div class="h">Practitioner review</div><p>Control owners judge a sample of real '
+            "output. Two or three people, a few hours.</p></div>"
+            '<div class="opt"><div class="h">Close the two gaps</div><p>A five-run vote and a promote-only tie-break, '
+            "registered in advance, tested on new changes.</p></div>"
+            '<div class="opt"><div class="h">Both</div><p>Independent: the review uses existing output; the fixes '
+            "use new runs.</p></div>"
+            '<div class="opt"><div class="h">Stop here</div><p>Keep the benchmark, code and results as documented.</p></div>'
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    st.markdown('<div class="navbtns"></div>', unsafe_allow_html=True)
+    a, b, _, c = st.columns([1, 1, 2, 1.4])
+    if a.button("Back", disabled=i == 0, use_container_width=True):
+        st.session_state.slide = i - 1
+        st.rerun()
+    if i < SLIDES - 1:
+        if b.button("Next", type="primary", use_container_width=True):
+            st.session_state.slide = i + 1
+            st.rerun()
+    elif b.button("Start again", use_container_width=True):
+        st.session_state.slide = 0
+        st.rerun()
+    c.page_link(PAGES["overview"], label="Leave the presentation")
+
+
+# ------------------------------------------------------------------ results and options
+
+
+def page_results():
+    T = ui.t
+    ui.page_head(
+        "Results and options",
+        "The agent finds four in five controls the current check misses",
+        f"18 synthetic payment changes it had never seen ({T('held-out')}), 30% of the {T('lineage map')} "
+        "removed, original agent frozen before the test.",
+        step="3 of 4",
+        synthetic=True,
+    )
+    ui.kpis(
+        [
+            (
+                pct(H["key_miss_recovery"], 0),
+                f"of missed {T('key control')}s found",
+                "Target 50%",
+            ),
+            (
+                pct(H["new_control_precision"], 0),
+                f"of {T('recommended')} controls right",
+                "262 of 280",
+            ),
+            ("4.2", "unaffected items per change", "of about 26 a reviewer gets"),
+            (pct(cons["agreement"], 0), "same decision across 5 runs", "Target 95%"),
+        ]
+    )
+    ui.chart_title(
+        f"The agent finds {H['key_recovered']} of the {H['key_misses']} important controls the check misses",
+        "All 162 important controls affected by the 18 test changes. 30 of the 31 still missed reached a person for review.",
+    )
+    key_controls_bar(agent=True, height=78)
+    ui.chart_title(
+        "Reviewers get about 26 items per change instead of 4; about 18 of them are real impacts",
+        "Average over the 18 test changes.",
+    )
+    reviewer_chart()
+    st.markdown("### Scorecard against the targets set at the start")
+    ui.score_table(
+        [
+            (
+                "Find ≥ 50% of missed key controls",
+                ui.badge("Met", "ok"),
+                "78.5% on unseen changes.",
+            ),
+            (
+                "Same key decision across 5 runs ≥ 95%",
+                ui.badge("Not met", "bad"),
+                f"{pct(cons['agreement'], 0)}. How much it found was stable; which items went to review varied.",
+            ),
+            (
+                "Added review volume ≤ 25% (original definition)",
+                ui.badge("Not met as defined", "warn"),
+                "406 added vs 64, but 331 (81%) are real impacts; the target counts them as burden. "
+                "Unaffected items: 75 (18.5%), 4.2 per change.",
+            ),
+        ]
+    )
+    with st.expander("Before quoting these numbers"):
+        ui.score_table(
+            [
+                (
+                    "Synthetic data",
+                    "An invented bank's payments, built so every right answer is known.",
+                ),
+                (
+                    "Compared with the automated check",
+                    "Not with an experienced reviewer; that is not measured yet.",
+                ),
+                (
+                    "30% of the map removed",
+                    "A stress level fixed in advance. At 60% the current check finds 7%.",
+                ),
+                (
+                    "Cost and speed",
+                    f"About {PER_CHANGE['calls']:.0f} model calls and a median of {PER_CHANGE['minutes_median']} "
+                    "minutes per change on a shared endpoint.",
+                ),
+                (
+                    "Review volume target",
+                    "Noted before any results (15 Oct): no method that finds 50% of the misses can meet it on this "
+                    "benchmark. Kept unchanged rather than redefined. Reviewer time was not measured.",
+                ),
+                (
+                    "Final version",
+                    "The original agent (A). Three alternatives were tested against rules written in advance; none was adopted.",
+                ),
+            ]
+        )
+    download_summary()
+    nav_buttons("how", "decision")
 
 
 def download_summary():
@@ -617,70 +726,49 @@ def download_summary():
 
 
 def page_decision():
+    ui.overview_css()
     ui.page_head(
-        "Executive view",
-        "What the evidence shows, and the options it leaves open",
-        "The facts behind any decision on a next stage, and what each option would involve. "
-        "The choice rests with leadership.",
+        "Results and options",
+        "Two gaps remain; four options are open",
+        "The choice of next step rests with leadership.",
+        step="4 of 4",
         synthetic=True,
     )
-    ui.keylines(
-        [
-            (
-                "What the evidence shows",
-                "On held-out synthetic changes the agent found 78% of the key controls the current check missed, "
-                "above the 50% line set in advance. The development check (65%) was lower, so it was not tuned to the test.",
-            ),
-            (
-                "What it does not show yet",
-                "How it performs on real changes and real control documents, and whether control owners find its "
-                "output right and useful. No practitioner has reviewed findings.",
-            ),
-            (
-                "Where it falls short",
-                "Decisions are 80% repeatable against a 95% target. The review list adds about 4 unaffected items "
-                "per change, alongside about 18 real impacts.",
-            ),
-        ],
-        [ui.GREEN, ui.BLUE, ui.AMBER],
+    st.markdown(
+        '<div class="gaps">'
+        '<div class="gap"><div class="v">80% <small>target 95%</small></div><p><b>Repeatability.</b> Four in five '
+        "important decisions are the same across five runs. A three-run vote reached 94.4%.</p></div>"
+        '<div class="gap"><div class="v">4.2 <small>per change</small></div><p><b>Unaffected items for review</b>, '
+        "alongside about 18 real finds. Not yet tried on real data or judged by control owners.</p></div>"
+        "</div>",
+        unsafe_allow_html=True,
     )
     st.markdown("### Options")
-    ui.score_table(
-        [
-            (
-                "<b>Practitioner review</b>",
-                "Control owners judge a sample of the agent's recommended and review items from the held-out run. "
-                "<span style='color:#5B6675'>Needs two or three control owners for a few hours. Answers whether the "
-                "output is right and useful in practice.</span>",
-            ),
-            (
-                "<b>Close the two gaps on the benchmark first</b>",
-                "A five-run vote for repeatability (a three-run vote reached 94.4%) and a tie-break that may only "
-                "promote findings, for review volume (68 of 70 promotions were right). Each registered in advance and "
-                "tested on new changes. <span style='color:#5B6675'>Needs model capacity, no business time.</span>",
-            ),
-            (
-                "<b>Both, in sequence or in parallel</b>",
-                "The two are independent: the review uses existing output; the fixes use new runs.",
-            ),
-            (
-                "<b>Stop at the proof of concept</b>",
-                "Keep the benchmark, code and results as documented; nothing runs in production.",
-            ),
-        ]
+    st.markdown(
+        '<div class="opts">'
+        '<div class="opt"><div class="h">Practitioner review</div><p>Control owners judge a sample of the agent\'s '
+        "output. Two or three people, a few hours. Answers whether it is right and useful in practice.</p></div>"
+        '<div class="opt"><div class="h">Close the two gaps</div><p>A five-run vote for repeatability and a tie-break '
+        "that may only promote findings (68 of 70 promotions were right). Model capacity only.</p></div>"
+        '<div class="opt"><div class="h">Both</div><p>Independent of each other: the review uses existing output; '
+        "the fixes use new runs.</p></div>"
+        '<div class="opt"><div class="h">Stop here</div><p>Keep the benchmark, code and results as documented. '
+        "Nothing runs in production.</p></div>"
+        "</div>",
+        unsafe_allow_html=True,
     )
-    st.markdown("### Known limits")
-    ui.score_table(
-        [
-            (
-                ui.esc(i),
-                f"{ui.esc(e)}<br><span style='color:#5B6675'>{ui.esc(r)}</span>",
-            )
-            for i, e, r in content.LIMITS
-        ]
-    )
+    with st.expander("Known limits"):
+        ui.score_table(
+            [
+                (
+                    ui.esc(i),
+                    f"{ui.esc(e)}<br><span style='color:#5B6675'>{ui.esc(r)}</span>",
+                )
+                for i, e, r in content.LIMITS
+            ]
+        )
     download_summary()
-    nav_buttons("results", "synthetic", "The synthetic data (technical view)")
+    nav_buttons("results", "synthetic", "Technical detail: the synthetic data")
 
 
 # ------------------------------------------------------------------ technical: evidence
@@ -902,10 +990,10 @@ def page_synthetic():
         ]
     )
 
-    t1, t2, t3, t4 = st.tabs(
+    t2, t1, t3, t4 = st.tabs(
         [
-            "What is in it",
             "Worked example",
+            "What is in it",
             "Complete map: 148 items, 238 links",
             "30% degradation vs complete",
         ]
@@ -1275,37 +1363,46 @@ def reviewer_queue(rows, compact=False, key="main"):
         )
         st.dataframe(df, hide_index=True, use_container_width=True)
 
-    ui.legend(
-        [
-            (f"Recommended, found by the current check: {len(rules)}", ui.BLUE),
-            (f"Recommended, added by the agent: {len(ai)}", ui.GREEN),
-            (f"For a person to decide: {len(review)}", ui.AMBER),
-        ]
-    )
-    st.markdown(
-        f"**1 · Recommended: already linked in the lineage ({len(rules)}).** Found by following the visible links."
-    )
-    if rules and not compact:
-        table(rules, {})
-    elif rules:
-        st.caption("; ".join(f"{r['title']} ({r['control']})" for r in rules))
-    st.markdown(
-        f"**2 · Recommended: added by the agent, agreed by its independent checker ({len(ai)}).** Each cites the ticket and the procedure."
-    )
-    if ai:
-        table(ai, {"Why the agent says it is affected": lambda r: r["agent_reason"]})
-    st.markdown(
-        f"**3 · For review: the agent and its independent checker disagreed ({len(review)}).** "
-        "Usually because no visible link connects the change to the control. A person decides."
-    )
-    if review:
-        table(
+    n_all = max(len(rules) + len(ai) + len(review), 1)
+    segs = [
+        (
+            len(rules),
+            "<b>Already linked</b> found by the current check",
+            ui.BLUE,
+            False,
+        ),
+        (len(ai), "<b>Added by the agent</b> both checks agree", ui.GREEN, False),
+        (
+            len(review),
+            "<b>For a person to decide</b> the two checks disagree",
+            ui.AMBER,
+            False,
+        ),
+    ]
+    ui.segbar([(None, [x for x in segs if x[0]])], n_all)
+    if compact:
+        st.caption("Open a group to see each control and the agent's stated reason.")
+    groups = [
+        ("Already linked by the current check", rules, {}),
+        (
+            "Added by the agent",
+            ai,
+            {"Why the agent says it is affected": lambda r: r["agent_reason"]},
+        ),
+        (
+            "For a person to decide",
             review,
             {
                 "Agent: why affected": lambda r: r["agent_reason"],
                 "Independent checker: why not sure": lambda r: r["verifier_reason"],
             },
-        )
+        ),
+    ]
+    for label, items, cols in groups:
+        if not items:
+            continue
+        with st.expander(f"{label} ({len(items)})", expanded=not compact):
+            table(items, cols)
     if show_key and review:
         true = sum(r["outcome"] == "Sent to review (affected)" for r in review)
         st.caption(
@@ -1521,15 +1618,19 @@ def _page(fn, title, default=False):
 
 
 VIEWS = {
-    "Start here": [
-        _page(page_problem, "1  The problem", default=True),
+    "": [
+        _page(page_overview, "Overview", default=True),
+        _page(page_present, "Present the story"),
+    ],
+    "Understand the problem (everyone)": [
+        _page(page_problem, "1  The problem"),
         _page(page_how, "2  How it works"),
     ],
-    "Executive view": [
-        _page(page_results, "Results"),
-        _page(page_decision, "Options and next steps"),
+    "Results and options (executive)": [
+        _page(page_results, "3  Results"),
+        _page(page_decision, "4  Options"),
     ],
-    "Technical view": [
+    "Technical detail": [
         _page(page_synthetic, "The synthetic data"),
         _page(page_evidence, "Evidence"),
         _page(page_explorer, "Case explorer"),
@@ -1548,7 +1649,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     for view, pages in VIEWS.items():
-        st.markdown(f'<div class="navhead">{view}</div>', unsafe_allow_html=True)
+        if view:
+            st.markdown(f'<div class="navhead">{view}</div>', unsafe_allow_html=True)
         for pg in pages:
             st.page_link(pg)
     source = (

@@ -19,13 +19,13 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import content, data, synthetic, ui  # noqa: E402
+from app import content, data, synthetic, ui, client_experience  # noqa: E402
 
 st.set_page_config(
     page_title="Control Impact Detective",
     page_icon="🔎",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 ui.style()
 
@@ -701,67 +701,40 @@ def brief_box():
 
 
 def page_overview():
-    """A single client conversation, with proof available on demand."""
-    ui.overview_css()
+    """Purpose-built, full-screen client investigation; evidence is an optional drill-down."""
+    r = find_run(runs, "heldout")
+    case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
     st.markdown(
-        '<div class="case-masthead"><span>PAYMENTS / CONTROL EXPOSURE</span>'
-        '<span>INTERACTIVE CLIENT BRIEF · SYNTHETIC STUDY</span></div>'
-        '<div class="investigation-hero">'
-        '<div class="hero-eyebrow">THE INVISIBLE CONTROL</div>'
-        '<div class="hero-h">Your payment change looks safe. Is it?</div>'
-        '<p class="hero-deck">One missing dependency can hide a control that needs to be '
-        'assessed before release. Explore how the blind spot appears — and how evidence '
-        'can bring it back into view.</p></div>',
+        """<style>
+        [data-testid="stSidebar"] {background:#101a27;}
+        [data-testid="stMainBlockContainer"], .block-container {
+            max-width:100% !important; padding:0 !important;
+        }
+        [data-testid="stMain"] {background:#0b1019;}
+        [data-testid="stVerticalBlock"] {gap:0 !important;}
+        iframe {border:0 !important;display:block;}
+        </style>""",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        '<div class="section-index"><span>01 / EXPLORE THE FAILURE</span>'
-        '<span>CHOOSE WHAT THE INVESTIGATOR SEES</span></div>',
-        unsafe_allow_html=True,
-    )
-    ui.broken_link_animation(height=370)
-    st.markdown(
-        '<div class="section-index"><span>02 / THE RESULT</span>'
-        '<span>18 HELD-OUT CHANGES · 30% CORRELATED LINEAGE LOSS</span></div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="verdict-strip"><div class="verdict-primary">'
-        '<span>AFFECTED KEY-CONTROL INSTANCES IDENTIFIED</span>'
-        '<strong>18 → 131 <small>of 162</small></strong>'
-        '<p>Existing lineage-only check versus the AI-assisted investigation. '
-        'The agent recovered 113 impacts the original check missed.</p></div>'
-        '<div class="verdict-secondary">'
-        '<b>331</b><span>new genuine review findings</span>'
-        '<b>75</b><span>unaffected additional review items</span>'
-        '<b>1</b><span>affected key control still silently missed</span>'
-        '</div></div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="section-index"><span>03 / THE DECISION</span>'
-        '<span>WHAT SHOULD THE CLIENT DO NEXT?</span></div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown('### Validate with control owners before a pilot.')
-    st.write(
-        'The synthetic result supports a limited practitioner evaluation, not deployment. '
-        'Review the remaining silent miss, measure consistency and time real investigations '
-        'before making a cost-saving claim.'
-    )
-    a, b, c = st.columns(3)
-    with a:
-        st.page_link(PAGES['case'], label='Explore the evidence →')
-    with b:
-        st.page_link(PAGES['synthetic'], label='Test the degradation →')
-    with c:
-        st.page_link(PAGES['decision'], label='Evaluate the pilot decision →')
-    with st.expander('Study conditions, limitations and run provenance'):
-        st.caption(
-            'Recorded synthetic evaluation, not live banking data. '
-            'No completed practitioner review, measured savings or production approval.'
+    client_experience.show(case)
+    with st.container():
+        st.markdown(
+            '<div style="background:#0b1019;color:#e9f3f9;padding:12px 4vw 30px">'
+            '<span style="font-size:11px;letter-spacing:.16em;color:#d5f17c">'
+            'THE NEXT QUESTION</span>'
+            '<h3 style="color:#fff!important;font-size:23px!important">'
+            'Would you trust this finding before a release?</h3>'
+            '<p style="color:#b2c5d1">Inspect the source evidence and the silent miss '
+            'before considering a controlled practitioner pilot.</p></div>',
+            unsafe_allow_html=True,
         )
-        provenance()
+        a, b, c = st.columns(3)
+        with a:
+            st.page_link(PAGES["case"], label="Inspect recorded evidence →")
+        with b:
+            st.page_link(PAGES["results"], label="Challenge the evaluation →")
+        with c:
+            st.page_link(PAGES["decision"], label="Decide next steps →")
 
 
 # ------------------------------------------------------------------ present

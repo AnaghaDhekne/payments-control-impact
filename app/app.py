@@ -463,44 +463,45 @@ def page_case():
             ("Link missing from the map the check uses", ui.RED),
         ]
     )
-    st.markdown("### A recommendation you can audit")
-    f = next(
-        (
-            v
-            for v in (res or {}).get("verified_findings", [])
-            if v["control_id"] == "C02"
-        ),
-        None,
-    )
-    doc = next(d for d in ex["case"]["control_documents"] if d["control_id"] == "C02")
-    if f:
-        ui.score_table(
-            [
-                (
-                    "Control",
-                    "Payment parties are sanctions screened before release (C02, key)",
-                ),
-                ("Quote from the ticket", f"“{ui.esc(f['ticket_quote'])}”"),
-                (
-                    "Quote from the procedure",
-                    f"“{ui.esc(f['control_quote'])}” <span style='color:#5B6675'>— full text: "
-                    f"{ui.esc(doc['text'])}</span>",
-                ),
-                (
-                    "Agent's reason",
-                    ui.esc(f.get("proposer_causal_reason") or f["causal_reason"]),
-                ),
-                ("Independent checker", "Agreed: " + ui.esc(f["causal_reason"])),
-                (
-                    "Decision",
-                    ui.badge("Recommended", "ok") + " &nbsp;Answer key: affected",
-                ),
-                (
-                    "Proposed reviewer action",
-                    "Re-test the control against the changed interface before release. Not performed in this POC: the benchmark shows the recommendation, not a completed review.",
-                ),
-            ]
+    with st.expander("Open the evidence dossier for control C02"):
+        st.markdown("### A recommendation you can audit")
+        f = next(
+            (
+                v
+                for v in (res or {}).get("verified_findings", [])
+                if v["control_id"] == "C02"
+            ),
+            None,
         )
+        doc = next(d for d in ex["case"]["control_documents"] if d["control_id"] == "C02")
+        if f:
+            ui.score_table(
+                [
+                    (
+                        "Control",
+                        "Payment parties are sanctions screened before release (C02, key)",
+                    ),
+                    ("Quote from the ticket", f"“{ui.esc(f['ticket_quote'])}”"),
+                    (
+                        "Quote from the procedure",
+                        f"“{ui.esc(f['control_quote'])}” <span style='color:#5B6675'>— full text: "
+                        f"{ui.esc(doc['text'])}</span>",
+                    ),
+                    (
+                        "Agent's reason",
+                        ui.esc(f.get("proposer_causal_reason") or f["causal_reason"]),
+                    ),
+                    ("Independent checker", "Agreed: " + ui.esc(f["causal_reason"])),
+                    (
+                        "Decision",
+                        ui.badge("Recommended", "ok") + " &nbsp;Answer key: affected",
+                    ),
+                    (
+                        "Proposed reviewer action",
+                        "Re-test the control against the changed interface before release. Not performed in this POC: the benchmark shows the recommendation, not a completed review.",
+                    ),
+                ]
+            )
     st.markdown("### Inspect the reviewer handoff")
     good, hard = st.tabs(
         ["This change (CHG-027)", "Hardest type: screening engine change (CHG-015)"]

@@ -429,6 +429,19 @@ def investigation_workbench():
 
 
 def page_case():
+    """Immersive investigation first; technical dossier is a separate reference page."""
+    r = find_run(runs, "heldout")
+    case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
+    st.markdown("""<style>
+    [data-testid="stMainBlockContainer"], .block-container {max-width:100%!important;padding:0!important;}
+    [data-testid="stMain"] {background:#0b1019;}
+    iframe {border:0!important;display:block;}
+    </style>""", unsafe_allow_html=True)
+    client_experience.show(case)
+    st.page_link(PAGES["evidence"], label="Inspect the full source evidence →")
+
+
+def page_case_detail():
     ui.overview_css()
     ex = synthetic.example("CHG-027")
     res = None

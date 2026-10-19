@@ -442,6 +442,13 @@ def client_product(initial="investigate"):
     r = find_run(runs, "heldout")
     case = data.case_result(r["folder"], "run1", "CHG-027") if r else None
     client_experience.show(case, initial=initial)
+    st.markdown(
+        '<div style="background:#0b1019;color:#a5b8c8;padding:6px 4vw 2px;'
+        'font-size:11px;letter-spacing:.12em">SOURCE MATERIAL / AUDIT TRAIL</div>',
+        unsafe_allow_html=True,
+    )
+    st.page_link(PAGES["evidence"], label="Open recorded source evidence →")
+
 
 
 def page_case_detail():

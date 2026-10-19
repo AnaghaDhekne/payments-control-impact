@@ -106,6 +106,11 @@ then 8, D 7 then 11, on the same five cases.
   decision as much as the held-out run. Version A's held-out result (78.5%)
   remains the headline unless and until a new held-out test is run.
 
+Submitted 2026-10-19 09:14–09:16 CT at commit `a171787`: freshdev-A
+`1010378485968832` (first workspace); held-out `1034901876551703`, fresh-A
+run 1 `89981659491403`, run 2 `1045475298888369`, frozen check
+`4190204199177` (second workspace).
+
 ## Pre-registered: final bounded round, variant D vs A (2026-10-18)
 
 Registered and frozen at 12:15 CT (commit `6757e83`), before any run of variant D. Last

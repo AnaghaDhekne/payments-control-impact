@@ -499,6 +499,25 @@ OVERVIEW_CSS = f"""
 .opt .h {{ font-weight:600; margin-bottom:.35rem; }}
 .opt p {{ font-size:.92rem; color:#3D4752; line-height:1.45; margin:0; }}
 @media (max-width: 900px) {{ .tiles, .opts, .gaps {{ grid-template-columns:1fr; }} .hero-h {{ font-size:2rem; }} }}
+
+.case-masthead {{ display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:.6rem 0 1rem; border-top:2px solid #202B36; font-size:.68rem; letter-spacing:.14em; font-weight:600; color:#5B6675; }}
+.investigation-hero {{ background:#202B36; color:#FAF8F3; padding:clamp(1.6rem,5vw,4.4rem); margin:0 0 2rem; border-bottom:7px solid #B75E40; }}
+.hero-eyebrow {{ font-size:.72rem; font-weight:600; letter-spacing:.2em; color:#E5B7A7; margin-bottom:1.2rem; }}
+.investigation-hero .hero-h {{ color:#FAF8F3; font-size:clamp(2.8rem,5.5vw,5.5rem); line-height:1.03; letter-spacing:-.05em; max-width:17ch; }}
+.hero-deck {{ color:#E5E4DF; max-width:66ch; font-size:clamp(1rem,1.5vw,1.25rem); line-height:1.6; margin:1.5rem 0 2rem; }}
+.hero-statline {{ display:flex; align-items:end; justify-content:space-between; flex-wrap:wrap; gap:2rem; padding-top:1.5rem; border-top:1px solid #64707A; }}
+.hero-statline > div {{ min-width:0; }}
+.hero-num {{ display:block; font-family:'Source Serif 4',Georgia,serif; font-size:clamp(3.5rem,7vw,6rem); line-height:1; color:#FAF8F3; letter-spacing:-.04em; }}
+.hero-num span {{ font-size:.48em; color:#E5B7A7; }}
+.hero-stat-label {{ display:block; color:#E5E4DF; font-size:.92rem; margin-top:.4rem; }}
+.hero-stat-side {{ font-size:.87rem; line-height:1.9; color:#E5E4DF; }}
+.hero-stat-side b {{ color:#FAF8F3; }}
+.section-index {{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem; border-top:1px solid #202B36; padding:.65rem 0 1rem; margin:2.6rem 0 1rem; font-size:.7rem; font-weight:600; letter-spacing:.12em; color:#5B6675; }}
+.case-entry {{ min-height:165px; border-top:4px solid #B75E40; padding:1.1rem .2rem .6rem; }}
+.case-entry-label {{ font-size:.7rem; color:#9B553F; letter-spacing:.12em; font-weight:600; }}
+.case-entry-title {{ font-family:'Source Serif 4',Georgia,serif; color:#202B36; font-size:1.55rem; margin:.65rem 0; line-height:1.18; }}
+.case-entry p {{ font-size:.91rem; line-height:1.55; color:#5B6675; }}
+@media(max-width:640px) {{ .hero-statline {{ align-items:start; }} .case-entry {{ min-height:0; }} }}
 </style>
 """
 

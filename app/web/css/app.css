@@ -1097,12 +1097,12 @@ h1.title { letter-spacing: -.025em; }
 .lead { color: var(--ink-2); }
 
 /* tables */
-.t { border-collapse: separate; border-spacing: 0; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
-.t thead th { background: #f7f8fb; font: 600 11.5px/1.3 var(--body); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); border-bottom: 1px solid var(--line); }
-.t tbody tr { transition: background .12s; }
-.t tbody tr:hover td { background: #fafbfe; }
-.t td { border-bottom: 1px solid #eef0f5; }
-.t tbody tr:last-child td { border-bottom: 0; }
+table.t { border-collapse: separate; border-spacing: 0; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+table.t thead th { background: #f7f8fb; font: 600 11.5px/1.3 var(--body); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+table.t tbody tr { transition: background .12s; }
+table.t tbody tr:hover td { background: #fafbfe; }
+table.t td { border-bottom: 1px solid #eef0f5; }
+table.t tbody tr:last-child td { border-bottom: 0; }
 
 /* side navigation */
 .room nav { background: rgba(255, 255, 255, .7); backdrop-filter: blur(8px); }
@@ -1207,7 +1207,7 @@ html { scrollbar-width: thin; scrollbar-color: #c7cad6 transparent; }
 .subbar > nav { min-width: 0; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; } .subbar > nav::-webkit-scrollbar { display: none; }
 .subbar .tools { flex: none; }
 .subbar .journey a { font-size: 13px; gap: 6px; }
-@media (max-width: 1399px) { .subbar .journey li + li::before { display: none; } }
+@media (max-width: 1679px) { .subbar .journey li + li::before { display: none; } }
 .subbar .journey a { padding: 6px 7px; } .subbar .select { max-width: 190px; }
 .pa.row { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; }
 .pa.row .pa-b, .pa.row .pa-out { padding: 10px 11px; font-size: 12.5px; }
@@ -1228,7 +1228,7 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 /* Step labels always show; the Next button drops its label on narrower screens, and the change name is never cut. */
 .subbar .select { max-width: none; width: auto; }
 @media (max-width: 1499px) { .nx-l { display: none; } }
-@media (max-width: 1399px) { .subbar { flex-wrap: wrap; height: auto; padding-top: 6px; padding-bottom: 6px; } .subbar > nav { flex-basis: 100%; } .subbar .tools { margin-left: auto; } }
+@media (max-width: 1679px) { .subbar { flex-wrap: wrap; height: auto; padding-top: 6px; padding-bottom: 6px; } .subbar > nav { flex-basis: 100%; } .subbar .tools { margin-left: auto; } }
 .subbar .journey a .t { display: inline !important; }
 @media (max-width: 900px) { .subbar .select { width: 100%; max-width: 100%; } .subbar .tools { flex: 1 1 100%; } }
 .pa.row .pa-b > b, .pa.row .pa-out > b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1249,3 +1249,6 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 .h-fine-d { color: #9ea3c8 !important; text-align: center; max-width: 80ch; margin: 14px auto 0; }
 @media (max-width: 1150px) { .h-args { grid-template-columns: repeat(2, minmax(0, 1fr)); } .h-arg + .h-arg::before { display: none; } }
 @media (max-width: 620px) { .h-args { grid-template-columns: 1fr; } .h-turn { font-size: 17px; } }
+/* Walkthrough step labels: a white pill with room around the text */
+.subbar .journey a .t { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; line-height: 1.35; box-shadow: 0 1px 2px rgba(20, 22, 31, .05); }
+.subbar .journey a[aria-current="step"] .t { border-color: var(--line-2); }

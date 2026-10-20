@@ -215,3 +215,20 @@ def test_first_button_is_visible_without_scrolling(page):
     box = page.locator('a[href="#problem"]').bounding_box()
     page.set_viewport_size({"width": 1440, "height": 900})
     assert box["y"] + box["height"] <= 520
+
+
+def test_evidence_room_counts_reconcile_on_screen(page, experience):
+    p = experience["portfolio"]
+    page.goto(page.base + "#/room/results?case=CHG-027")
+    page.wait_for_selector("tr.total")
+    text = page.locator("main").inner_text()
+    assert f"Show {p['added_affected']} affected" in text
+    assert f"Show {p['added_unaffected']} not affected" in text
+    assert page.locator("tr.total .num").inner_text().strip() == str(p["key_affected"])
+    page.locator("[data-rec=addAff]").click()
+    page.wait_for_timeout(200)
+    assert page.locator("#rec-out button.rec").count() == p["added_affected"]
+    page.locator("#rep-btn").click()
+    page.wait_for_timeout(200)
+    out = page.locator("#rec-out").inner_text()
+    assert "8 of 10 affected key controls" in out

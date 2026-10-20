@@ -325,7 +325,7 @@ const PAGES = {
         `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
         `<tr><td><b>Recommendation precision</b></td><td>The ${P.new_total} new recommendations compared with the answer key; the ${rec.newWrong.length} that were wrong</td><td>${showBtn("newWrong", rec.newWrong.length)}</td></tr>`,
         `<tr><td><b>Review composition</b></td><td>The ${P.added_items} added items: recommendations and findings sent to a person, by the answer key</td><td>${showBtn("addAff", rec.addAff.length)} ${showBtn("addUnaff", rec.addUnaff.length)}</td></tr>`,
-        `<tr><td><b>Consistency</b></td><td>Five runs each of three development changes (CHG-014, CHG-025, CHG-017). These records are in results/detective_runs.tar.gz, not loaded into this app.</td><td></td></tr>`,
+        `<tr><td><b>Consistency</b></td><td>Every affected key control of three development changes, decided in each of ${app.exp.repeat_runs.runs} runs</td><td><button class="btn sm" type="button" id="rep-btn">Show ${app.exp.repeat_runs.rows.length} records</button></td></tr>`,
         `<tr><td><b>Known failure</b></td><td>The silent miss: an affected key control neither recommended nor sent to a person</td><td>${showBtn("silent", rec.silent.length)}</td></tr>`,
         `<tr><td><b>Version selection</b></td><td>Pre-registered tests of versions B, C and D, and why each was not adopted: <i>Limits and fixes tried</i>, in this room</td><td></td></tr>`,
       ])}<div id="rec-out"></div></section>
@@ -371,6 +371,15 @@ const PAGES = {
       addUnaff: "Added review items the answer key says were not affected",
     };
     const out = pane.querySelector("#rec-out");
+    const RR = app.exp.repeat_runs;
+    const cell = { recommended: ["agent", "Rec."], review: ["review", "Person"], not_recommended: ["idle", "Not rec."] };
+    pane.querySelector("#rep-btn").addEventListener("click", () => {
+      out.innerHTML = `<div class="recs"><div class="recs-h"><b>Repeat runs: the same change, decided five times</b> · ${RR.rows.filter((r) => r.same).length} of ${RR.rows.length} affected key controls got the same recommend-or-not decision in every run</div>
+        ${table(["Change", "Key control", ...Array.from({ length: RR.runs }, (_, i) => `Run ${i + 1}`), "Same every run"], RR.rows.map((r) =>
+          `<tr><td>${esc(r.change)}</td><td><b>${esc(r.control)}</b> ${esc(r.name)}</td>${r.runs.map((x) => `<td><span class="rr ${cell[x][0]}">${cell[x][1]}</span></td>`).join("")}<td>${r.same ? "yes" : "<b>no</b>"}</td></tr>`))}
+        <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Development changes, version A, 30% damage. "Person" means sent to a person, which counts as not recommended. Source: results/detective_runs.tar.gz, suite-11; recomputed from these records, the agreement equals the archived summary (tested).</p></div>`;
+      out.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
     pane.querySelectorAll("[data-rec]").forEach((b) =>
       b.addEventListener("click", () => {
         const key = b.dataset.rec;
@@ -513,33 +522,20 @@ const PAGES = {
   },
 
   async limits(pane, app) {
-    const HYP = {
-      B: ["Requiring a cited chain from the change to the control removes unsupported recommendations.", "Fewer wrong flags, but real impacts were lost too."],
-      C: ["A coverage sweep, a second look at not-affected key controls and a three-run vote make decisions repeatable without losing recovery.", "Close to the target, at about four times the model calls."],
-      D: ["A tie-break call on disagreements turns items sent to a person into decisions without losing recoveries.", "Fewer unaffected items, but fewer key misses found."],
-      "A + tie-break": ["Applying the tie-break to A's saved runs cuts review items without dismissing real impacts.", "Review fell by a third, but one in five truly affected review items was dismissed."],
-    };
     pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Where the proof of concept falls short, what was tried to fix it, and what that taught. Each fix had its adoption rule written before it ran.</p>
       <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome.</div>
       <section><h2>Known weaknesses</h2>${table(["Weakness", "Evidence", "Next step"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}</section>
       <section><h2>Experiment decision records</h2><div class="drs">
         ${app.exp.version_tests.map((v) => {
-          const [hyp, trade] = HYP[v.version] || ["", ""];
           return `<article class="dr"><div class="dr-h"><span class="dr-v">Version ${esc(v.version)}</span><h3>${esc(v.name)}</h3><span class="badge not_affected">${esc(v.decision)}</span></div>
-            <dl><dt>Hypothesis</dt><dd>${esc(hyp)}</dd>
+            <dl><dt>Hypothesis</dt><dd>${esc(v.hypothesis)}</dd>
             <dt>Tested on</dt><dd>${esc(v.test)}</dd>
             <dt>Rule written in advance</dt><dd>${esc(v.rule)}</dd>
             <dt>Result</dt><dd>${esc(v.result)}</dd>
-            <dt>Trade-off</dt><dd>${esc(trade)}</dd></dl></article>`;
+            <dt>Trade-off</dt><dd>${esc(v.trade_off)}</dd></dl></article>`;
         }).join("")}</div>
-        <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Source: docs/results.md, pre-registered sections.</p></section>
-      <section><h2>What we learned</h2><ul class="ra-notes">
-        <li><b>Stricter evidence rules trade recall for precision.</b> Demanding a cited chain removed unsupported recommendations and some real recoveries with them.</li>
-        <li><b>Voting steadies decisions, at a cost.</b> A three-run vote came within one decision of the 95% target, for about four times the model calls.</li>
-        <li><b>A verifier of positive findings cannot catch false negatives.</b> Controls marked not affected never reach it; the silent miss came from one.</li>
-        <li><b>Routing keeps doubt visible but hands it to people.</b> Disagreements are never discarded, which is why review volume grows.</li>
-        <li><b>Tie-breaks are reliable when they promote, not when they dismiss.</b> 68 of 70 promotions were right; dismissals removed real impacts.</li>
-      </ul></section>
+        <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Exported with the results by scripts/build_experience_data.py from docs/results.md (pre-registered sections); a test checks each result against that document.</p></section>
+      <section><h2>What we learned</h2><ul class="ra-notes">${app.exp.lessons.map((l) => `<li><b>${esc(l.title)}</b> ${esc(l.detail)}</li>`).join("")}</ul></section>
       <details class="terms"><summary>Terms used in the evidence room</summary>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</details>`;
   },
 
@@ -594,6 +590,7 @@ python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-
       "What prevents the system from approving a control automatically?",
     ];
     pane.innerHTML = `<h1>Ask about the proof of concept</h1>
+      <p><span class="badge review">Live model answers · not validated evidence</span></p>
       <p class="lead">Questions are answered live by the workspace model, from the project's own documents and the recorded results. This is separate from the recorded evidence: if the model is unavailable, every other page still works.</p>
       <div class="ask-s">${SUGGEST.map((q) => `<button class="rec" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="ask" id="f"><input id="q" placeholder="Ask your own question" aria-label="Your question"><button class="btn primary" type="submit">Ask</button></form>

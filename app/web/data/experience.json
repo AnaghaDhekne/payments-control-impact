@@ -535,6 +535,8 @@
  "version_tests": [
   {
    "version": "B",
+   "hypothesis": "Requiring a cited chain from the change to the control removes unsupported recommendations.",
+   "trade_off": "Fewer wrong flags, but real impacts were lost too.",
    "name": "Stricter evidence rule",
    "source": "docs/results.md · Pre-registered: proposer chain requirement, A/B test",
    "test": "8 unseen development changes, one run",
@@ -544,6 +546,8 @@
   },
   {
    "version": "C",
+   "hypothesis": "A coverage sweep, a second look at not-affected key controls and a three-run vote make decisions repeatable without losing recovery.",
+   "trade_off": "Close to the target, at about four times the model calls.",
    "name": "Extra checks and a three-run vote",
    "source": "docs/results.md · Pre-registered: version C with majority vote",
    "test": "18 test changes under fresh random damage; 6 runs of C, 2 of A",
@@ -553,6 +557,8 @@
   },
   {
    "version": "D",
+   "hypothesis": "A tie-break call on disagreements turns items sent to a person into decisions without losing recoveries.",
+   "trade_off": "Fewer unaffected items, but fewer key misses found.",
    "name": "Tie-break step",
    "source": "docs/results.md · Pre-registered: final bounded round, variant D vs A",
    "test": "5 fresh-damage development changes, two runs each of A and D",
@@ -562,6 +568,8 @@
   },
   {
    "version": "A + tie-break",
+   "hypothesis": "Applying the tie-break to A's saved runs cuts review items without dismissing real impacts.",
+   "trade_off": "Review fell by a third, but one in five truly affected review items was dismissed.",
    "name": "Tie-break applied to A's saved runs",
    "source": "docs/results.md · Pre-registered: tie-break applied to saved A runs",
    "test": "7 saved A runs, paired, 412 tie-break calls",
@@ -598,6 +606,163 @@
    "measure": "key-miss recovery",
    "set": "18 held-out changes, one run, GPT OSS 120B",
    "caveat": "Single frozen run; 30 more routed to a person, 1 not surfaced."
+  }
+ ],
+ "repeat_runs": {
+  "runs": 5,
+  "rows": [
+   {
+    "change": "CHG-017",
+    "control": "C075",
+    "name": "Settlement and ledger reconciliation — daily completeness",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-017",
+    "control": "C076",
+    "name": "Settlement and ledger reconciliation — high-risk corridor",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-017",
+    "control": "C077",
+    "name": "Settlement and ledger reconciliation — priority payment",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-017",
+    "control": "C078",
+    "name": "Settlement and ledger reconciliation — manual override",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-017",
+    "control": "C08",
+    "name": "Outbound payments are reconciled to settlement and ledger records",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-025",
+    "control": "C057",
+    "name": "Outbound transformation completeness — daily completeness",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-025",
+    "control": "C058",
+    "name": "Outbound transformation completeness — high-risk corridor",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   },
+   {
+    "change": "CHG-025",
+    "control": "C059",
+    "name": "Outbound transformation completeness — priority payment",
+    "runs": [
+     "recommended",
+     "review",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": false
+   },
+   {
+    "change": "CHG-025",
+    "control": "C06",
+    "name": "Outbound message transformation is complete and accurate",
+    "runs": [
+     "review",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": false
+   },
+   {
+    "change": "CHG-025",
+    "control": "C060",
+    "name": "Outbound transformation completeness — manual override",
+    "runs": [
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended",
+     "recommended"
+    ],
+    "same": true
+   }
+  ]
+ },
+ "lessons": [
+  {
+   "title": "Stricter evidence rules trade recall for precision.",
+   "detail": "Demanding a cited chain removed unsupported recommendations and some real recoveries with them."
+  },
+  {
+   "title": "Voting steadies decisions, at a cost.",
+   "detail": "A three-run vote came within one decision of the 95% target, for about four times the model calls."
+  },
+  {
+   "title": "A verifier of positive findings cannot catch false negatives.",
+   "detail": "Controls marked not affected never reach it; the silent miss came from one."
+  },
+  {
+   "title": "Routing keeps doubt visible but hands it to people.",
+   "detail": "Disagreements are never discarded, which is why review volume grows."
+  },
+  {
+   "title": "Tie-breaks are reliable when they promote, not when they dismiss.",
+   "detail": "68 of 70 promotions were right; dismissals removed real impacts."
   }
  ],
  "prompts": {

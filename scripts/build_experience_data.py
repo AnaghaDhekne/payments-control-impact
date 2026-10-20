@@ -103,6 +103,63 @@ APPROACHES = [
 ]
 
 
+# Engineering lessons drawn from the version tests above (docs/results.md).
+LESSONS = [
+    [
+        "Stricter evidence rules trade recall for precision.",
+        "Demanding a cited chain removed unsupported recommendations and some real recoveries with them.",
+    ],
+    [
+        "Voting steadies decisions, at a cost.",
+        "A three-run vote came within one decision of the 95% target, for about four times the model calls.",
+    ],
+    [
+        "A verifier of positive findings cannot catch false negatives.",
+        "Controls marked not affected never reach it; the silent miss came from one.",
+    ],
+    [
+        "Routing keeps doubt visible but hands it to people.",
+        "Disagreements are never discarded, which is why review volume grows.",
+    ],
+    [
+        "Tie-breaks are reliable when they promote, not when they dismiss.",
+        "68 of 70 promotions were right; dismissals removed real impacts.",
+    ],
+]
+
+
+def repeat_runs(repeat, truth, graph):
+    """Five runs of three development changes: every affected key control's
+    decision in each run. Agreement is recomputed from these records and must
+    equal the archived consistency summary (tested)."""
+    from scripts.run_detective_suite import labels_for
+
+    names = {n["id"]: n["name"] for n in graph["nodes"]}
+    out = []
+    for cid in sorted(repeat):
+        runs = repeat[cid]
+        order = sorted(runs)
+        for ctrl in labels_for(truth[cid])["key_control_ids"]:
+            per = []
+            for r in order:
+                if ctrl in runs[r]["recommended"]:
+                    per.append("recommended")
+                elif ctrl in runs[r]["uncertain"]:
+                    per.append("review")
+                else:
+                    per.append("not_recommended")
+            out.append(
+                {
+                    "change": cid,
+                    "control": ctrl,
+                    "name": names.get(ctrl, ctrl),
+                    "runs": per,
+                    "same": len({x == "recommended" for x in per}) == 1,
+                }
+            )
+    return {"runs": len(next(iter(repeat.values()))), "rows": out}
+
+
 def prompts():
     """The two prompts of the recorded run (version A), from the agent's own code."""
     from scripts.detective import VERIFIER_INSTRUCTIONS, instructions_for
@@ -126,6 +183,8 @@ def _degradation():
 VERSION_TESTS = [
     {
         "version": "B",
+        "hypothesis": "Requiring a cited chain from the change to the control removes unsupported recommendations.",
+        "trade_off": "Fewer wrong flags, but real impacts were lost too.",
         "name": "Stricter evidence rule",
         "source": "docs/results.md · Pre-registered: proposer chain requirement, A/B test",
         "test": "8 unseen development changes, one run",
@@ -135,6 +194,8 @@ VERSION_TESTS = [
     },
     {
         "version": "C",
+        "hypothesis": "A coverage sweep, a second look at not-affected key controls and a three-run vote make decisions repeatable without losing recovery.",
+        "trade_off": "Close to the target, at about four times the model calls.",
         "name": "Extra checks and a three-run vote",
         "source": "docs/results.md · Pre-registered: version C with majority vote",
         "test": "18 test changes under fresh random damage; 6 runs of C, 2 of A",
@@ -144,6 +205,8 @@ VERSION_TESTS = [
     },
     {
         "version": "D",
+        "hypothesis": "A tie-break call on disagreements turns items sent to a person into decisions without losing recoveries.",
+        "trade_off": "Fewer unaffected items, but fewer key misses found.",
         "name": "Tie-break step",
         "source": "docs/results.md · Pre-registered: final bounded round, variant D vs A",
         "test": "5 fresh-damage development changes, two runs each of A and D",
@@ -153,6 +216,8 @@ VERSION_TESTS = [
     },
     {
         "version": "A + tie-break",
+        "hypothesis": "Applying the tie-break to A's saved runs cuts review items without dismissing real impacts.",
+        "trade_off": "Review fell by a third, but one in five truly affected review items was dismissed.",
         "name": "Tie-break applied to A's saved runs",
         "source": "docs/results.md · Pre-registered: tie-break applied to saved A runs",
         "test": "7 saved A runs, paired, 412 tie-break calls",
@@ -197,6 +262,18 @@ def recorded():
                 extra["metrics"] = json.load(t.extractfile(m))
             elif name == "suite-11/consistency.json":
                 extra["consistency"] = json.load(t.extractfile(m))
+            elif (
+                name.startswith("suite-11/run")
+                and "/CHG-" in name
+                and name.endswith(".json")
+                and ".calls" not in name
+            ):
+                run = int(name.split("/")[1][3:])
+                d = json.load(t.extractfile(m))
+                extra.setdefault("repeat", {}).setdefault(d["change_id"], {})[run] = {
+                    "recommended": d.get("recommended_control_ids", []),
+                    "uncertain": d.get("uncertain_control_ids", []),
+                }
             elif name in ("suite-10/run1/metrics.json", "suite-12/run1/metrics.json"):
                 extra[name.split("/")[0]] = json.load(t.extractfile(m))
     return out, extra
@@ -654,6 +731,8 @@ def main():
         ],
         "version_tests": VERSION_TESTS,
         "approaches": APPROACHES,
+        "repeat_runs": repeat_runs(extra["repeat"], truth, graph),
+        "lessons": [{"title": a, "detail": b} for a, b in LESSONS],
         "prompts": prompts(),
         "degradation": _degradation(),
         "development_runs": {

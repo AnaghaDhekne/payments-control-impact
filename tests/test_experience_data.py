@@ -171,3 +171,40 @@ def test_drill_down_records_reconcile_with_the_headline(experience, cases):
     assert key == {"check": 18, "recommended": 113, "review": 30, "silent": 1}
     assert (new_right, new_right + new_wrong) == (p["new_right"], p["new_total"])
     assert (add_aff, add_unaff) == (p["added_affected"], p["added_unaffected"])
+
+
+def test_repeat_runs_reproduce_the_consistency_figure(experience):
+    with tarfile.open(ARCHIVE) as tar:
+        m = next(
+            x
+            for x in tar.getmembers()
+            if x.name.lstrip("./") == "suite-11/consistency.json"
+        )
+        archived = json.load(tar.extractfile(m))
+    rr = experience["repeat_runs"]
+    assert rr["runs"] == 5
+    assert len(rr["rows"]) == archived["key_pairs"] == 10
+    same = sum(r["same"] for r in rr["rows"])
+    assert same / len(rr["rows"]) == archived["agreement"] == 0.8
+    for r in rr["rows"]:
+        assert len(r["runs"]) == 5
+        assert r["same"] == (len({x == "recommended" for x in r["runs"]}) == 1)
+
+
+def test_review_composition_totals(experience):
+    p = experience["portfolio"]
+    assert p["added_items"] == p["added_affected"] + p["added_unaffected"] == 406
+    assert (p["added_affected"], p["added_unaffected"]) == (331, 75)
+    assert p["added_items"] - p["new_total"] == 126  # sent to a person
+
+
+def test_experiment_records_match_the_results_document(experience):
+    import re
+
+    doc = (ROOT / "docs" / "results.md").read_text()
+    for v in experience["version_tests"]:
+        assert v["hypothesis"] and v["trade_off"] and v["decision"] == "Not adopted"
+        # Every figure quoted in the result appears in the pre-registered results.
+        for num in re.findall(r"\d+(?:\.\d+)?%?", v["result"]):
+            assert num.rstrip("%") in doc, (v["version"], num)
+    assert experience["lessons"]

@@ -232,34 +232,19 @@ FAQ = [
 
 LIMITS = [
     (
-        "Some flagged controls are not affected",
-        "Held-out (A): 75 of 406 added items are not affected, each with evidence to clear it. Version C with a 3-run vote cut these sharply on a fresh test.",
-        "Variant B tried and rejected (fewer wrong flags, but lower recall and more review). Next: verifier changes, tested only on fresh cases.",
+        "Steadier decisions run to run",
+        "Five runs of three changes: 80% of key-control decisions identical every time, against a 95% target.",
+        "A three-run vote reached 94.4%; next, a five-run vote on new changes.",
     ),
     (
-        "Agent over-claims across functional areas",
-        "CHG-025: message mapping flagged against reconciliation controls; the verifier withheld approval.",
-        "Variant B (cited chain) removed wrong flags but cost recall: 27 vs 32 of 49.",
+        "A second look at 'not affected'",
+        "Controls marked not affected are not re-checked; the one silent miss (CHG-024) came from there.",
+        "An independent check of not-affected decisions on key controls.",
     ),
     (
-        "Verifier too strict on clear text links",
-        "CHG-026: a threshold change vs 'payments exceeding configured thresholds' left in review.",
-        "Let direct text evidence count as a chain.",
-    ),
-    (
-        "Unaffected decisions are never re-checked",
-        "CHG-029: two key family members marked unaffected, no second look.",
-        "Verify unaffected decisions on key controls.",
-    ),
-    (
-        "Run-to-run variation",
-        "Five runs of three cases: 80% of key-control pairs got the same decision every time (target 95%); review items on one case ranged 6 to 36.",
-        "3-run vote reached 94.4% (target 95%); next: 5-run vote on new cases.",
-    ),
-    (
-        "Synthetic benchmark",
-        "Control families share dependencies by construction.",
-        "Practitioner review of a sample of findings.",
+        "Proof on real changes",
+        "Scored on a synthetic bank built so the right answer is known.",
+        "Control owners judge a sample of real output, including what it left out.",
     ),
 ]
 

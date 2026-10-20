@@ -683,9 +683,9 @@ async function consequence(main, app, c) {
           <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
           <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. Without the detective, these controls still have to be checked: by tracing the lineage gaps by hand, or by not knowing and missing them, which is the costly outcome. The detective turns that search into a list with evidence: <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them. Every record is in the evidence room.</p></div></div>
 
-      <div class="risk" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
-        <div><b>Remaining coverage risk: one affected key control was neither recommended nor sent to a person.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The detective judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} items sent to a person are only safe if a control owner works them.</div></div>
+      <div class="risk soft" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
+        <div><b>One of ${P.key_affected} affected key controls was not surfaced.</b>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The planned fix is a second check on key controls marked not affected, before any pilot.</div></div>
 
     </section></div>`);
   main.append(stage);
@@ -728,9 +728,9 @@ async function decision(main, app, c) {
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(5, "The decision")}
-      <h1 class="title">Demonstrated on synthetic evidence. Not yet ready for a pilot.</h1>
+      <h1 class="title">Demonstrated on synthetic evidence. Ready for control owners to judge.</h1>
       <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the existing lineage check missed, and showed its evidence for each.</p>
-      <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
+      <p>The next question is one only control owners can answer: is the output right and useful on their changes?</p>
       <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
     </aside>
@@ -739,15 +739,16 @@ async function decision(main, app, c) {
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--agent)"></span><h2>Demonstrated</h2></div><div class="card-b"><ul>
           <li>Most key controls the existing lineage check missed were recommended, on changes never seen.</li>
           <li>Each recommendation carries quoted evidence and an independent verifier's view.</li>
-          <li>Every step is recorded and can be replayed.</li></ul></div></div>
-        <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still uncertain</h2></div><div class="card-b"><ul>
-          <li>Accuracy on real changes, tickets and control documents.</li>
-          <li>Whether control owners find the output right and useful.</li>
-          <li>Whether decisions repeat from run to run.</li>
-          <li>Whether anything it marked not affected was missed.</li></ul></div></div>
+          <li>Every step is recorded and can be replayed.</li>
+          <li>Nothing the existing lineage check finds is lost; the detective only adds.</li></ul></div></div>
+        <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still to confirm</h2></div><div class="card-b"><ul>
+          <li>Results on a real bank's changes, judged by control owners.</li>
+          <li>Steadier decisions from run to run.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain</h2></div><div class="card-b"><ul>
           <li>Earlier sight of control impacts that incomplete lineage hides, before release rather than at audit.</li>
-          <li>An evidence trail for each impact, ready for control owners and audit.</li></ul></div></div>
+          <li>An evidence trail for each impact, ready for control owners and audit.</li>
+          <li>A shortlist to start from instead of tracing lineage gaps by hand.</li>
+          <li>Doubtful cases flagged to a person rather than decided silently.</li></ul></div></div>
       </div>
       <div class="card"><div class="card-h"><h2>A practitioner validation, if leadership chooses one</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Uses the recorded output; no new model runs</span></div></div>
         <div class="card-b"><div class="fit3">

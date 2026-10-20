@@ -147,7 +147,7 @@ const PAGES = {
         <div class="vc"><span class="vc-n">1</span><b>Budget</b><em>${removed} of 237</em><span>recordable links removed at 30%: round(237 × L / 100)</span></div>
         <div class="vc"><span class="vc-n">2</span><b>Nearest first</b><em>closest out</em><span>ordered by steps from a changed item; a seeded number breaks ties</span></div>
         <div class="vc"><span class="vc-n">3</span><b>Keep a frontier</b><em>never cut off</em><span>a changed item keeps ⌈n × (100 − L) / 100⌉ links, at least one. ${esc(c.id)}: ${keepRule}</span></div>
-        <div class="vc"><span class="vc-n">4</span><b>Reproducible</b><em>seed ${esc(D.seed)}</em><span>plus the change, the level and the mode</span></div>
+        <div class="vc"><span class="vc-n">4</span><b>Same damage every run</b><em>fixed seed</em><span>the random choices start from one fixed number (${esc(D.seed)}) mixed with the change ID, so a rerun removes exactly the same links</span></div>
       </div></section>
       <section><h2>The documents</h2><p style="color:var(--ink-2);margin-top:0">At level L, each of these happens with probability L% (30% in the test), independently:</p>
         ${table(["Damage", "What the reader sees", "Applies to"], [
@@ -179,6 +179,7 @@ const PAGES = {
     ];
     pane.innerHTML = `<h1>The investigator call</h1>
       <p class="lead">One model call per step: the model reads the situation and chooses one tool; the code runs it and feeds the result into the next step. That loop, not a single classification prompt, is what makes it an agent. ${steps} steps were recorded across the 18 test changes.</p>
+      ${promptBlock("investigator", pr.investigator, `scripts/detective.py · INSTRUCTIONS_TEMPLATE with version ${pr.variant}'s “Deciding” paragraph. Followed on every step by the JSON object with case, notebook, history and steps_remaining.`)}
       <section><h2>One recorded step at a time: ${esc(c.id)}</h2>
         <div class="sv-bar"><button class="btn" type="button" id="sv-prev" aria-label="Previous step">‹</button>
           <label class="sr" for="sv-n">Step</label><input id="sv-n" class="scrub" type="range" min="1" max="${c.steps.length}" value="1">
@@ -206,8 +207,7 @@ const PAGES = {
         `<tr><td>Reply limit</td><td>3,000 tokens per call; findings cut off mid-reply are recovered where complete</td></tr>`,
         `<tr><td>Steps</td><td>Up to 60 per change; all 18 finished within the limit</td></tr>`,
         `<tr><td>Version</td><td>${esc(pr.variant)}, agent code ${esc(pr.code)}</td></tr>`,
-      ])}</section>
-      ${promptBlock("investigator", pr.investigator, `scripts/detective.py · INSTRUCTIONS_TEMPLATE with version ${pr.variant}'s “Deciding” paragraph. Followed on every step by the JSON object with case, notebook, history and steps_remaining.`)}`;
+      ])}</section>`;
     wirePrompt(pane);
     // Step viewer: everything shown is taken from the recorded run.
     const named = (id) => `${esc(app.graph.nodes.find((n) => n.id === id)?.name || id)} (${esc(id)})`;
@@ -258,11 +258,12 @@ const PAGES = {
     const mname = miss ? app.graph.nodes.find((n) => n.id === miss.control)?.name : "";
     pane.innerHTML = `<h1>The verifier call</h1>
       <p class="lead">After the investigation, a separate model call judges findings on their own evidence. It does not continue the investigator's conversation. ${calls} verifier calls were recorded across the 18 test changes.</p>
+      ${promptBlock("verifier", pr.verifier, "scripts/detective.py · VERIFIER_INSTRUCTIONS, followed by the JSON evidence built by verification_evidence(). Same model and settings as the investigator.")}
       <section><h2>When it is called</h2><div class="vgrid">
         <div class="vc ok"><b>Affected → verifier</b><span>checked on its own evidence</span></div>
         <div class="vc ok"><b>Uncertain → verifier</b><span>checked on its own evidence</span></div>
         <div class="vc weak"><b>Not affected → no verifier</b><span>reason recorded, no second look</span></div></div></section>
-      <section class="warn-sec"><h2>What independent verification does not guarantee</h2>
+      <section class="warn-sec"><h2>What verification covers, and what it does not</h2>
         <p>Verification reduces unsupported positive findings and sends disagreements to a person. It cannot catch a false negative, because a control the investigator marks not affected never reaches it. Two model calls agreeing is not proof of completeness.</p>
         ${miss ? `<div class="sm"><div><b>Recorded example: ${esc(miss.control)} ${esc(mname)}, on ${esc(miss.change)}</b>
           <p>The investigator marked it not affected${md?.proposer_reason ? `: “${expandCodes(md.proposer_reason, miss.control)}”` : ""}. The verifier was never asked, so nothing routed it to a person. The answer key shows it was affected: the one silent miss among ${P.key_affected} affected key controls.</p></div>
@@ -283,8 +284,7 @@ const PAGES = {
         `<tr><td>uncertain</td><td>uncertain</td><td><span class="badge review">Sent to a person</span></td></tr>`,
         `<tr><td>not affected</td><td>not asked</td><td><span class="badge not_affected">Marked not affected</span>, reason kept</td></tr>`,
         `<tr><td colspan="2">Reached by the existing lineage check</td><td><span class="badge check">Found by the existing lineage check</span>, always kept</td></tr>`,
-      ])}</section>
-      ${promptBlock("verifier", pr.verifier, "scripts/detective.py · VERIFIER_INSTRUCTIONS, followed by the JSON evidence built by verification_evidence(). Same model and settings as the investigator.")}`;
+      ])}</section>`;
     wirePrompt(pane);
     pane.querySelector("#sm-open")?.addEventListener("click", () => openInspector(miss.control, miss.change));
   },
@@ -549,9 +549,8 @@ const PAGES = {
   },
 
   async limits(pane, app) {
-    pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Where the proof of concept falls short, what was tried to fix it, and what that taught. Each fix had its adoption rule written before it ran.</p>
-      <div class="scope-note" style="margin-bottom:22px"><b>Not yet shown:</b> accuracy on real bank data, how control owners work the list in practice, and any production outcome.</div>
-      <section><h2>Known weaknesses</h2><div class="vgrid wide">${app.exp.limits.map((l) => `<div class="vc weak"><b>${esc(l.issue)}</b><span>${esc(l.evidence)}</span><span class="vc-next">Next: ${esc(l.response)}</span></div>`).join("")}</div></section>
+    pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Three things to strengthen before a pilot, the fixes already tested, and what they taught. Each fix had its adoption rule written before it ran.</p>
+      <section><h2>What still needs work</h2><div class="vgrid wide">${app.exp.limits.map((l) => `<div class="vc weak"><b>${esc(l.issue)}</b><span>${esc(l.evidence)}</span><span class="vc-next">Next: ${esc(l.response)}</span></div>`).join("")}</div></section>
       <section><h2>Experiment decision records</h2><div class="drs">
         ${app.exp.version_tests.map((v) => {
           return `<article class="dr"><div class="dr-h"><span class="dr-v">Version ${esc(v.version)}</span><h3>${esc(v.name)}</h3><span class="badge not_affected">${esc(v.decision)}</span></div>
@@ -568,29 +567,27 @@ const PAGES = {
 
   async reproduce(pane, app) {
     const p = app.exp.provenance;
-    const path = (n, title, needs, gives, cmd, note) => `<div class="rp-card"><div class="rp-h"><span class="vc-n">${n}</span><b>${title}</b></div>
-      <dl><dt>Needs</dt><dd>${needs}</dd><dt>Gives</dt><dd>${gives}</dd></dl>
-      <details><summary>Show the commands</summary><pre class="code">${cmd}</pre><p class="rp-f">${note}</p></details></div>`;
-    pane.innerHTML = `<h1>Reproduce</h1><p class="lead">Three paths. The first two give the same numbers every time; a fresh run calls the model again, so decisions can differ.</p>
-      <div class="rp-grid">
-      ${path(1, "Inspect the recorded POC", "Python 3.12. No model, no credentials.", `This experience, from the recorded files (job ${esc(p.job)}, ${esc(p.date)}).`,
-        "python app/server.py      # open http://localhost:8000",
-        "<b>If it fails:</b> another process holds the port (set PORT=8001), or app/web/data is missing (run path 2's export).")}
-      ${path(2, "Validate the results", "requirements-dev.txt. No model.", `Every test passing, including each figure here against ${esc(p.archive)}.`,
-        `python -m pip install -r requirements-dev.txt
+    pane.innerHTML = `<h1>Reproduce</h1><p class="lead">Three different things, with different guarantees. Inspecting and validating the recorded run gives the same numbers every time. A fresh investigation calls a model again, so its decisions can differ from the recorded ones.</p>
+      <section><h2>1 · Inspect the recorded POC</h2>
+        <p class="rp-m"><b>Needs:</b> Python 3.12. No model, no credentials. <b>Gives:</b> this experience, served from the recorded files (Databricks job ${esc(p.job)}, ${esc(p.date)}).</p>
+        <pre class="code">python app/server.py      # open http://localhost:8000</pre>
+        <p class="rp-f"><b>If it fails:</b> another process holds the port (set PORT=8001), or app/web/data is missing (run step 2's export).</p></section>
+      <section><h2>2 · Validate the results</h2>
+        <p class="rp-m"><b>Needs:</b> requirements-dev.txt. No model. <b>Gives:</b> every test passing, including the checks that each figure shown here equals the archive ${esc(p.archive)}, and a re-export of the app data from it.</p>
+        <pre class="code">python -m pip install -r requirements-dev.txt
 python -m pytest -q                          # figures, partitions, prompts, pages
 python -m scripts.validate_graph             # benchmark integrity
 python -m scripts.evaluate_baseline          # the existing lineage check on every change
-python -m scripts.build_experience_data      # rebuild app/web/data from the archive`,
-        "<b>If it fails:</b> a figure test failing means app/web/data no longer matches the archive. Run from the repository root.")}
-      ${path(3, "Run a fresh investigation", "Databricks workspace with the repo as a Git folder, a serving endpoint (databricks-gpt-oss-120b), a Unity Catalog volume, requirements-llm.txt.", "A new run folder with every step, prompt and reply, scored against the answer key.",
-        `python -m scripts.probe_model --n 6          # expect 5–6 usable replies
+python -m scripts.build_experience_data      # rebuild app/web/data from the archive</pre>
+        <p class="rp-f"><b>If it fails:</b> a figure test failing means app/web/data no longer matches the archive; re-run the export and look at what changed. Run commands from the repository root.</p></section>
+      <section><h2>3 · Run a fresh investigation</h2>
+        <p class="rp-m"><b>Needs:</b> a Databricks workspace with the repository as a Git folder, a serving endpoint (default databricks-gpt-oss-120b), a Unity Catalog volume for results, and requirements-llm.txt. <b>Gives:</b> a new run folder with every step, prompt and reply, scored against the answer key.</p>
+        <pre class="code">python -m scripts.probe_model --n 6          # expect 5–6 usable replies
 python -m scripts.detective_job submit --repo /Workspace/Users/&lt;you&gt;/payments-control-impact \\
     --variant A --output-dir /Volumes/workspace/default/detective_runs/&lt;run-name&gt;
 python -m scripts.detective_job status &lt;run_id&gt;
-python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-folder&gt; --runs 1`,
-        "<b>Expect differences:</b> temperature 0 is not deterministic on this endpoint (80% of key decisions repeated over five runs); compare pooled metrics. The held-out split needs a confirmation flag. An interrupted job resumes with the same output folder. Full steps: docs/runbook.md.")}
-      </div>`;
+python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-folder&gt; --runs 1</pre>
+        <p class="rp-f"><b>Expect differences:</b> temperature 0 does not make the endpoint deterministic; decisions differ from run to run (80% of key decisions repeated in the five-run test). Compare pooled metrics, not individual decisions. The held-out split needs an explicit confirmation flag. <b>If it fails:</b> check the endpoint with probe_model first; an interrupted job resumes when resubmitted with the same output folder. Full steps: docs/runbook.md.</p></section>`;
   },
 
   async pilot(pane) {

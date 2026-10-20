@@ -176,7 +176,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
             "Without the detective these controls would still need checking, by tracing lineage gaps by hand or by missing them. Of the 406 items it adds, 331 are real impacts the lineage check missed; 75 are not affected and come with evidence to clear them.",
         ),
         (
-            "It is not yet repeatable enough",
+            "Next: steadier decisions run to run",
             "Across five runs, 80% of key decisions were identical, against a 95% target.",
         ),
         (

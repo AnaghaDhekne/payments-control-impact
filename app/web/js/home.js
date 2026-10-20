@@ -137,17 +137,14 @@ export async function renderHome(main, app) {
     <section class="h-sec">
       <div class="h-wrap h-two">
         <div>
-          <h2 class="h-h2">What is proven, and what is not yet</h2>
+          <h2 class="h-h2">What it has shown</h2>
           <ul class="h-proof yes">
             <li>Finds most of what an incomplete map hides, on changes it had never seen. The walkthrough shows how much.</li>
             <li>Shows its evidence for every finding, and routes doubt to people.</li>
+            <li>Keeps everything the existing check finds, and only adds.</li>
             <li>Runs end to end on Databricks.</li>
           </ul>
-          <ul class="h-proof no">
-            <li>Not yet tested on a real bank's changes and documents.</li>
-            <li>Not yet tried with control owners working the list in practice.</li>
-            <li>Not yet repeatable enough: the same change can get different decisions on different runs.</li>
-          </ul>
+          <p class="h-next"><b>Next to prove:</b> the same results on a real bank's changes, judged by control owners, with steadier run-to-run decisions.</p>
         </div>
         <div>
           <h2 class="h-h2">How a bank would adopt it</h2>

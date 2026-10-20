@@ -97,13 +97,13 @@ CLAIMS = [
         "7 Decision",
         "#/decision?case=CHG-027",
         None,
-        "Whether decisions repeat from run to run.",
+        "Steadier decisions from run to run.",
     ),
     (
         "5 Consequence",
         "#/consequence?case=CHG-027",
         None,
-        "does not double-check not-affected decisions",
+        "second check on key controls marked not affected"
     ),
     (
         "6 Weaker case",
@@ -121,7 +121,7 @@ CLAIMS = [
         "7 Decision",
         "#/decision?case=CHG-027",
         None,
-        "Not yet ready for a pilot.",
+        "Ready for control owners to judge.",
     ),
     (
         "7 Decision",

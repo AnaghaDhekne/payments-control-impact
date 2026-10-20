@@ -143,3 +143,31 @@ def test_prompts_are_the_recorded_versions(experience):
     assert pr["variant"] == experience["provenance"]["version"] == "A"
     assert pr["investigator"] == instructions_for("A")
     assert pr["verifier"] == VERIFIER_INSTRUCTIONS
+
+
+def test_drill_down_records_reconcile_with_the_headline(experience, cases):
+    """The evidence room lists the records behind each figure; they must add up."""
+    p = experience["portfolio"]
+    key = {"check": 0, "recommended": 0, "review": 0, "silent": 0}
+    new_right = new_wrong = add_aff = add_unaff = 0
+    for c in cases.values():
+        base = set(c["baseline"])
+        dec = {d["control"]: d for d in c["decisions"]}
+        for cid in c["key"]:
+            r = "check" if cid in base else dec.get(cid, {}).get("route")
+            key[r if r in key else "silent"] += 1
+        for d in c["decisions"]:
+            if d["control"] in base:
+                if "disagree" in (d.get("routing_reason") or "").lower():
+                    add_aff += d["truth"]
+                    add_unaff += not d["truth"]
+                continue
+            if d["route"] == "recommended":
+                new_right += d["truth"]
+                new_wrong += not d["truth"]
+            if d["route"] in ("recommended", "review"):
+                add_aff += d["truth"]
+                add_unaff += not d["truth"]
+    assert key == {"check": 18, "recommended": 113, "review": 30, "silent": 1}
+    assert (new_right, new_right + new_wrong) == (p["new_right"], p["new_total"])
+    assert (add_aff, add_unaff) == (p["added_affected"], p["added_unaffected"])

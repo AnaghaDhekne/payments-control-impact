@@ -144,12 +144,13 @@ class Handler(SimpleHTTPRequestHandler):
             from app import qa
 
             answer = qa.ask(question, [], results_summary())
-            return self._json({"answer": answer})
+            return self._json({"answer": answer, "available": True})
         except Exception as exc:  # endpoint missing, not permitted, or no SDK locally
             return self._json(
                 {
+                    "available": False,
                     "answer": "The model endpoint could not be reached from here "
-                    f"({type(exc).__name__}). The Results and Limits pages in the evidence room "
+                    f"({type(exc).__name__}). The Evaluation evidence and Limits pages in the evidence room "
                     "answer the common questions."
                 }
             )

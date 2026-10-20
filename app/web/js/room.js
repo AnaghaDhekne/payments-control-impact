@@ -8,7 +8,7 @@ import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
 
 export const ROOM_PAGES = [
-  { id: "results", label: "Results" },
+  { id: "results", label: "Evaluation evidence" },
   { id: "changes", label: "All 18 test changes" },
   { id: "limits", label: "Limits and fixes tried" },
   { id: "ask", label: "Ask about the POC" },
@@ -59,6 +59,17 @@ function wirePrompt(pane) {
     })
   );
 }
+
+/** A list of (change, control) records grouped by change; each opens its evidence in place. */
+function recordList(app, title, items) {
+  const by = {};
+  for (const [cs, id] of items) (by[cs] ||= []).push(id);
+  const name = (id) => app.graph.nodes.find((n) => n.id === id)?.name || id;
+  return `<div class="recs"><div class="recs-h"><b>${esc(title)}</b> · ${items.length} record${items.length === 1 ? "" : "s"}</div>
+    ${Object.entries(by).map(([cs, ids]) => `<div class="recs-g"><div class="recs-c">${esc(cs)} <span>${ids.length}</span></div><div class="recs-l">${ids.map((id) => `<button type="button" class="rec" data-case="${cs}" data-id="${id}"><b>${esc(id)}</b> ${esc(name(id))}</button>`).join("")}</div></div>`).join("")}</div>`;
+}
+const wireRecords = (root) =>
+  root.querySelectorAll("button.rec").forEach((b) => b.addEventListener("click", () => openInspector(b.dataset.id, b.dataset.case, { stay: true })));
 
 const table = (head, rows, cls = "") =>
   `<table class="t ${cls}"><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
@@ -277,26 +288,67 @@ const PAGES = {
 
   async results(pane, app) {
     const P = app.exp.portfolio;
+    const B = app.exp.benchmark;
     const fr = app.exp.development_runs.frozen_check;
     const vb = app.exp.development_runs.variant_b;
+    const all = await Promise.all(app.exp.cases.map((x) => getCase(x.id)));
+    // Every record behind the headline claims, computed from the exported decisions.
+    const rec = { check: [], recovered: [], routed: [], silent: [], newRight: [], newWrong: [], addAff: [], addUnaff: [] };
+    for (const k of all) {
+      for (const id of k.key) {
+        const r = k.baselineSet.has(id) ? "check" : k.decision(id)?.route;
+        (r === "check" ? rec.check : r === "recommended" ? rec.recovered : r === "review" ? rec.routed : rec.silent).push([k.id, id]);
+      }
+      for (const d of k.decisions) {
+        if (k.baselineSet.has(d.control)) {
+          // Found by the check, but the two reviews then disagreed: the scorer counts it as an added review item.
+          if (/disagree/i.test(d.routing_reason || "")) (d.truth ? rec.addAff : rec.addUnaff).push([k.id, d.control]);
+          continue;
+        }
+        if (d.route === "recommended") (d.truth ? rec.newRight : rec.newWrong).push([k.id, d.control]);
+        if (d.route === "recommended" || d.route === "review") (d.truth ? rec.addAff : rec.addUnaff).push([k.id, d.control]);
+      }
+    }
     const bar = (parts, total) =>
       `<div class="sbar">${parts.filter(([, n]) => n).map(([cls, n]) => `<span class="${cls}" style="flex:${n}" title="${n}">${n / total >= 0.06 ? n : ""}</span>`).join("")}</div>`;
-    pane.innerHTML = `<h1>Results</h1>
-      <p class="lead">Held-out test: 18 synthetic changes never used while building the agent; version A frozen before the run; one run.</p>
-      <section><h2>Against the three goals set at the start</h2><div class="goals">
-        <div class="goal"><div class="g-t">Find at least half of the key controls the existing check misses</div>
-          <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Met</span>
+    const LBL = { addAff: "affected", addUnaff: "not affected" };
+    const showBtn = (key, n) => `<button class="btn sm" type="button" data-rec="${key}">Show ${n}${LBL[key] ? " " + LBL[key] : ` record${n === 1 ? "" : "s"}`}</button>`;
+    pane.innerHTML = `<h1>Evaluation evidence</h1>
+      <p class="lead">What the held-out evaluation established, and the records behind each claim. Every list below opens the control's evidence in place.</p>
+      <div class="conds">
+        <div><b>${P.changes}</b>held-out changes, never used while building the agent</div>
+        <div><b>30%</b>lineage damage, nearest the change first</div>
+        <div><b>${B.controls}</b>controls in the benchmark, ${B.key_controls} key</div>
+        <div><b>A</b>frozen version, one recorded run</div>
+      </div>
+      <section><h2>Evidence index</h2>${table(["Claim", "Records behind it", ""], [
+        `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
+        `<tr><td><b>Recommendation precision</b></td><td>The ${P.new_total} new recommendations compared with the answer key; the ${rec.newWrong.length} that were wrong</td><td>${showBtn("newWrong", rec.newWrong.length)}</td></tr>`,
+        `<tr><td><b>Review composition</b></td><td>The ${P.added_items} added items: recommendations and findings sent to a person, by the answer key</td><td>${showBtn("addAff", rec.addAff.length)} ${showBtn("addUnaff", rec.addUnaff.length)}</td></tr>`,
+        `<tr><td><b>Consistency</b></td><td>Five runs each of three development changes (CHG-014, CHG-025, CHG-017). These records are in results/detective_runs.tar.gz, not loaded into this app.</td><td></td></tr>`,
+        `<tr><td><b>Known failure</b></td><td>The silent miss: an affected key control neither recommended nor sent to a person</td><td>${showBtn("silent", rec.silent.length)}</td></tr>`,
+        `<tr><td><b>Version selection</b></td><td>Pre-registered tests of versions B, C and D, and why each was not adopted: <i>Limits and fixes tried</i>, in this room</td><td></td></tr>`,
+      ])}<div id="rec-out"></div></section>
+      <section><h2>The three evaluation questions</h2><div class="goals">
+        <div class="goal"><div class="g-t">Can it recover the key controls the lineage check misses?</div>
+          <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Goal met · at least 50%</span>
           <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
-        <div class="goal"><div class="g-t">Keep the extra review small</div>
-          <div class="g-v">${P.added_unaffected}<small> avoidable items</small></div><span class="badge review">Not met as set</span>
-          <p>${P.added_items} items were added for review: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too.</p></div>
-        <div class="goal"><div class="g-t">Give the same decision on every run</div>
-          <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Not met · target 95%</span>
+        <div class="goal"><div class="g-t">Can it keep the extra review small?</div>
+          <div class="g-v">${P.added_unaffected}<small> avoidable items</small></div><span class="badge review">Original goal not met</span>
+          <p>The goal set at the start was at most 25% more review items than the check's ${P.check_items}. ${P.added_items} were added: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too.</p></div>
+        <div class="goal"><div class="g-t">Are its decisions repeatable?</div>
+          <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Goal not met · target 95%</span>
           <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
       </div></section>
       <section><h2>Where the ${P.key_affected} affected key controls went</h2>
-        ${bar([["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]], P.key_affected)}
-        <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></section>
+        ${bar([["check", rec.check.length], ["agent", rec.recovered.length], ["review", rec.routed.length], ["silent", rec.silent.length]], P.key_affected)}
+        ${table(["Outcome", "What it means", "Count", ""], [
+          `<tr><td><span class="badge check">Found by the lineage check</span></td><td>The existing lineage already identified it</td><td class="num">${rec.check.length}</td><td>${showBtn("check", rec.check.length)}</td></tr>`,
+          `<tr><td><span class="badge recommended">Recovered by the detective</span></td><td>Missed by the lineage check; both AI reviews said affected, so it is recommended</td><td class="num">${rec.recovered.length}</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
+          `<tr><td><span class="badge review">Sent to a person</span></td><td>Affected in the answer key, but the two reviews did not agree, so not counted as recovered</td><td class="num">${rec.routed.length}</td><td>${showBtn("routed", rec.routed.length)}</td></tr>`,
+          `<tr><td><span class="badge silent">Silent miss</span></td><td>Neither recommended nor sent to a person</td><td class="num">${rec.silent.length}</td><td>${showBtn("silent", rec.silent.length)}</td></tr>`,
+          `<tr class="total"><td colspan="2"><b>Total, across the ${P.changes} changes</b></td><td class="num"><b>${rec.check.length + rec.recovered.length + rec.routed.length + rec.silent.length}</b></td><td></td></tr>`,
+        ])}</section>
       <section><h2>By type of change</h2><p style="color:var(--ink-2);margin-top:0">Key controls the existing check missed, three changes of each type.</p>
         <div class="bytype">${Object.entries(P.by_type).map(([k, v]) => `<div class="bt-row"><div class="bt-n"><b>${esc(k)}</b>${v.key_misses} missed by the check</div>${v.key_misses ? bar([["agent", v.found], ["review", v.routed], ["silent", v.silent]], v.key_misses) : '<div class="bt-none">The check missed none</div>'}</div>`).join("")}</div>
         <p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the checker withholds agreement when no visible link connects the engine to the control, so most findings go to a person rather than being recommended.</p></section>
@@ -309,64 +361,105 @@ const PAGES = {
         fr && `<tr><td>Frozen check, version A, unseen development changes</td><td class="num">${fr.cases ?? 8}</td><td class="num">${fr.key_recovered} of ${fr.key_misses}</td><td class="num">${pct(fr.new_control_precision, 1)}</td><td class="num">${fr.avoidable_review_items}</td></tr>`,
         vb && `<tr><td>Version B on the same changes</td><td class="num">${vb.cases ?? 8}</td><td class="num">${vb.key_recovered} of ${vb.key_misses}</td><td class="num">${pct(vb.new_control_precision, 1)}</td><td class="num">${vb.avoidable_review_items}</td></tr>`,
       ].filter(Boolean))}</section>`;
+    const titles = {
+      check: "Affected key controls found by the lineage check",
+      recovered: "Affected key controls recovered by the detective",
+      routed: "Affected key controls sent to a person",
+      silent: "Silent misses",
+      newWrong: "New recommendations the answer key says were not affected",
+      addAff: "Added review items that are affected in the answer key",
+      addUnaff: "Added review items the answer key says were not affected",
+    };
+    const out = pane.querySelector("#rec-out");
+    pane.querySelectorAll("[data-rec]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const key = b.dataset.rec;
+        out.innerHTML = recordList(app, titles[key], rec[key]);
+        wireRecords(out);
+        out.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      })
+    );
+    // The outcome table's buttons show their list next to the table.
+    pane.querySelectorAll("section:not(:has(#rec-out)) [data-rec]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const sec = b.closest("section");
+        let box = sec.querySelector(".rec-box");
+        if (!box) { box = document.createElement("div"); box.className = "rec-box"; sec.append(box); }
+        box.innerHTML = recordList(app, titles[b.dataset.rec], rec[b.dataset.rec]);
+        wireRecords(box);
+        out.innerHTML = "";
+      })
+    );
   },
 
   async changes(pane, app, c) {
-    const seg = (cls, n, total) => (n ? `<span class="${cls}" style="flex:${n}">${n}</span>` : "");
-    const rows = app.exp.cases.map(
-      (x) => `<li class="cl-row" data-id="${x.id}" tabindex="0" role="button" aria-label="${esc(x.id)} ${esc(x.title)}">
+    const all = await Promise.all(app.exp.cases.map((x) => getCase(x.id)));
+    const typeOf = (k) => k.title.split(" — ")[0];
+    const types = [...new Set(all.map(typeOf))];
+    const CATS = {
+      attention: "Needs attention (all four below)",
+      missed: "Affected but not surfaced",
+      affRouted: "Affected, sent to a person",
+      unaffRec: "Not affected, but recommended",
+      unaffRouted: "Not affected, sent to a person",
+      affected: "Every affected control",
+      all: "Every decision",
+    };
+    const rows = [];
+    for (const k of all)
+      for (const d of k.decisions) {
+        const r = k.baselineSet.has(d.control) ? "check" : d.route;
+        const cat = d.truth && !["check", "recommended", "review"].includes(r) ? "missed" : d.truth && r === "review" ? "affRouted" : !d.truth && r === "recommended" ? "unaffRec" : !d.truth && r === "review" ? "unaffRouted" : null;
+        rows.push({ k, d, r, cat, type: typeOf(k) });
+      }
+    const f = { change: "all", type: "all", cat: "attention", key: "all" };
+    const seg = (cls, n) => (n ? `<span class="${cls}" style="flex:${n}">${n}</span>` : "");
+    const list = app.exp.cases.map(
+      (x) => `<li class="cl-row" data-id="${x.id}" tabindex="0" role="button" aria-label="Show the decisions of ${esc(x.id)}">
         <div class="cl-t"><b>${esc(x.id)}</b> ${esc(x.title)}<span>${x.affected} affected controls · ${x.model_calls} model calls</span></div>
         ${x.key_affected ? `<div class="sbar sm">${seg("check", x.check_found_key)}${seg("agent", x.key_found_by_agent)}${seg("review", x.key_routed)}${seg("silent", x.key_silent)}</div>` : '<div class="bt-none">No key controls affected</div>'}
         <div class="cl-k">${x.key_affected} key</div></li>`
     );
-    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Each bar is one change's affected key controls: who found them. Select a change to see every decision against the answer key and open any control's evidence.</p>
-      <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span></div>
-      <ul class="clist">${rows.join("")}</ul>
-      <section id="detail"></section>`;
-    const detail = pane.querySelector("#detail");
-    const show = async (id) => {
-      const k = await getCase(id);
-      pane.querySelectorAll("[data-id]").forEach((r) => r.classList.toggle("on", r.dataset.id === id));
-      let filter = "issues";
-      const draw = () => {
-        const ds = k.decisions.filter((d) => {
-          if (filter === "issues") return (d.truth && !["check", "recommended"].includes(k.baselineSet.has(d.control) ? "check" : d.route)) || (!d.truth && ["recommended", "review"].includes(d.route));
-          if (filter === "affected") return d.truth;
-          return true;
-        });
-        detail.querySelector("#dt").innerHTML = table(
-          ["Control", "Name", "Key", "Decision", "Answer key"],
-          ds.map((d) => {
-            const r = k.baselineSet.has(d.control) ? "check" : d.route;
-            const n = app.graph.nodes.find((x) => x.id === d.control);
-            return `<tr class="click" data-c="${d.control}" tabindex="0"><td>${esc(d.control)}</td><td>${esc(n.name)}</td><td>${d.key ? "key" : ""}</td><td><span class="badge ${r}">${esc(ROUTE_LABEL[r])}</span></td><td>${d.truth ? "affected" : "not affected"}</td></tr>`;
-          })
-        );
-        detail.querySelectorAll("tr[data-c]").forEach((r) => {
-          const open = () => openInspector(r.dataset.c, id);
-          r.addEventListener("click", open);
-          r.addEventListener("keydown", (e) => e.key === "Enter" && open());
-        });
-      };
-      detail.innerHTML = `<h2>${esc(k.id)} · ${esc(k.title)}</h2>
-        <div class="filters"><div class="seg" role="group" aria-label="Filter">
-          <button type="button" data-f="issues" aria-pressed="true">Misses and wrong flags</button>
-          <button type="button" data-f="affected" aria-pressed="false">All affected</button>
-          <button type="button" data-f="all" aria-pressed="false">Every decision</button></div></div><div id="dt"></div>`;
-      detail.querySelectorAll("[data-f]").forEach((b) =>
-        b.addEventListener("click", () => {
-          filter = b.dataset.f;
-          detail.querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-          draw();
-        })
-      );
-      draw();
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${v === cur ? "selected" : ""}>${esc(l)}</option>`;
+    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Explore every decision across the held-out changes, or pick one change from the list. Each decision opens its evidence in place.</p>
+      <section><h2>Explore the decisions</h2>
+        <div class="xf">
+          <label>Change<select id="f-change">${opt("all", "All 18 changes", f.change)}${all.map((k) => opt(k.id, `${k.id} · ${typeOf(k)}`, f.change)).join("")}</select></label>
+          <label>Type of change<select id="f-type">${opt("all", "Every type", f.type)}${types.map((t) => opt(t, t, f.type)).join("")}</select></label>
+          <label>Show<select id="f-cat">${Object.entries(CATS).map(([v, l]) => opt(v, l, f.cat)).join("")}</select></label>
+          <label>Controls<select id="f-key">${opt("all", "Key and other", f.key)}${opt("key", "Key controls only", f.key)}</select></label>
+        </div>
+        <p class="xf-sum" id="xf-sum"></p><div id="xf-t"></div></section>
+      <section><h2>The 18 changes</h2>
+        <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span><span>Bars show affected key controls; select a change to filter the decisions above</span></div>
+        <ul class="clist">${list.join("")}</ul></section>`;
+    const LIMIT = 150;
+    const draw = () => {
+      const hit = rows.filter(({ k, d, cat, type }) =>
+        (f.change === "all" || k.id === f.change) && (f.type === "all" || type === f.type) && (f.key === "all" || d.key) &&
+        (f.cat === "all" || (f.cat === "affected" ? d.truth : f.cat === "attention" ? !!cat : cat === f.cat)));
+      const counts = {};
+      for (const r of rows.filter(({ k, d, type }) => (f.change === "all" || k.id === f.change) && (f.type === "all" || type === f.type) && (f.key === "all" || d.key))) if (r.cat) counts[r.cat] = (counts[r.cat] || 0) + 1;
+      pane.querySelector("#xf-sum").innerHTML = `${hit.length} decision${hit.length === 1 ? "" : "s"}${hit.length > LIMIT ? `, first ${LIMIT} shown` : ""}. In this selection: ${["missed", "affRouted", "unaffRec", "unaffRouted"].map((x) => `${CATS[x].toLowerCase()} <b>${counts[x] || 0}</b>`).join(" · ")}.`;
+      pane.querySelector("#xf-t").innerHTML = hit.length ? table(["Change", "Control", "Key", "Decision", "Answer key"], hit.slice(0, LIMIT).map(({ k, d, r }) => {
+        const n = app.graph.nodes.find((x) => x.id === d.control);
+        return `<tr class="click" data-case="${k.id}" data-c="${d.control}" tabindex="0"><td>${esc(k.id)}</td><td><b>${esc(d.control)}</b> ${esc(n.name)}</td><td>${d.key ? "key" : ""}</td><td><span class="badge ${r}">${esc(ROUTE_LABEL[r])}</span></td><td>${d.truth ? "affected" : "not affected"}</td></tr>`;
+      })) : `<p class="bt-none">No decisions match this selection.</p>`;
+      pane.querySelectorAll("#xf-t tr[data-c]").forEach((tr) => {
+        const open = () => openInspector(tr.dataset.c, tr.dataset.case, { stay: true });
+        tr.addEventListener("click", open);
+        tr.addEventListener("keydown", (e) => e.key === "Enter" && open());
+      });
+      pane.querySelectorAll(".cl-row").forEach((li) => li.classList.toggle("on", li.dataset.id === f.change));
     };
-    pane.querySelectorAll(".cl-row").forEach((r) => {
-      r.addEventListener("click", () => show(r.dataset.id));
-      r.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), show(r.dataset.id)));
+    for (const [id, key] of [["f-change", "change"], ["f-type", "type"], ["f-cat", "cat"], ["f-key", "key"]])
+      pane.querySelector("#" + id).addEventListener("change", (e) => { f[key] = e.target.value; draw(); });
+    pane.querySelectorAll(".cl-row").forEach((li) => {
+      const pick = () => { f.change = li.dataset.id; pane.querySelector("#f-change").value = f.change; draw(); pane.querySelector("#xf-sum").scrollIntoView({ behavior: "smooth", block: "center" }); };
+      li.addEventListener("click", pick);
+      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), pick()));
     });
-    show(c.id);
+    draw();
   },
 
   async architecture(pane) {
@@ -420,12 +513,33 @@ const PAGES = {
   },
 
   async limits(pane, app) {
-    pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">What the proof of concept does not show, where it goes wrong, and what was tried to fix it.</p>
+    const HYP = {
+      B: ["Requiring a cited chain from the change to the control removes unsupported recommendations.", "Fewer wrong flags, but real impacts were lost too."],
+      C: ["A coverage sweep, a second look at not-affected key controls and a three-run vote make decisions repeatable without losing recovery.", "Close to the target, at about four times the model calls."],
+      D: ["A tie-break call on disagreements turns items sent to a person into decisions without losing recoveries.", "Fewer unaffected items, but fewer key misses found."],
+      "A + tie-break": ["Applying the tie-break to A's saved runs cuts review items without dismissing real impacts.", "Review fell by a third, but one in five truly affected review items was dismissed."],
+    };
+    pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Where the proof of concept falls short, what was tried to fix it, and what that taught. Each fix had its adoption rule written before it ran.</p>
       <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome.</div>
       <section><h2>Known weaknesses</h2>${table(["Weakness", "Evidence", "Next step"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}</section>
-      <section><h2>Fixes tried, none adopted</h2><p style="color:var(--ink-2);margin-top:0">Each fix had an adoption rule written before it ran. None met all of its rules, so the original agent (version A) is final.</p>
-        ${table(["Fix", "What happened", "Rule it had to meet"], app.exp.version_tests.map((v) => `<tr><td><b>${esc(v.name)}</b><br><span style="color:var(--ink-3);font-size:12px">${esc(v.test)}</span></td><td>${esc(v.result)}</td><td>${esc(v.rule)}</td></tr>`))}
-        <p style="font-size:13px;color:var(--ink-3)">What was learnt: the tie-break is reliable when it promotes a finding (68 of 70 promotions were right) but not when it dismisses one; voting across runs steadies decisions, but a three-run vote reached 94.4%, just short of 95%. Source: docs/results.md.</p></section>
+      <section><h2>Experiment decision records</h2><div class="drs">
+        ${app.exp.version_tests.map((v) => {
+          const [hyp, trade] = HYP[v.version] || ["", ""];
+          return `<article class="dr"><div class="dr-h"><span class="dr-v">Version ${esc(v.version)}</span><h3>${esc(v.name)}</h3><span class="badge not_affected">${esc(v.decision)}</span></div>
+            <dl><dt>Hypothesis</dt><dd>${esc(hyp)}</dd>
+            <dt>Tested on</dt><dd>${esc(v.test)}</dd>
+            <dt>Rule written in advance</dt><dd>${esc(v.rule)}</dd>
+            <dt>Result</dt><dd>${esc(v.result)}</dd>
+            <dt>Trade-off</dt><dd>${esc(trade)}</dd></dl></article>`;
+        }).join("")}</div>
+        <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Source: docs/results.md, pre-registered sections.</p></section>
+      <section><h2>What we learned</h2><ul class="ra-notes">
+        <li><b>Stricter evidence rules trade recall for precision.</b> Demanding a cited chain removed unsupported recommendations and some real recoveries with them.</li>
+        <li><b>Voting steadies decisions, at a cost.</b> A three-run vote came within one decision of the 95% target, for about four times the model calls.</li>
+        <li><b>A verifier of positive findings cannot catch false negatives.</b> Controls marked not affected never reach it; the silent miss came from one.</li>
+        <li><b>Routing keeps doubt visible but hands it to people.</b> Disagreements are never discarded, which is why review volume grows.</li>
+        <li><b>Tie-breaks are reliable when they promote, not when they dismiss.</b> 68 of 70 promotions were right; dismissals removed real impacts.</li>
+      </ul></section>
       <details class="terms"><summary>Terms used in the evidence room</summary>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</details>`;
   },
 
@@ -472,23 +586,36 @@ python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-
   },
 
   async ask(pane) {
+    const SUGGEST = [
+      "Why did version A remain the selected implementation?",
+      "Which change types produced the most difficult findings?",
+      "What caused the silent miss?",
+      "How were the 406 additional review items classified?",
+      "What prevents the system from approving a control automatically?",
+    ];
     pane.innerHTML = `<h1>Ask about the proof of concept</h1>
-      <p class="lead">Answers come only from the project's documents and recorded results, using the workspace model endpoint. If they do not cover a question, the answer says so. Like any model, it can be wrong: check figures against the Results page.</p>
-      <form class="ask" id="f"><input id="q" placeholder="For example: why is consistency below target?" aria-label="Your question"><button class="btn primary" type="submit">Ask</button></form>
-      <div id="a"></div>`;
-    pane.querySelector("#f").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const q = pane.querySelector("#q").value.trim();
-      if (!q) return;
+      <p class="lead">Questions are answered live by the workspace model, from the project's own documents and the recorded results. This is separate from the recorded evidence: if the model is unavailable, every other page still works.</p>
+      <div class="ask-s">${SUGGEST.map((q) => `<button class="rec" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+      <form class="ask" id="f"><input id="q" placeholder="Ask your own question" aria-label="Your question"><button class="btn primary" type="submit">Ask</button></form>
+      <div id="a"></div>
+      <p class="ask-src"><b>What the model reads:</b> README.md, docs/results.md, docs/evaluation.md, docs/architecture.md, docs/runbook.md, data/README.md, the recorded held-out figures, and the full list of controls, items and test changes. Answers do not carry citations; like any model it can be wrong, so check figures on <i>Evaluation evidence</i> and in the evidence panel.</p>`;
+    const ask = async (q) => {
       const out = pane.querySelector("#a");
       out.innerHTML = `<div class="answer">Reading the project material…</div>`;
       try {
         const r = await fetch("api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
         const j = await r.json();
-        out.innerHTML = `<div class="answer">${esc(j.answer || j.error || "No answer.")}</div>`;
+        const down = j.available === false;
+        out.innerHTML = `<div class="answer ${down ? "down" : ""}">${down ? "<b>The live assistant is unavailable here.</b> " : ""}${esc(j.answer || j.error || "No answer.")}</div>`;
       } catch (err) {
-        out.innerHTML = `<div class="answer">The assistant is not available here (${esc(err.message)}). The Results and Limits pages answer the common questions.</div>`;
+        out.innerHTML = `<div class="answer down"><b>The live assistant is unavailable here</b> (${esc(err.message)}). The recorded evidence on these pages is unaffected.</div>`;
       }
+    };
+    pane.querySelector("#f").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = pane.querySelector("#q").value.trim();
+      if (q) ask(q);
     });
+    pane.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", () => { pane.querySelector("#q").value = b.dataset.q; ask(b.dataset.q); }));
   },
 };

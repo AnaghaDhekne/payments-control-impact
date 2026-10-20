@@ -917,3 +917,19 @@ pre.code.prompt { white-space: pre-wrap; word-break: break-word; font-size: 12.5
 .ov-t { max-width: 980px; }
 @media (max-width: 1000px) { .ov-facts, .ov-status, .ov-ex-b { grid-template-columns: 1fr; } .ov-m { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .ov-m { grid-template-columns: 1fr; } }
+/* Inspector: summary and the three questions */
+.inspector .why p { margin: 8px 0 0; font-size: 14px; color: var(--ink); }
+.tq { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 0; font-size: 13px; }
+.tq dt { color: var(--ink-3); font-weight: 600; margin-top: 6px; }
+.tq dd { margin: 0; color: var(--ink); }
+.tq-n { font-size: 12px; color: var(--ink-3); margin: 8px 0 0; }
+.not-asked { margin: 0; font-size: 13.5px; color: var(--risk); }
+
+/* Landing hero: the first button sits high enough to be seen on short laptop screens */
+.h-hero { padding: 40px 0 44px; }
+.h-hero h1 { font-size: 40px; margin-bottom: 16px; }
+.h-hero .h-sub { margin-bottom: 18px; }
+.h-more { font-size: 15px; line-height: 1.6; color: var(--ink-2); margin: 22px 0 0; max-width: 60ch; }
+.h-more b { color: var(--ink); }
+@media (max-width: 1000px) { .h-hero h1 { font-size: 34px; } }
+@media (max-width: 640px) { .h-hero { padding: 28px 0 36px; } .h-hero h1 { font-size: 28px; } }

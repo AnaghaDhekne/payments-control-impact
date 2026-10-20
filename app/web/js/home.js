@@ -27,10 +27,11 @@ export async function renderHome(main, app) {
         <div>
           <p class="h-eyebrow">For banks changing payment systems</p>
           <h1>See which safety checks a system change could quietly break, before it goes live.</h1>
-          <p class="h-sub">Banks protect payments with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working. Control Impact Detective reads the change and the bank's own documents, finds the checks at risk, and shows its evidence for each, so the right people can act before release.</p>
+          <p class="h-sub">Control Impact Detective reads a change and the bank's own documents, finds the safety checks at risk, and shows its evidence for each, so the right people can act before release.</p>
           <div class="h-cta">
-            <a class="btn lg" href="#problem">Understand the problem <span aria-hidden="true">↓</span></a>
+            <a class="btn primary lg" href="#problem">Understand the problem <span aria-hidden="true">↓</span></a>
           </div>
+          <p class="h-more">Banks protect payments with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working.</p>
           <p class="h-fine">Proof of concept, tested on a realistic made-up bank. No real bank or customer data.</p>
         </div>
         <aside class="h-case card" aria-label="The example change">

@@ -206,3 +206,12 @@ def test_handbook_shows_the_prompts_of_the_recorded_run(page, experience):
     page.goto(page.base + "#/room/architecture")
     page.wait_for_timeout(500)
     assert "#/handbook/architecture" in page.url
+
+
+def test_first_button_is_visible_without_scrolling(page):
+    # A short laptop browser window, after browser and platform bars.
+    page.set_viewport_size({"width": 1280, "height": 600})
+    open_home(page)
+    box = page.locator('a[href="#problem"]').bounding_box()
+    page.set_viewport_size({"width": 1440, "height": 900})
+    assert box["y"] + box["height"] <= 520

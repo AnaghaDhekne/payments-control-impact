@@ -201,17 +201,47 @@ function controlBody(c, cid) {
   const text = c.document_overrides?.[cid] || doc?.text || "";
   const truth = c.affectedSet.has(cid);
   const route = c.baselineSet.has(cid) ? "check" : d?.route || "undecided";
-  const action = {
-    check: "Already flagged by the lineage check: assess the impact and re-test before release.",
-    recommended: "Proposed: the control owner assesses the impact and decides whether to re-test before release.",
-    review: "Proposed: the control owner weighs both arguments below and decides whether the control is affected.",
-    not_affected: "None proposed. The agent gives its reason below; nothing is routed to a person.",
-    undecided: "None. The agent did not reach a decision on this control.",
+  const verifierAsked = !!d?.checker;
+  const why = {
+    check: "The bank's existing lineage check reaches this control through links on record, so it is already on the list. No AI judgement was needed.",
+    recommended: "The investigator found evidence that the change affects this control, and an independent second review agreed. It is recommended for its owner to assess.",
+    review: d?.proposer === "UNCERTAIN" && d?.checker === "UNCERTAIN" ? "Neither the investigator nor the second review could decide, so the control goes to a person." : "The investigator and the independent second review disagreed, so the control goes to a person.",
+    not_affected: "The investigator judged this control not affected and recorded why. Not-affected decisions are not sent to the second review, so nobody checked this one.",
+    undecided: "The investigation ended before this control received a decision.",
   }[route];
+  const action = {
+    check: "Assess the impact and re-test before release.",
+    recommended: "The control owner assesses the impact and decides whether to re-test before release.",
+    review: "The control owner weighs both arguments below and decides whether the control is affected.",
+    not_affected: "None proposed; nothing is routed to a person.",
+    undecided: "None.",
+  }[route];
+  const hasQuotes = !!(d?.ticket_quote || d?.control_quote);
+  const outcome = !app.revealTruth ? "Hidden until you reveal the answer key" : ((["check", "recommended"].includes(route) && truth) || (route === "not_affected" && !truth)) ? "Matches the answer key" : route === "review" ? `Sent to a person; the answer key says ${truth ? "affected" : "not affected"}` : "Does not match the answer key";
   const sections = [];
-  sections.push(`<section><h4>Where the decision landed</h4><span class="badge ${route}">${esc(ROUTE_LABEL[route])}</span>
-    ${route === "check" ? `<span class="ev doc">Documented</span>` : ["recommended", "review"].includes(route) ? `<span class="ev val">Needs human validation</span>` : ""}
-    ${routingReason(d?.routing_reason) ? `<p style="font-size:13px;color:var(--ink-2);margin:8px 0 0">${esc(routingReason(d.routing_reason))}</p>` : ""}</section>`);
+  // 1. Summary first.
+  sections.push(`<section class="why"><h4>Why it landed here</h4><span class="badge ${route}">${esc(ROUTE_LABEL[route])}</span>
+    <p>${esc(why)}</p></section>`);
+  // 2. Three different questions, kept apart.
+  sections.push(`<section><h4>Three separate questions</h4><dl class="tq">
+    <dt>Is the evidence really in the documents?</dt><dd>${route === "check" ? "Not needed: found through recorded links." : hasQuotes ? "Yes. Code checked that both quotes appear word for word." : "No quotes were recorded."}</dd>
+    <dt>Does the evidence support the impact?</dt><dd>${route === "check" ? "Not needed." : verifierAsked ? (d.proposer === d.checker ? "The second review agreed." : "The second review did not agree.") + " A person makes the final judgement." : "Not checked: the second review was not asked."}</dd>
+    <dt>Is the outcome right?</dt><dd>${esc(outcome)}</dd></dl>
+    <p class="tq-n">A quote found word for word shows the words exist, not that the reasoning is right.</p></section>`);
+  // 3. Observed evidence.
+  if (hasQuotes) {
+    const weak = (q) => {
+      const w = quoteWeakness(q);
+      return w ? `<span class="weak">Weak evidence: ${esc(w)}</span>` : "";
+    };
+    sections.push(`<section><h4>Evidence cited <span class="ev doc">Quoted from the documents</span></h4>
+      <div class="doc"><span class="src">Change ticket ${esc(c.ticket.document_id || "")}${weak(d.ticket_quote)}</span>${highlight(c.ticket.text, d.ticket_quote)}</div>
+      <div class="doc" style="margin-top:8px"><span class="src">Control procedure ${esc(cid)}${weak(d.control_quote)}</span>${highlight(text, d.control_quote)}</div>
+      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">This procedure is a synthetic template generated for its control family, not a written procedure.</p>` : ""}</section>`);
+  } else {
+    sections.push(`<section><h4>Control procedure</h4><div class="doc"><span class="src">${esc(cid)}</span>${esc(text)}</div>
+      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">A synthetic template generated for its control family, not a written procedure.</p>` : ""}</section>`);
+  }
   const ep = d?.evidence_path?.length ? [...d.evidence_path, cid].filter((x, i, a) => a.indexOf(x) === i) : null;
   if (ep && ep.length > 1 && route !== "check") {
     const parts = [];
@@ -219,43 +249,30 @@ function controlBody(c, cid) {
       if (i) {
         const e = app.graph.edges.find((x) => x.source === ep[i - 1] && x.target === id && x.carries_impact);
         const documented = e && e.exposable && !c.removedSet.has(e.id);
-        parts.push(`<span class="lk ${documented ? "doc" : "inf"}">${documented ? "documented link" : "inferred link"}</span>`);
+        parts.push(`<span class="lk ${documented ? "doc" : "inf"}">${documented ? "on record" : "worked out by the AI"}</span>`);
       }
       parts.push(`<span class="n"><b>${esc(id)}</b> ${esc(node(id)?.name || "")}</span>`);
     });
-    sections.push(`<section><h4>How the agent connects it to the change</h4><div class="evpath">${parts.join("")}</div>
-      <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0"><span class="ev doc" style="margin:0">Documented</span> recorded in the lineage map the bank already has. <span class="ev inf" style="margin:0">Inferred</span> not in the map; the agent proposes it from the documents. No confidence score is given; the owner validates.</p></section>`);
+    sections.push(`<section><h4>How it connects to the change</h4><div class="evpath">${parts.join("")}</div></section>`);
   }
-  if (truth && app.revealTruth) sections.push(`<section><h4>In the complete synthetic map (the answer key)</h4>${chainHTML(c, cid)}
-    <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Dashed: link missing from the lineage map the current check uses.</p></section>`);
-  if (d?.ticket_quote || d?.control_quote) {
-    const weak = (q) => {
-      const w = quoteWeakness(q);
-      return w ? `<span class="weak">Weak evidence: ${esc(w)}</span>` : "";
-    };
-    const anyWeak = quoteWeakness(d.ticket_quote) || quoteWeakness(d.control_quote);
-    sections.push(`<section><h4>Evidence the agent cited <span class="ev doc">Documented: quoted from the documents</span></h4>
-      <div class="doc"><span class="src">Change ticket ${esc(c.ticket.document_id || "")}${weak(d.ticket_quote)}</span>${highlight(c.ticket.text, d.ticket_quote)}</div>
-      <div class="doc" style="margin-top:8px"><span class="src">Control procedure ${esc(cid)}${weak(d.control_quote)}</span>${highlight(text, d.control_quote)}</div>
-      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">This procedure is a synthetic template generated for its control family, not a written procedure.</p>` : ""}
-      <p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">Highlighted: the words quoted, verbatim. A verbatim quote proves the words exist in the source, not that they matter${anyWeak ? "; a quote here is thin, so judge the finding on the chain and the reasoning" : ""}.</p></section>`);
-  } else {
-    sections.push(`<section><h4>Control procedure</h4><div class="doc"><span class="src">${esc(cid)}</span>${esc(text)}</div>
-      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">A synthetic template generated for its control family, not a written procedure.</p>` : ""}</section>`);
-  }
+  // 4. Investigator, 5. verifier.
   if (d?.proposer) {
-    sections.push(`<section><h4>Reasoning, as recorded</h4>
-      <div class="verdict"><span class="who a">AI</span><div><b>Agent: ${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "", cid)}
-      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter, cid)}</span>` : ""}</div></div>
-      ${d.checker ? `<div class="verdict"><span class="who c">2nd</span><div><b>Independent checker: ${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the agent.", cid)}</div></div>` : ""}
-      </section>`);
+    sections.push(`<section><h4>Investigator</h4>
+      <div class="verdict"><span class="who a">AI</span><div><b>${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "", cid)}
+      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter, cid)}</span>` : ""}</div></div></section>`);
+    sections.push(`<section><h4>Independent second review</h4>
+      ${verifierAsked ? `<div class="verdict"><span class="who c">2nd</span><div><b>${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the investigator.", cid)}</div></div>`
+        : `<p class="not-asked">Not invoked. The investigator marked this control not affected, and not-affected decisions are not sent to the second review. This is how a missed control can go unnoticed.</p>`}</section>`);
   }
-  sections.push(`<section><h4>Proposed reviewer action</h4><p style="margin:0;font-size:13.5px">${esc(action)}</p>
+  // 6. Final routing.
+  sections.push(`<section><h4>Final routing and proposed action</h4><p style="margin:0;font-size:13.5px">${esc(action)}</p>
     <p class="honest" style="margin-top:8px">Routing is not a completed review. No control owner acted on this in the proof of concept.</p></section>`);
-  sections.push(`<section><h4>Synthetic ground truth</h4>
+  // 7. Answer key.
+  sections.push(`<section><h4>Answer key (synthetic)</h4>
     ${app.revealTruth
       ? `<span class="badge ${truth ? "truth-yes" : "truth-no"}">${truth ? "Affected by this change" : "Not affected by this change"}</span>
-         <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">From the complete synthetic map. A real reviewer would not have this.</p>`
+         ${truth ? `<div style="margin-top:10px">${chainHTML(c, cid)}</div><p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">The route in the complete map; dashed links are missing from the map the check uses.</p>` : ""}
+         <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">A real reviewer would not have this.</p>`
       : `<button class="btn" id="reveal" type="button">Reveal the answer key</button>
          <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Hidden by default: a real reviewer would not know it.</p>`}
     </section>`);
@@ -284,12 +301,13 @@ function itemBody(c, id) {
   };
 }
 
-export async function openInspector(id, caseId) {
-  if (caseId && caseId !== app.caseId) {
+export async function openInspector(id, caseId, opts = {}) {
+  // stay: show another change's evidence without leaving the page (evidence room lists).
+  if (caseId && caseId !== app.caseId && !opts.stay) {
     go(app.route, { caseId, control: id, sub: app.sub });
     return;
   }
-  const c = await getCase(app.caseId);
+  const c = await getCase(caseId || app.caseId);
   app.selected = id;
   const n = node(id);
   const { html } = n.type === "CONTROL" ? controlBody(c, id) : itemBody(c, id);
@@ -304,7 +322,7 @@ export async function openInspector(id, caseId) {
   const rv = ins.querySelector("#reveal");
   if (rv) rv.onclick = () => {
     app.revealTruth = true;
-    openInspector(id);
+    openInspector(id, c.id, { stay: true });
   };
   ins.querySelector("#close").focus({ preventScroll: true });
   app.listeners.forEach((f) => f(id));

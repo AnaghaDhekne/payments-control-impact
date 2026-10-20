@@ -1218,3 +1218,6 @@ html { scrollbar-width: thin; scrollbar-color: #c7cad6 transparent; }
 @media (max-width: 600px) { .pa.row { grid-template-columns: 1fr; } }
 .tap-hint[hidden] { display: none; }
 .graph-legend { max-width: calc(100% - 84px); }
+.h-facts.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.h-facts.four .h-fact b { font-size: 24px; }
+@media (max-width: 600px) { .h-facts.four { grid-template-columns: 1fr; } }

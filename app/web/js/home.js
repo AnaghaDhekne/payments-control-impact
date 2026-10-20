@@ -98,6 +98,66 @@ export async function renderHome(main, app) {
       </div>
     </section>
 
+
+    <section class="h-sec alt">
+      <div class="h-wrap">
+        <h2 class="h-h2">Where it fits in a bank</h2>
+        <p class="h-intro">It sits between raising a change and approving it, inside the bank's own data platform.</p>
+        <div class="h-arch">
+          <div class="h-arch-col">
+            <div class="fl-label">The bank's systems</div>
+            <div class="h-arch-box">Change management<span>change requests</span></div>
+            <div class="h-arch-box">Data lineage catalogue<span>the connection map</span></div>
+            <div class="h-arch-box">Control library<span>check procedures and owners</span></div>
+          </div>
+          ${arrow}
+          <div class="h-arch-col arch-core">
+            <div class="fl-label">Runs in the bank's Databricks workspace</div>
+            <div class="h-arch-core-b">
+              <div class="h-arch-name">Control Impact Detective</div>
+              <div class="h-arch-part"><b>Jobs</b><span>run one investigation per change</span></div>
+              <div class="h-arch-part"><b>Model Serving</b><span>the language model that reads and reasons</span></div>
+              <div class="h-arch-part"><b>Unity Catalog</b><span>inputs, results and the full audit trail</span></div>
+              <div class="h-arch-part"><b>App</b><span>this experience, for reviewers and leaders</span></div>
+            </div>
+          </div>
+          ${arrow}
+          <div class="h-arch-col">
+            <div class="fl-label">Where results go</div>
+            <div class="h-arch-box">Control owners<span>findings to assess, with evidence</span></div>
+            <div class="h-arch-box">Change board<span>a summary for the release decision</span></div>
+            <div class="h-arch-box">Risk and audit<span>a recorded trail of every step</span></div>
+          </div>
+        </div>
+        <p class="h-fine center">In this proof of concept the Databricks parts run for real; the bank systems are replaced by synthetic files. Connecting real systems is part of a pilot.</p>
+      </div>
+    </section>
+
+    <section class="h-sec">
+      <div class="h-wrap h-two">
+        <div>
+          <h2 class="h-h2">What is proven, and what is not yet</h2>
+          <ul class="h-proof yes">
+            <li>Finds most of what an incomplete map hides, on changes it had never seen. The walkthrough shows how much.</li>
+            <li>Shows its evidence for every finding, and routes doubt to people.</li>
+            <li>Runs end to end on Databricks.</li>
+          </ul>
+          <ul class="h-proof no">
+            <li>Not yet tested on a real bank's changes and documents.</li>
+            <li>Reviewer time and cost per change not yet measured.</li>
+            <li>Not yet repeatable enough: the same change can get different decisions on different runs.</li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="h-h2">How a bank would adopt it</h2>
+          <ol class="h-path">
+            <li><b>Practitioner validation</b><span>Control owners judge a sample of findings, including the checks it left out.</span></li>
+            <li><b>Supervised pilot</b><span>Real changes and documents, with owners deciding every item.</span></li>
+            <li><b>Part of the change process</b><span>Only if the pilot shows findings that are right, useful and worth the review time.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
   </div>`);
   main.append(page);
   page.querySelector('a[href="#problem"]').addEventListener("click", (e) => {
@@ -116,7 +176,6 @@ export async function renderOverview(main, app) {
   const ctrl = app.graph.nodes.find((n) => n.id === EXAMPLE.control);
   const doc = ex.document_overrides?.[EXAMPLE.control] || app.graph.documents[EXAMPLE.control]?.text || "";
   const surfaced = P.check_found_key + P.agent_found_key;
-  const perCall = Math.round(P.model_calls / P.changes);
   const page = el(`<div class="home">
     <section class="h-hero h-hero-s">
       <div class="h-wrap">
@@ -169,65 +228,6 @@ export async function renderOverview(main, app) {
       </div>
     </section>
 
-    <section class="h-sec alt">
-      <div class="h-wrap">
-        <h2 class="h-h2">Where it fits in a bank</h2>
-        <p class="h-intro">It sits between raising a change and approving it, inside the bank's own data platform.</p>
-        <div class="h-arch">
-          <div class="h-arch-col">
-            <div class="fl-label">The bank's systems</div>
-            <div class="h-arch-box">Change management<span>change requests</span></div>
-            <div class="h-arch-box">Data lineage catalogue<span>the connection map</span></div>
-            <div class="h-arch-box">Control library<span>check procedures and owners</span></div>
-          </div>
-          ${arrow}
-          <div class="h-arch-col arch-core">
-            <div class="fl-label">Runs in the bank's Databricks workspace</div>
-            <div class="h-arch-core-b">
-              <div class="h-arch-name">Control Impact Detective</div>
-              <div class="h-arch-part"><b>Jobs</b><span>run one investigation per change</span></div>
-              <div class="h-arch-part"><b>Model Serving</b><span>the language model that reads and reasons</span></div>
-              <div class="h-arch-part"><b>Unity Catalog</b><span>inputs, results and the full audit trail</span></div>
-              <div class="h-arch-part"><b>App</b><span>this experience, for reviewers and leaders</span></div>
-            </div>
-          </div>
-          ${arrow}
-          <div class="h-arch-col">
-            <div class="fl-label">Where results go</div>
-            <div class="h-arch-box">Control owners<span>findings to assess, with evidence</span></div>
-            <div class="h-arch-box">Change board<span>a summary for the release decision</span></div>
-            <div class="h-arch-box">Risk and audit<span>a recorded trail of every step</span></div>
-          </div>
-        </div>
-        <p class="h-fine center">In this proof of concept the Databricks parts run for real; the bank systems are replaced by synthetic files. Connecting real systems is part of a pilot.</p>
-      </div>
-    </section>
-
-    <section class="h-sec">
-      <div class="h-wrap h-two">
-        <div>
-          <h2 class="h-h2">What is proven, and what is not yet</h2>
-          <ul class="h-proof yes">
-            <li>Finds most of what an incomplete map hides: ${pct(P.recovery)} of the missed key checks, on unseen changes.</li>
-            <li>Shows its evidence for every finding, and routes doubt to people.</li>
-            <li>Runs end to end on Databricks, about ${perCall} model calls per change.</li>
-          </ul>
-          <ul class="h-proof no">
-            <li>Not yet tested on a real bank's changes and documents.</li>
-            <li>Reviewer time and cost per change not yet measured.</li>
-            <li>Not yet repeatable enough: ${pct(P.consistency.agreement)} of decisions identical across runs, against a 95% target.</li>
-          </ul>
-        </div>
-        <div>
-          <h2 class="h-h2">How a bank would adopt it</h2>
-          <ol class="h-path">
-            <li><b>Practitioner validation</b><span>Control owners judge a sample of findings, including the checks it left out.</span></li>
-            <li><b>Supervised pilot</b><span>Real changes and documents, with owners deciding every item.</span></li>
-            <li><b>Part of the change process</b><span>Only if the pilot shows findings that are right, useful and worth the review time.</span></li>
-          </ol>
-        </div>
-      </div>
-    </section>
 
 
     <section class="h-final">

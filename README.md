@@ -103,10 +103,11 @@ Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 The POC is presented as an investigation experience (`app/web`), served by a
 standard-library Python server (`app/server.py`, the command in `app.yaml`).
 It opens on a short plain-language landing page (`#/home`, `app/web/js/home.js`):
-the problem, how the product works from inputs to human decisions, and the
+the problem, how the product works from inputs to human decisions, where it
+fits in a bank, what is proven and not, how a bank would adopt it, and the
 example change (CHG-027) set up without its result, so the walkthrough keeps
-its reveal. A separate product overview (`#/overview`) holds the results,
-architecture, limits, adoption path and common questions; every figure there is
+its reveal. A separate product overview (`#/overview`) holds the example
+finding and the measured results; every figure there is
 read from the same exported results. `tests/test_home_page.py` checks this in a
 browser where Playwright is installed. The walkthrough covers five moments on any of the 18 held-out changes (flagship:
 CHG-027, a screening-interface change the lineage check clears; all 20 affected

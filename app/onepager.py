@@ -140,9 +140,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     # Safety finding
     y = pdf.get_y()
     pdf.set_fill_color(251, 239, 238)
-    pdf.rect(18, y, w, 15, "F")
+    pdf.rect(18, y, w, 19.5, "F")
     pdf.set_fill_color(179, 38, 30)
-    pdf.rect(18, y, 1.2, 15, "F")
+    pdf.rect(18, y, 1.2, 19.5, "F")
     pdf.set_xy(22, y + 2)
     pdf.set_font("Helvetica", "B", 9.5)
     pdf.set_text_color(156, 34, 25)
@@ -157,12 +157,13 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         4.4,
         _p(
             "1 of 162 affected key controls was neither recommended nor routed for review (C03, unresolved "
-            "sanctions alerts, change CHG-024). The other 30 misses were routed for human review."
+            "sanctions alerts, change CHG-024): the agent judged it not affected, and this version does not "
+            "double-check those decisions. The other 30 misses were routed for human review."
         ),
         new_x="LMARGIN",
         new_y="NEXT",
     )
-    pdf.set_y(y + 18)
+    pdf.set_y(y + 22.5)
 
     # Key lines
     lines = [
@@ -243,9 +244,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         w - 6,
         5,
         _p(
-            "A practitioner review of a sample of the agent's output; closing the two gaps on the benchmark first "
-            "(a five-run vote, a promote-only tie-break, each registered in advance); both; or stopping at the "
-            "proof of concept."
+            "A practitioner review of a sample of the agent's output, including controls it marked not affected; "
+            "closing the gaps on the benchmark first (a five-run vote, a promote-only tie-break, a second check of "
+            "not-affected key controls, each registered in advance); both; or stopping at the proof of concept."
         ),
         new_x="LMARGIN",
         new_y="NEXT",

@@ -11,7 +11,7 @@
   --sunk: #eef0f4;
   --ink: #14161f;
   --ink-2: #474b5c;
-  --ink-3: #7a7e8f;
+  --ink-3: #6b6f80;
   --line: #e1e3ea;
   --line-2: #cfd2dc;
   --navy: #1b2150;
@@ -265,6 +265,9 @@ h3 { font: 600 15px/1.3 var(--display); margin: 0 0 6px; }
 .inspector h4 { margin: 0 0 8px; font: 600 12.5px/1.3 var(--body); color: var(--ink-3); letter-spacing: 0.01em; }
 .doc { background: var(--sunk); border-radius: var(--r-s); padding: 10px 12px; font-size: 13.5px; line-height: 1.6; }
 .doc .src { display: block; font-size: 11.5px; color: var(--ink-3); margin-bottom: 4px; font-weight: 600; }
+.doc .src .weak { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #f9eeda; color: #7a4f0e; font-weight: 600; }
+.guide { margin-top: 18px; padding: 12px 14px; border-left: 3px solid var(--missing); background: var(--sunk); border-radius: 0 var(--r-s) var(--r-s) 0; font-size: 14px; line-height: 1.55; }
+.guide[hidden] { display: none; }
 mark.q { background: #ffe9a8; color: var(--ink); padding: 0 2px; border-radius: 2px; box-shadow: inset 0 -2px 0 var(--missing); }
 .verdict { display: grid; grid-template-columns: 26px 1fr; gap: 10px; margin: 8px 0; font-size: 13.5px; }
 .verdict .who { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
@@ -334,6 +337,8 @@ mark.q { background: #ffe9a8; color: var(--ink); padding: 0 2px; border-radius: 
 
 /* ------------------------------------------------------------------ decision */
 
+.fit3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+@media (max-width: 900px) { .fit3 { grid-template-columns: 1fr; } }
 .quad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .quad .card-b ul { margin: 0; padding-left: 18px; }
 .quad .card-b li { margin: 6px 0; color: var(--ink-2); }

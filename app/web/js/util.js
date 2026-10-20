@@ -67,3 +67,22 @@ export const TYPE_LABEL = {
 };
 
 export const short = (s, n = 24) => (s.length <= n ? s : s.slice(0, n - 1) + "…");
+
+/** Plain-language routing reasons; internal labels never reach the screen. */
+export function routingReason(reason) {
+  if (!reason) return "";
+  if (/disagree/i.test(reason)) return "The agent and its independent checker disagreed, so the item goes to a person.";
+  if (/UNAFFECTED/.test(reason))
+    return "The agent judged this control not affected. In this version, not-affected decisions are not double-checked by the independent checker.";
+  return /[A-Z]{4,}/.test(reason) ? "" : reason;
+}
+
+/** A quote proves words exist, not that they matter: flag the thin ones. */
+export function quoteWeakness(q) {
+  const t = String(q ?? "").trim();
+  if (!t) return "";
+  if (/\bfamily\b/i.test(t)) return "quotes a family label from a synthetic template";
+  const n = t.split(/\s+/).filter(Boolean).length;
+  if (n <= 2) return n === 1 ? "a one-word quote" : "a two-word quote";
+  return "";
+}

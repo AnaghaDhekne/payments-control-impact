@@ -1,6 +1,6 @@
 // Control Impact Detective — application shell, state, routing and the evidence inspector.
 
-import { esc, highlight, ROUTE_LABEL, TYPE_LABEL } from "./util.js";
+import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
 import { renderRoom, ROOM_PAGES } from "./room.js";
 
@@ -181,16 +181,23 @@ function controlBody(c, cid) {
   }[route];
   const sections = [];
   sections.push(`<section><h4>Where the decision landed</h4><span class="badge ${route}">${esc(ROUTE_LABEL[route])}</span>
-    ${d?.routing_reason ? `<p style="font-size:13px;color:var(--ink-2);margin:8px 0 0">${esc(d.routing_reason === "Proposer and verifier disagree" ? "The agent and its independent checker disagreed, so the item goes to a person." : d.routing_reason)}</p>` : ""}</section>`);
+    ${routingReason(d?.routing_reason) ? `<p style="font-size:13px;color:var(--ink-2);margin:8px 0 0">${esc(routingReason(d.routing_reason))}</p>` : ""}</section>`);
   if (truth) sections.push(`<section><h4>How the change reaches it in the complete map</h4>${chainHTML(c, cid)}
     <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Dashed: link missing from the lineage map the current check uses.</p></section>`);
   if (d?.ticket_quote || d?.control_quote) {
+    const weak = (q) => {
+      const w = quoteWeakness(q);
+      return w ? `<span class="weak">Weak evidence: ${esc(w)}</span>` : "";
+    };
+    const anyWeak = quoteWeakness(d.ticket_quote) || quoteWeakness(d.control_quote);
     sections.push(`<section><h4>Evidence the agent cited</h4>
-      <div class="doc"><span class="src">Change ticket ${esc(c.ticket.document_id || "")}</span>${highlight(c.ticket.text, d.ticket_quote)}</div>
-      <div class="doc" style="margin-top:8px"><span class="src">Control procedure ${esc(cid)}</span>${highlight(text, d.control_quote)}</div>
-      <p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">Highlighted: the exact words quoted. Quotes are checked word for word before a finding is accepted.</p></section>`);
+      <div class="doc"><span class="src">Change ticket ${esc(c.ticket.document_id || "")}${weak(d.ticket_quote)}</span>${highlight(c.ticket.text, d.ticket_quote)}</div>
+      <div class="doc" style="margin-top:8px"><span class="src">Control procedure ${esc(cid)}${weak(d.control_quote)}</span>${highlight(text, d.control_quote)}</div>
+      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">This procedure is a synthetic template generated for its control family, not a written procedure.</p>` : ""}
+      <p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">Highlighted: the words quoted, verbatim. A verbatim quote proves the words exist in the source, not that they matter${anyWeak ? "; a quote here is thin, so judge the finding on the chain and the reasoning" : ""}.</p></section>`);
   } else {
-    sections.push(`<section><h4>Control procedure</h4><div class="doc"><span class="src">${esc(cid)}</span>${esc(text)}</div></section>`);
+    sections.push(`<section><h4>Control procedure</h4><div class="doc"><span class="src">${esc(cid)}</span>${esc(text)}</div>
+      ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">A synthetic template generated for its control family, not a written procedure.</p>` : ""}</section>`);
   }
   if (d?.proposer) {
     sections.push(`<section><h4>Reasoning, as recorded</h4>

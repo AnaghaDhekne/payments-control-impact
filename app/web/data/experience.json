@@ -8,7 +8,7 @@
   "condition": "30% of lineage links removed, nearest the change first (main seed)",
   "archive": "results/detective_runs.tar.gz"
  },
- "flagship": "CHG-003",
+ "flagship": "CHG-027",
  "portfolio": {
   "changes": 18,
   "key_affected": 162,
@@ -568,6 +568,36 @@
    "rule": "Recovery not lower; unaffected ≥ 25% fewer; ≤ 10% of truly affected review items dismissed; repeatability not lower",
    "result": "Found 258 → 267 of 411; unaffected 183 → 114 (−38%); 59 of 271 truly affected review items dismissed (21.8%)",
    "decision": "Not adopted"
+  }
+ ],
+ "approaches": [
+  {
+   "approach": "Current lineage check (rules over recorded links)",
+   "recovery": 0.1111111111111111,
+   "measure": "share of all 162 affected key controls found",
+   "set": "18 held-out changes, 30% correlated damage",
+   "caveat": "Deterministic; 42.6% at 30% random damage, 7.4% at 60%."
+  },
+  {
+   "approach": "Phase 1: hybrid retrieval and ranking",
+   "recovery": 0.495,
+   "measure": "key-miss recovery",
+   "set": "36 development changes, 5 runs, Llama 4 Maverick",
+   "caveat": "Development set; +201.5% reviewer workload; did not pass the gates."
+  },
+  {
+   "approach": "Phase 2: dependency-edge proposals",
+   "recovery": 0.576,
+   "measure": "key-miss recovery",
+   "set": "18 held-out changes, 5-run union, GPT OSS 120B",
+   "caveat": "Union of five runs plus an automatic quote-correction step; only 25.3% of proposed edges were correct."
+  },
+  {
+   "approach": "Agent investigation (this run)",
+   "recovery": 0.7847222222222222,
+   "measure": "key-miss recovery",
+   "set": "18 held-out changes, one run, GPT OSS 120B",
+   "caveat": "Single frozen run; 30 more routed to a person, 1 not surfaced."
   }
  ],
  "development_runs": {

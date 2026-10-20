@@ -103,12 +103,13 @@ Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 The POC is presented as an investigation experience (`app/web`), served by a
 standard-library Python server (`app/server.py`, the command in `app.yaml`).
 It walks through five moments on any of the 18 held-out changes (flagship:
-CHG-003, a creditor town-name change the lineage check clears):
+CHG-027, a screening-interface change the lineage check clears; all 20 affected
+controls are recommended, with full-phrase evidence):
 
 1. **The change**: the change record and the reassuring conventional assessment.
 2. **The blind spot**: an interactive dependency map, switching between what the
-   lineage records and what is actually connected; click a control to trace the
-   missing link.
+   lineage records and what is actually connected; the reveal traces one key
+   control and names its missing link, and any other control can be clicked.
 3. **The investigation**: a step-by-step replay of the recorded agent run (not a
    live model call); click a control for its evidence: the quoted ticket and
    procedure text, the agent's and the independent checker's reasoning, the

@@ -66,11 +66,15 @@ async function change(main, app, c) {
     misleading_na: "the ticket wrongly says “control impact: N/A”",
   };
   const dmg = (c.ticket_damage || []).map((d) => damage[d] || d).join("; ");
+  const found = c.counts.check_found;
+  const verdict = found
+    ? `The impact check flags ${found} control${found > 1 ? "s" : ""} for review.`
+    : "The impact check finds nothing to review.";
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(1, "The change")}
-      <h1 class="title">A routine ${isAddress ? "address-data" : "payment-system"} change. The impact check finds nothing to review.</h1>
-      <p class="lead">Before release, a bank checks which controls a change could break, by following its lineage map from the changed item to the controls that depend on it.</p>
+      <h1 class="title">A routine ${isAddress ? "address-data" : "payment-system"} change. ${verdict}</h1>
+      <p class="lead">Before release, a bank checks which controls a change could break, by following its lineage map from the changed item to the controls that depend on it. A control the check misses is not re-tested before release, and can fail unnoticed afterwards.</p>
       <div class="figure"><span class="big">${c.counts.check_found}</span><span class="of">controls flagged</span></div>
       <div class="figure-label">by the conventional lineage check, out of 101</div>
       <p class="question">Can this change proceed, or is something missing?</p>
@@ -90,7 +94,7 @@ async function change(main, app, c) {
         </dl>
         <div class="assessment"><div class="zero">${c.counts.check_found}</div>
           <div><b>Conventional impact assessment: ${c.counts.check_found ? `${c.counts.check_found} affected control${c.counts.check_found > 1 ? "s" : ""} found` : "no affected controls found"}</b>
-          <span>Lineage traversal from ${esc(c.changed.join(", "))} through recorded links. The result looks reassuring.</span></div></div>
+          <span>Lineage traversal from ${esc(c.changed.join(", "))} through recorded links. ${found ? "The list looks complete." : "The result looks reassuring."}</span></div></div>
       </article>
       ${estate(app, "The bank's 101 controls, as the check sees them", `${c.counts.check_found} flagged`, (id) => (c.baselineSet.has(id) ? "check" : ""))}
       <div class="legend"><span><i class="sw" style="background:var(--check)"></i>Flagged by the lineage check</span><span><i class="sw" style="background:var(--idle)"></i>Not flagged</span><span>White inner border: key control</span></div>
@@ -117,6 +121,7 @@ async function blindspot(main, app, c) {
         <div class="counter amber"><div class="v">${missing} of ${c.linksOnPaths}</div><div class="l">links on the paths to them are missing from the lineage map</div></div>
         <div class="counter ink"><div class="v">${unreached}</div><div class="l">affected controls left invisible to a lineage-only assessment</div></div>
       </div>
+      <p class="guide" id="guide" hidden></p>
       <p style="margin-top:20px">Missing links are not an error in the check. It does exactly what it should with the map it is given; the map is incomplete where change happens.</p>
       <div class="next">${nextBtn("investigate", "Replay the AI investigation")}</div>
       <p class="note">Damage applied for the test: 30% of the map's links removed, nearest the change first (71 of 237 recorded links). The complete map is the synthetic ground truth.</p>
@@ -140,6 +145,24 @@ async function blindspot(main, app, c) {
   const gw = stage.querySelector("#gw");
   let graph;
   let selected = null;
+
+  // One traced example for the reveal: a key control the check cannot reach,
+  // preferably one the agent recommended, whose path crosses a missing link.
+  const missingOn = (cid) => c.pathEdges(cid).filter((id) => c.removedSet.has(id) || !c.edgeMap[id].exposable);
+  const candidates = c.key.filter((id) => !c.baselineSet.has(id) && missingOn(id).length);
+  const guideId =
+    candidates.find((id) => c.decision(id)?.route === "recommended") || candidates[0] || null;
+  const guideText = () => {
+    if (!guideId) return "";
+    const n = nodeOf(app, guideId);
+    const path = (c.paths[guideId] || [])[0] || [];
+    const gone = missingOn(guideId).map((id) => c.edgeMap[id]);
+    const first = gone[0];
+    const more = gone.length > 1 ? ` (and ${gone.length - 1} more on the way)` : "";
+    return `<b>Example: ${esc(guideId)}, ${esc(n.name)}.</b> It depends on this change through ${path.map(esc).join(" → ")}. ` +
+      `The link ${esc(first.source)} → ${esc(first.target)} is missing from the lineage map${more}, so the check stops before it reaches the control. ` +
+      `Click any other control to trace it.`;
+  };
 
   const build = () => {
     gw.querySelector("svg")?.remove();
@@ -193,6 +216,10 @@ async function blindspot(main, app, c) {
           : "",
     });
     if (pulse && sel.size) graph.pulse([...sel].filter((id) => c.removedSet.has(id)));
+    const g = stage.querySelector("#guide");
+    const showGuide = complete && guideId && selected === guideId;
+    g.hidden = !showGuide;
+    if (showGuide) g.innerHTML = guideText();
     stage.querySelector("#gl").innerHTML = complete
       ? `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw" style="background:var(--check-soft);border:1px solid var(--check)"></i>Reached by the check</span><span><i class="sw" style="border:1.6px solid var(--ink)"></i>Actually affected</span><span><i class="sw dash"></i>Missing from lineage</span>`
       : `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw" style="background:var(--check-soft);border:1px solid var(--check)"></i>Reached by the check</span><span><i class="sw line" style="border-color:#aeb3c4"></i>Recorded link</span>`;
@@ -202,8 +229,8 @@ async function blindspot(main, app, c) {
     b.addEventListener("click", () => {
       mode = b.dataset.mode;
       stage.querySelectorAll("[data-mode]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-      paint(false);
-      if (mode === "complete" && !reducedMotion()) graph.pulse(c.missingOnPaths);
+      if (mode === "complete" && guideId && (!selected || !c.affectedSet.has(selected))) selected = guideId;
+      paint(mode === "complete" && !reducedMotion());
     })
   );
   stage.querySelectorAll("[data-scope]").forEach((b) =>
@@ -245,7 +272,7 @@ async function investigate(main, app, c) {
       <h1 class="title">Replay how the agent found what the map hides.</h1>
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
-      <p>Nothing on this screen calls a model. Each finding had to quote the ticket and the procedure word for word; an independent model call then agreed or disagreed. Disagreements are routed to a person.</p>
+      <p>Nothing on this screen calls a model. Each finding had to quote the ticket and the procedure verbatim; an independent model call then judged whether the evidence holds. Disagreements are routed to a person.</p>
       <p>Click any control on the map to inspect the evidence behind its decision.</p>
       <div class="next">${nextBtn("consequence", "See the consequence")}</div>
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
@@ -422,6 +449,7 @@ async function consequence(main, app, c) {
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
       <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery)}; 95% range ${pct(P.recovery_interval[0])}–${pct(P.recovery_interval[1])}). Target: 50%.</div>
       <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were routed to a person and ${P.key_silent} was not surfaced at all.</p>
+      <p>Earlier approaches on the way here recovered ${pct(app.exp.approaches[1].recovery, 1)} (retrieval, development changes) and ${pct(app.exp.approaches[2].recovery, 1)} (edge proposals, five runs combined). <a href="#" data-go="room" data-sub="results">How they compare</a></p>
       <p>Decisions are not yet stable: across five runs, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions were identical (target 95%).</p>
       <div class="next">${nextBtn("decision", "What this means")}</div>
       <p class="note">Held-out test: 18 synthetic changes never used while building the agent; version A frozen before the run; one run.</p>
@@ -439,7 +467,7 @@ async function consequence(main, app, c) {
 
       <div class="risk" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
         <div><b>Remaining coverage risk: one affected key control was neither recommended nor routed for review.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The agent marked it not affected. The ${P.key_routed} routed items are only safe if a control owner works them.</div></div>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The agent judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} routed items are only safe if a control owner works them.</div></div>
 
       <div class="card"><div class="card-h"><h2>What a reviewer would receive per change</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Average over the 18 changes</span></div></div>
         <div class="card-b"><div class="compare">
@@ -541,20 +569,32 @@ async function decision(main, app, c) {
           <li>Repeatability: <b>${Math.round(P.consistency.agreement * 100)}%</b> of key decisions identical across runs, against 95%.</li>
           <li>The <b>${P.key_silent}</b> silent miss shows coverage is not complete.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--missing)"></span><h2>To validate before any pilot</h2></div><div class="card-b"><ul>
-          <li>A practitioner review of a sample of recommended and routed items.</li>
+          <li>A practitioner review of a sample of recommended, routed <i>and excluded</i> controls: what the agent left out matters as much as what it surfaced.</li>
+          <li>An independent check of not-affected decisions on key controls: the one silent miss came from such a decision.</li>
           <li>Repeatability at 95%, for example a five-run vote, registered in advance and tested on new changes.</li>
           <li>Review overhead, for example a tie-break that may only promote findings (68 of 70 promotions were right).</li>
           <li>Model-risk review, real-data access, audit trail and monitoring.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain by investigating further</h2></div><div class="card-b"><ul>
           <li>Earlier sight of control impacts that incomplete lineage hides, before release rather than at audit.</li>
           <li>An evidence trail for each impact: the quotes and the reasoning behind it.</li>
-          <li>Explicit routing of uncertain impacts to the control owners who should decide.</li>
-          <li>A view of where lineage is weakest, from the links the agent had to infer.</li></ul></div></div>
+          <li>Explicit routing of uncertain impacts to the control owners who should decide.</li></ul></div></div>
       </div>
+      <div class="card"><div class="card-h"><h2>Where it would sit, and how a practitioner validation would be judged</h2></div>
+        <div class="card-b"><div class="fit3">
+          <div><h3 style="margin:0 0 6px;font-size:14px">Where it would sit</h3><p style="margin:0;font-size:13.5px;color:var(--ink-2)">Between raising a change and approving it. The lineage check runs as today; the agent adds further controls, each with its evidence, for the named control owners to assess before the change board. Owners decide; nothing is re-tested or released on the agent's word.</p></div>
+          <div><h3 style="margin:0 0 6px;font-size:14px">What it would measure</h3><ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)">
+            <li>Recovery on real changes, against an answer key built by control owners.</li>
+            <li>A sample of the controls the agent excluded, checked by owners.</li>
+            <li>Reviewer effort and model cost per change.</li></ul></div>
+          <div><h3 style="margin:0 0 6px;font-size:14px">Results that would argue against a pilot</h3><ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)">
+            <li>A key control missed silently among the excluded sample.</li>
+            <li>Owners judging most recommendations not useful.</li>
+            <li>Repeatability not moving towards 95% with a five-run vote.</li></ul></div>
+        </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">
           <div class="option focus"><h3>Practitioner review</h3><p>Control owners judge a sample of the agent's output.</p><small>Answers the biggest open question. Two or three people, a few hours.</small></div>
-          <div class="option"><h3>Close the two gaps</h3><p>A five-run vote and a promote-only tie-break, each registered in advance.</p><small>Model capacity only.</small></div>
+          <div class="option"><h3>Close the gaps first</h3><p>A five-run vote, a promote-only tie-break and a second check of not-affected key controls, each registered in advance.</p><small>Model capacity only.</small></div>
           <div class="option"><h3>Both</h3><p>Independent: the review uses existing output; the fixes use new runs.</p><small>Can run in parallel.</small></div>
           <div class="option"><h3>Stop here</h3><p>Keep the benchmark, code and results as documented.</p><small>Nothing runs in production.</small></div>
         </div></div></div>

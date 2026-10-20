@@ -40,7 +40,11 @@ PROVENANCE = {
     "condition": "30% of lineage links removed, nearest the change first (main seed)",
     "archive": "results/detective_runs.tar.gz",
 }
-FLAGSHIP = "CHG-003"
+# The case the experience opens on: the check finds none of its affected
+# controls and the agent's evidence is quoted in full phrases on both sides.
+FLAGSHIP = "CHG-027"
+# Control procedure texts are the same in every case; overrides are per case.
+DOCS_SOURCE = "CHG-003"
 TYPE_ORDER = [
     "DATA_ELEMENT",
     "RULE",
@@ -63,6 +67,40 @@ PROPAGATING = {
     "EVIDENCES",
 }
 FAMILY_SEPARATOR = " — "
+
+# Earlier approaches, copied from docs/results.md ("Earlier phases"). The sets,
+# models and scoring differ from the held-out detective run, so they are a
+# progression, not a like-for-like comparison.
+APPROACHES = [
+    {
+        "approach": "Current lineage check (rules over recorded links)",
+        "recovery": 18 / 162,
+        "measure": "share of all 162 affected key controls found",
+        "set": "18 held-out changes, 30% correlated damage",
+        "caveat": "Deterministic; 42.6% at 30% random damage, 7.4% at 60%.",
+    },
+    {
+        "approach": "Phase 1: hybrid retrieval and ranking",
+        "recovery": 0.495,
+        "measure": "key-miss recovery",
+        "set": "36 development changes, 5 runs, Llama 4 Maverick",
+        "caveat": "Development set; +201.5% reviewer workload; did not pass the gates.",
+    },
+    {
+        "approach": "Phase 2: dependency-edge proposals",
+        "recovery": 0.576,
+        "measure": "key-miss recovery",
+        "set": "18 held-out changes, 5-run union, GPT OSS 120B",
+        "caveat": "Union of five runs plus an automatic quote-correction step; only 25.3% of proposed edges were correct.",
+    },
+    {
+        "approach": "Agent investigation (this run)",
+        "recovery": 113 / 144,
+        "measure": "key-miss recovery",
+        "set": "18 held-out changes, one run, GPT OSS 120B",
+        "caveat": "Single frozen run; 30 more routed to a person, 1 not surfaced.",
+    },
+]
 
 # Copied from docs/results.md (pre-registered sections); shown in the evidence room.
 VERSION_TESTS = [
@@ -523,7 +561,7 @@ def main():
     (OUT / "cases").mkdir(exist_ok=True)
 
     nodes = graph["nodes"]
-    docs = {d["control_id"]: d for d in cases[FLAGSHIP]["control_documents"]}
+    docs = {d["control_id"]: d for d in cases[DOCS_SOURCE]["control_documents"]}
     g = {
         "nodes": [
             {
@@ -595,6 +633,7 @@ def main():
             for cid, p in payloads.items()
         ],
         "version_tests": VERSION_TESTS,
+        "approaches": APPROACHES,
         "development_runs": {
             "frozen_check": extra.get("suite-10", {}).get("summary"),
             "variant_b": extra.get("suite-12", {}).get("summary"),

@@ -79,6 +79,11 @@ const PAGES = {
         `<tr><td>Added review volume ≤ 25% of the check's</td><td>${P.added_items} added vs ${P.check_items}. The target counts every added item, including the ${P.added_affected} genuinely affected ones; this tension was noted before any results and the target was kept as written.</td><td><span class="badge review">Not met as defined</span></td></tr>`,
         `<tr><td>Same key decision across 5 runs ≥ 95%</td><td>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} (${pct(P.consistency.agreement)}), three development changes</td><td><span class="badge review">Not met</span></td></tr>`,
       ])}</section>
+      <section><h2>Compared with the approaches tried before</h2>
+        <p style="color:var(--ink-2)">Each step added information the lineage metadata lacks: first the text of tickets and procedures, then proposed links, then an investigation that reads, traces and must quote its evidence. The sets, models and scoring differ, so read this as a progression, not a league table. It does not show that only a language model could do this; a plain keyword baseline on the same changes has not been run.</p>
+        ${table(["Approach", "Result", "Measured on", "Caveat"], app.exp.approaches.map(
+          (a) => `<tr><td>${esc(a.approach)}</td><td class="num">${pct(a.recovery, 1)}<br><span style="font-size:12px;color:var(--ink-3)">${esc(a.measure)}</span></td><td>${esc(a.set)}</td><td>${esc(a.caveat)}</td></tr>`
+        ))}</section>
       <section><h2>Where the 162 key-control impacts went</h2>${table(["", "Count"], [
         `<tr><td>Found by the current check</td><td class="num">${P.check_found_key}</td></tr>`,
         `<tr><td>Recommended by the agent (and actually affected)</td><td class="num">${P.agent_found_key}</td></tr>`,

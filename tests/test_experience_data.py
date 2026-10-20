@@ -110,8 +110,24 @@ def test_replay_is_recorded_not_invented(cases):
     assert decided <= accepted
 
 
-def test_flagship_story(cases):
-    c = cases["CHG-003"]
+def test_flagship_story(experience, cases):
+    assert experience["flagship"] == "CHG-027"
+    c = cases["CHG-027"]
     assert c["counts"]["check_found"] == 0
-    assert c["counts"]["key_affected"] == 19
-    assert c["counts"]["key_found_by_agent"] == 18
+    assert c["counts"]["agent_recommended"] == c["counts"]["affected"] == 20
+    assert c["counts"]["agent_recommended_right"] == 20
+    # The evidence a client opens first is quoted in full phrases.
+    c02 = next(d for d in c["decisions"] if d["control"] == "C02")
+    assert c02["route"] == "recommended"
+    assert len(c02["ticket_quote"].split()) >= 3
+    assert len(c02["control_quote"].split()) >= 3
+
+
+def test_earlier_approaches_match_results_doc(experience):
+    doc = (ROOT / "docs" / "results.md").read_text()
+    rows = {a["approach"]: a for a in experience["approaches"]}
+    assert "49.5% key-miss recovery" in doc and "57.6% key-miss recovery" in doc
+    assert rows["Phase 1: hybrid retrieval and ranking"]["recovery"] == 0.495
+    assert rows["Phase 2: dependency-edge proposals"]["recovery"] == 0.576
+    p = experience["portfolio"]
+    assert rows["Agent investigation (this run)"]["recovery"] == p["agent_found_key"] / p["key_misses"]

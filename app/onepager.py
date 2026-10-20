@@ -74,15 +74,41 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.ln(2)
     reach = rules_found + h["key_recovered"] + routed
     caught = rules_found + h["key_recovered"]
-    text(20, f"{caught} of {total} affected key controls caught with evidence before release, against {rules_found} today", INK, "B", 9)
+    text(20, f"Affected key controls left unflagged before release: from {total - rules_found} to {silent}", INK, "B", 9)
     pdf.ln(1)
     text(
         10.5,
-        f"{routed} more were flagged for a person to decide and {silent} was missed. Tested on 18 realistic payment changes the detective "
+        f"Of {total} affected key controls, today's check flags {rules_found}. With the detective, {caught} are caught with evidence and {routed} flagged for a person to decide. Tested on 18 realistic payment changes the detective "
         "had never seen, in a synthetic bank whose dependency map is missing links near each change.",
         MUTED,
     )
     pdf.ln(6)
+
+    # The headline numbers, large: unflagged before release, today and with the detective
+    y = pdf.get_y()
+    pdf.set_fill_color(27, 33, 80)
+    pdf.rect(18, y, w, 34, "F")
+    for x0, label, n, sub, col in (
+        (24, "TODAY'S CHECK", str(total - rules_found), f"of {total} never flagged for review", (160, 168, 214)),
+        (112, "WITH THE DETECTIVE", str(silent), f"of {total} unflagged", (255, 255, 255)),
+    ):
+        pdf.set_xy(x0, y + 4)
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_text_color(169, 184, 240)
+        pdf.cell(80, 4, label)
+        pdf.set_xy(x0, y + 9)
+        pdf.set_font("Helvetica", "B", 34)
+        pdf.set_text_color(*col)
+        pdf.cell(80, 14, n)
+        pdf.set_xy(x0, y + 25)
+        pdf.set_font("Helvetica", "", 9.5)
+        pdf.set_text_color(201, 204, 224)
+        pdf.cell(80, 5, _p(sub))
+    pdf.set_xy(95, y + 11)
+    pdf.set_font("Helvetica", "B", 22)
+    pdf.set_text_color(125, 134, 232)
+    pdf.cell(12, 10, "->", align="C")
+    pdf.set_y(y + 40)
 
     # The picture: two bars on one scale, no figures
     def bar(y, label, segs):

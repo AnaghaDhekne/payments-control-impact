@@ -14,13 +14,17 @@ export function beforeAfter(P) {
   </div>`;
 }
 
-/** The headline: affected key controls caught with evidence, before and after. */
+/** The headline: affected key controls that nobody is asked to look at before release, today and with the detective. */
 export function hero(P) {
   const caught = P.check_found_key + P.agent_found_key;
-  return `<div class="hero-ba">
-    <div class="hb-side"><span class="hb-k">Today's check</span><b>${P.check_found_key} <small>of ${P.key_affected}</small></b><p>affected key controls caught, about 1 in 9.</p></div>
-    <div class="hb-arrow" aria-hidden="true">→</div>
-    <div class="hb-side on"><span class="hb-k">With the detective</span><b>${caught} <small>of ${P.key_affected}</small></b><p>affected key controls caught with evidence before release. ${P.key_routed} more flagged for a person to decide; ${P.key_silent} missed.</p></div>
+  const unflaggedToday = P.key_affected - P.check_found_key;
+  return `<div class="hero-x">
+    <p class="hx-q">Affected key controls left unflagged before release</p>
+    <div class="hx-row">
+      <div class="hx-side"><span class="hb-k">Today's check</span><b class="hx-n">${unflaggedToday}</b><p>of ${P.key_affected} never flagged for review.</p></div>
+      <div class="hx-arrow" aria-hidden="true">→</div>
+      <div class="hx-side on"><span class="hb-k">With the detective</span><b class="hx-n">${P.key_silent}</b><p>of ${P.key_affected}. ${caught} are caught with evidence and ${P.key_routed} flagged for a person to decide.</p></div>
+    </div>
   </div>`;
 }
 

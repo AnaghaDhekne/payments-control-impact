@@ -184,8 +184,8 @@ async function blindspot(main, app, c) {
             <button type="button" data-scope="paths" aria-pressed="true">Paths</button>
             <button type="button" data-scope="focus" aria-pressed="false">Network</button>
             <button type="button" data-scope="all" aria-pressed="false">Whole map · 148 items</button></div></div>
+          <p class="tap-hint" id="pv-hint"></p>
         </div>
-        <p class="tap-hint" id="pv-hint"></p>
         <div class="pv" id="pv"></div>
         <div class="graph-legend legend" id="gl"></div>
       </div>
@@ -340,10 +340,18 @@ async function blindspot(main, app, c) {
     paint(false);
   };
 
+  // The toolbar wraps on narrow screens; the paths list always starts below it.
+  const fitPaths = () => {
+    const bar = stage.querySelector(".graph-bar"), pv = stage.querySelector("#pv");
+    if (bar && pv && getComputedStyle(pv).position === "absolute") pv.style.top = `${bar.offsetTop + bar.offsetHeight + 8}px`;
+    else if (pv) pv.style.top = "";
+  };
+  if (window.ResizeObserver) new ResizeObserver(fitPaths).observe(stage.querySelector(".graph-bar"));
   const paint = (pulse) => {
     const complete = mode === "complete";
     const hint = stage.querySelector("#pv-hint");
     if (hint) hint.textContent = complete || graph ? "Click any control to open its evidence" : "Switch to “What is actually connected” to see the controls the map hides";
+    fitPaths();
     const sel = selected && c.affectedSet.has(selected) ? new Set(c.pathEdges(selected)) : new Set();
     if (!graph) {
       renderPaths();

@@ -680,7 +680,7 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 
 /* ------------------------------------------------------------------ blind spot: readable paths view */
 .graph-wrap .pv { display: none; }
-.graph-wrap.paths .pv { display: block; position: absolute; top: 62px; left: 0; right: 0; bottom: 84px; overflow: auto; padding: 4px 20px 16px; }
+.graph-wrap.paths .pv { display: block; position: absolute; top: 92px; left: 0; right: 0; bottom: 84px; overflow: auto; padding: 4px 20px 16px; }
 .pv-g { padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
 .pv-g:last-child { border-bottom: 0; }
 .pv-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; }
@@ -708,7 +708,8 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 .pv-c.hidden .pv-st { background: var(--sunk); color: var(--ink); border: 1px solid var(--ink-3); }
 .pv-hid { margin: 12px 0 0 24px; font-size: 14px; color: var(--ink-2); font-style: italic; }
 @media (max-width: 640px) {
-  .graph-wrap.paths .pv { position: static; padding: 70px 12px 70px; }
+  .graph-wrap.paths .pv { position: static; padding: 0 12px 70px; }
+  .graph-wrap .graph-bar { position: static; padding: 12px 12px 8px; }
   .pv-st { display: none; }
   .pv-cs { padding-left: 0; }
 }
@@ -1024,3 +1025,4 @@ table.t tr.total td { background: var(--paper); }
 .hb-t { height: 18px; background: var(--sunk); border-radius: 4px; overflow: hidden; } .hb-t i { display: block; height: 100%; background: var(--check); }
 .hb b { text-align: right; color: var(--ink); } .hb-c { font-size: 12.5px; color: var(--ink-3); margin: 2px 0 0; }
 .rp-card:has(details[open]) { grid-column: 1 / -1; }
+.graph-bar .tap-hint { flex-basis: 100%; margin: 0; background: rgba(255,255,255,.94); align-self: flex-start; width: fit-content; padding: 2px 6px 2px 0; border-radius: 6px; }

@@ -784,3 +784,24 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 .tip .tb-why { display: block; margin-top: 6px; color: #e3e5f1; }
 .tip .tb-n { display: block; margin-top: 6px; color: #9ea3bd; font-size: 11.5px; }
 .tip > span:not([class]) { display: block; }
+
+/* Step 1: the test bank in numbers */
+.change-canvas > .bank { grid-column: 1 / -1; }
+.bank-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.bank-nums div { border-left: 3px solid var(--ink); background: var(--paper); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 12.5px; color: var(--ink-2); line-height: 1.35; }
+.bank-nums b { display: block; font: 650 24px/1.1 var(--display); color: var(--ink); margin-bottom: 2px; }
+.bank-split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.bank-split h3 { margin: 0 0 8px; font-size: 13px; color: var(--ink-3); font-weight: 600; }
+.bank-types, .bank-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+.bank-types { grid-template-columns: 1fr 1fr; column-gap: 18px; }
+.bank-types li, .bank-links li { display: grid; align-items: center; gap: 8px; }
+.bank-types li { grid-template-columns: 34px 1fr auto; }
+.bank-links li { grid-template-columns: 110px 1fr 28px; }
+.bank-types .code { font-weight: 700; font-size: 12px; text-align: center; padding: 2px 0; border-radius: 5px; background: var(--navy); color: #fff; }
+.bank-types .ct, .bank-links .ct { color: var(--ink); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.bank-types .nm, .bank-links .nm { color: var(--ink-2); }
+.bank-links .bar { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+.bank-links .bar i { display: block; height: 100%; background: #8a90a6; }
+.bank-note { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); }
+@media (max-width: 900px) { .bank-nums { grid-template-columns: 1fr 1fr; } .bank-split { grid-template-columns: 1fr; gap: 18px; } }
+@media (max-width: 480px) { .bank-types { grid-template-columns: 1fr; } }

@@ -139,8 +139,15 @@ def test_next_button_walks_all_five_steps(page):
 
 def test_reference_codes_are_explained(page):
     page.goto(page.base + "#/change?case=CHG-027")
-    page.wait_for_selector(".codekey")
-    assert "C control, S system, I interface" in page.locator(".codekey").inner_text()
+    page.wait_for_selector(".bank-types")
+    key = page.locator(".bank-types").inner_text()
+    for code, kind in (("C", "Controls"), ("S", "Systems"), ("I", "Interfaces")):
+        assert code in key and kind in key
+    # The bank's numbers come before the change record on step 1.
+    assert (
+        page.locator(".bank").bounding_box()["y"]
+        < page.locator(".record").bounding_box()["y"]
+    )
     page.goto(page.base + "#/investigate?case=CHG-027&control=C02")
     page.wait_for_selector("#inspector.open")
     reasons = page.locator("#inspector .verdict").first.inner_text()

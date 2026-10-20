@@ -30,16 +30,8 @@ const table = (head, rows, cls = "") =>
 
 const PAGES = {
   async method(pane, app) {
-    const B = app.exp.benchmark;
-    const tc = app.graph.type_counts;
-    const lc = app.graph.link_counts;
     pane.innerHTML = `<h1>Benchmark and method</h1>
-      <p class="lead">An invented bank's outbound cross-border payments, built so that the right answer for every change is known. The agent only ever sees a damaged copy of the map.</p>
-      <section><div class="counters" style="grid-template-columns:repeat(4,minmax(0,1fr))">
-        <div class="counter ink"><div class="v">${B.items}</div><div class="l">items in the complete map</div></div>
-        <div class="counter ink"><div class="v">${B.links}</div><div class="l">directed links between them</div></div>
-        <div class="counter ink"><div class="v">${B.controls}</div><div class="l">controls, ${B.key_controls} of them key</div></div>
-        <div class="counter ink"><div class="v">${B.changes}</div><div class="l">change scenarios, ${B.held_out} held out for the test</div></div></div></section>
+      <p class="lead">How the test bank is scored and damaged. Its size and make-up are shown at the start of the walkthrough. The agent only ever sees a damaged copy of the map.</p>
       <section><h2>How it is scored</h2>
         <p><b>Answer key.</b> A control is affected when the changed item reaches it by following impact-carrying links in their direction through the complete map, at most six steps, stopping at the first control. This is plain code; no model labels anything.</p>
         <p><b>Damage.</b> For each change, 30% of the 237 recordable links are removed, nearest the change first, while keeping most of the changed item's own links; tickets may lose a sentence, use a legacy name, or wrongly say "control impact: N/A".</p>
@@ -48,13 +40,6 @@ const PAGES = {
         ["Lineage damage", "Key controls the check finds (18 test changes)"],
         app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`)
       )}</section>
-      <section><h2>Items and links</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${table(
-        ["Item type", "Count"],
-        Object.entries(tc).map(([k, v]) => `<tr><td>${esc(TYPE_LABEL[k])}</td><td class="num">${v}</td></tr>`)
-      )}${table(
-        ["Link type", "Count"],
-        Object.entries(lc).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k.toLowerCase().replace("_", " "))}</td><td class="num">${v}</td></tr>`)
-      )}</div></section>
       <section><h2>The complete map</h2><p style="color:var(--ink-2)">All 148 items. Drag to pan, scroll or use the buttons to zoom; click an item for its links.</p>
         <div class="graph-wrap" id="full" style="height:620px"></div></section>`;
     const c = await getCase(app.caseId);

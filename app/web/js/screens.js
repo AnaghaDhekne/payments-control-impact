@@ -58,6 +58,35 @@ function wireEstates(root, app, c) {
 
 // ------------------------------------------------------------------ 1. the change
 
+const TYPE_CODE = { CONTROL: "C", SYSTEM: "S", INTERFACE: "I", DATA_ELEMENT: "D", RULE: "R", PROCESS: "P", REPORT: "RP", EVIDENCE: "E" };
+const TYPE_ORDER = ["CONTROL", "DATA_ELEMENT", "PROCESS", "SYSTEM", "INTERFACE", "RULE", "REPORT", "EVIDENCE"];
+const TYPE_NAME = { CONTROL: "Controls", DATA_ELEMENT: "Data elements", PROCESS: "Processes", SYSTEM: "Systems", INTERFACE: "Interfaces", RULE: "Rules", REPORT: "Reports", EVIDENCE: "Evidence records" };
+
+/** The test bank in numbers, shown before any change or code appears. */
+function bankCard(app) {
+  const B = app.exp.benchmark;
+  const tc = app.graph.type_counts;
+  const lc = Object.entries(app.graph.link_counts).sort((a, b) => b[1] - a[1]);
+  return `<section class="card bank" aria-label="The test bank">
+    <div class="card-h"><h2>The test bank</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">An invented bank's outbound cross-border payments, built so the right answer for every change is known</span></div></div>
+    <div class="card-b">
+      <div class="bank-nums">
+        <div><b>${B.items}</b>items in its map</div>
+        <div><b>${B.links}</b>links between them</div>
+        <div><b>${B.controls}</b>controls, ${B.key_controls} of them key</div>
+        <div><b>${B.changes}</b>change scenarios, ${B.held_out} held out for the test</div>
+      </div>
+      <div class="bank-split">
+        <div><h3>Items, and the code each one carries</h3><ul class="bank-types">
+          ${TYPE_ORDER.filter((t) => tc[t]).map((t) => `<li><span class="code">${TYPE_CODE[t]}</span><span class="nm">${TYPE_NAME[t]}</span><span class="ct">${tc[t]}</span></li>`).join("")}
+        </ul><p class="bank-note">So C02 is a control, S03 a system, I02 an interface. Names are shown beside codes throughout.</p></div>
+        <div><h3>Links, by what they mean</h3><ul class="bank-links">
+          ${lc.map(([k, v]) => `<li><span class="nm">${esc(k.toLowerCase().replace("_", " "))}</span><span class="bar"><i style="width:${(100 * v) / lc[0][1]}%"></i></span><span class="ct">${v}</span></li>`).join("")}
+        </ul></div>
+      </div>
+    </div></section>`;
+}
+
 async function change(main, app, c) {
   const changed = c.changed.map((id) => nodeOf(app, id));
   const isAddress = changed.some((n) => /town|address|postal/i.test(n.name + n.description));
@@ -82,11 +111,11 @@ async function change(main, app, c) {
       <p class="note">A synthetic scenario: an invented bank, with a complete map we can check against. No real release was approved or stopped.</p>
     </aside>
     <section class="canvas change-canvas">
+      ${bankCard(app)}
       <article class="card record" aria-label="Change record">
         <div class="rh"><div><div class="rid">CHANGE RECORD · ${esc(c.id)}</div><div class="rt">${esc(c.title)}</div></div>
           <span class="chip">${esc((c.change_type || "").replace("_", " ").toLowerCase())}</span></div>
         <dl>
-          <dt>Reference codes</dt><dd class="codekey">${esc(CODE_KEY)} Names are shown beside codes throughout.</dd>
           <dt>What changes</dt><dd>${changed.map((n) => `<b>${esc(n.name)}</b> (${esc(n.id)}) — ${esc(n.description)}`).join("<br>")}</dd>
           ${isAddress ? `<dt>Context</dt><dd>Structured postal addresses are part of ISO 20022 (CBPR+) payment messages; their fields feed validation, screening and message mapping.</dd>` : ""}
           <dt>Planned release</dt><dd>${esc(c.implementation_date || "")} · release group ${esc(c.release_group || "")}</dd>

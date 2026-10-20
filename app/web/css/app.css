@@ -675,7 +675,7 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 @media (min-width: 901px) {
   body.has-subbar .stage > .canvas { position: sticky; top: 112px; align-self: start; height: calc(100vh - 112px - 41px); }
   body.has-subbar .stage > .canvas > .graph-wrap { flex: 1; min-height: 0; }
-  body.has-subbar .stage > .canvas.change-canvas, body.has-subbar .stage > .canvas:has(.units), body.has-subbar .stage > .canvas:has(.quad), body.has-subbar .stage > .canvas:has(.investigate) { position: static; height: auto; }
+  body.has-subbar .stage > .canvas.change-canvas, body.has-subbar .stage > .canvas:has(.units), body.has-subbar .stage > .canvas:has(.estates), body.has-subbar .stage > .canvas:has(.quad), body.has-subbar .stage > .canvas:has(.investigate) { position: static; height: auto; }
 }
 
 /* ------------------------------------------------------------------ blind spot: readable paths view */

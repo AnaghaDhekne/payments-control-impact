@@ -123,7 +123,7 @@ def test_overview_figures_match_the_recorded_run(page, experience):
     page.wait_for_selector(".ov-out")
     # Executives see outcomes; the figures sit one click away.
     shown = page.locator("main").inner_text()
-    assert "Ready for our control owners to test" in shown and "%" not in page.locator(".ov-out > .oc").inner_text()
+    assert "Ready for our control owners to test" in shown and "%" not in page.locator(".ov-out .xcheck").inner_text()
     page.locator(".ov-out .nums > summary").click()
     text = page.locator("main").inner_text()
     assert f"{p['agent_found_key']} of {p['key_misses']}" in text

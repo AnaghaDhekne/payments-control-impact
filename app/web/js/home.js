@@ -6,7 +6,7 @@
 
 import { esc, pct, el, highlight, expandCodes } from "./util.js";
 import { getCase, openInspector } from "./main.js";
-import { beforeAfter, outcomeList, verdictBadge, numbers } from "./outcomes.js";
+import { hero, beforeAfter, checklist, verdictBadge, numbers } from "./outcomes.js";
 
 const EXAMPLE = { case: "CHG-027", control: "C02" };
 
@@ -206,8 +206,9 @@ export async function renderOverview(main, app) {
         <h2 class="h-h2">What the test showed</h2>
         <p class="h-intro">${P.changes} realistic payment changes the detective had never seen, on a synthetic bank.</p>
         <div class="ov-out">
+          ${hero(P)}
           ${beforeAfter(P)}
-          ${outcomeList()}
+          ${checklist(P)}
           ${verdictBadge()}
           ${numbers(`
         <div class="ov-m">

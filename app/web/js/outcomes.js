@@ -14,20 +14,36 @@ export function beforeAfter(P) {
   </div>`;
 }
 
-export const OUTCOMES = [
-  ["Hidden impacts now surface before release", "Most of the safeguards a change would quietly break, invisible to today's check, are found before go-live."],
-  ["Every finding can be checked", "Each comes with the exact lines from the change request and the control procedure, and a second, independent opinion."],
-  ["People stay in charge", "Doubtful cases go straight to the control owner, and every release decision stays with people."],
-  ["Next: our own changes", "Control owners put it to work on real changes from our pipeline, then leadership decides on a supervised pilot."],
-];
-
-export const VERDICT = "Ready for our control owners to test on real changes.";
-
-export function outcomeList() {
-  return `<div class="oc">${OUTCOMES.map(([h, p]) => `<div class="oc-i"><b>${h}</b><p>${p}</p></div>`).join("")}</div>`;
+/** The headline: how many affected critical safeguards reach their owner, before and after. */
+export function hero(P) {
+  const reach = P.check_found_key + P.agent_found_key + P.key_routed;
+  return `<div class="hero-ba">
+    <div class="hb-side"><span class="hb-k">Today's check</span><b>${P.check_found_key} <small>of ${P.key_affected}</small></b><p>critical safeguards a change affects reach their owner, about 1 in 9.</p></div>
+    <div class="hb-arrow" aria-hidden="true">→</div>
+    <div class="hb-side on"><span class="hb-k">With the detective</span><b>${reach} <small>of ${P.key_affected}</small></b><p>reach their owner before release: ${P.check_found_key + P.agent_found_key} caught with evidence, ${P.key_routed} flagged for a person to decide.</p></div>
+  </div>`;
 }
 
-export const verdictBadge = () => `<div class="verdict"><span>Verdict</span>${VERDICT}</div>`;
+/** The checks an executive runs on a result, each answered in one line. */
+export function checklist(P) {
+  const reach = P.check_found_key + P.agent_found_key + P.key_routed;
+  const items = [
+    ["Seven times the catch", `${P.check_found_key + P.agent_found_key} critical safeguards caught with evidence, against ${P.check_found_key} today; only one of ${P.key_affected} slipped past both.`],
+    ["Right when it flags", "More than 9 in 10 of its new recommendations are correct."],
+    ["Shows its evidence", "Every finding quotes the change request and the control procedure, with a second, independent opinion."],
+    ["Keeps people in charge", "Doubtful cases go to the control owner; every release decision stays with people."],
+    ["Inexpensive to run", "Pennies per change in model costs (estimated), on the bank's own Databricks platform."],
+  ];
+  return `<ul class="xcheck">${items.map(([h, p]) => `<li><span class="tick" aria-hidden="true">✓</span><div><b>${h}</b><p>${p}</p></div></li>`).join("")}</ul>`;
+}
+
+export const VERDICT = "Ready for our control owners to test on real changes.";
+export const ASK = "The decision for leadership: approve a short practitioner test with two or three control owners and a risk lead.";
+
+export const verdictBadge = () => `<div class="verdict"><span>Verdict</span><div>${VERDICT}<small>${ASK}</small></div></div>`;
+
+// Kept for callers that show the outcome list; it is now the checklist.
+export const outcomeList = checklist;
 
 /** The figures behind the outcomes, folded away for analysts. */
 export const numbers = (html) => `<details class="nums"><summary>See the numbers</summary><div class="nums-b">${html}</div></details>`;

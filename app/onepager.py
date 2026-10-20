@@ -37,12 +37,17 @@ def _p(text: str) -> str:
     return text.encode("latin-1", "replace").decode("latin-1")
 
 
-OUTCOMES = [
-    ("Hidden impacts now surface before release", "Most of the safeguards a change would quietly break, invisible to today's check, are found before go-live."),
-    ("Every finding can be checked", "Each comes with the exact lines from the change request and the control procedure, and a second, independent opinion."),
-    ("People stay in charge", "Doubtful cases go straight to the control owner, and every release decision stays with people."),
-    ("Next: our own changes", "Control owners put it to work on real changes from our pipeline, then leadership decides on a supervised pilot."),
-]
+def _checks(reach, total, today, caught):
+    return [
+        ("Seven times the catch", f"{caught} critical safeguards caught with evidence, against {today} today; only one of {total} slipped past both."),
+        ("Right when it flags", "More than 9 in 10 of its new recommendations are correct."),
+        ("Shows its evidence", "Every finding quotes the change request and the control procedure, with a second, independent opinion."),
+        ("Keeps people in charge", "Doubtful cases go to the control owner; every release decision stays with people."),
+        ("Inexpensive to run", "Pennies per change in model costs (estimated), on the bank's own Databricks platform."),
+    ]
+
+
+ASK = "The decision for leadership: approve a short practitioner test with two or three control owners and a risk lead."
 VERDICT = "Ready for our control owners to test on real changes."
 
 
@@ -67,7 +72,8 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.set_xy(18, 16)
     text(9, f"Control Impact Detective  |  Synthetic proof of concept  |  {run_label}", MUTED)
     pdf.ln(2)
-    text(20, "Most of what a change could quietly break is now found before release", INK, "B", 9)
+    reach = rules_found + h["key_recovered"] + routed
+    text(20, f"{reach} of {total} critical safeguards reach their owner before release, against {rules_found} today", INK, "B", 9)
     pdf.ln(1)
     text(
         10.5,
@@ -114,43 +120,39 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.ln(5)
     pdf.ln(5)
 
-    for head, body in OUTCOMES:
-        text(11, head, INK, "B")
-        text(10, body, (61, 71, 82))
-        pdf.ln(2.5)
+    for head, body in _checks(reach, total, rules_found, rules_found + h["key_recovered"]):
+        yy = pdf.get_y()
+        pdf.set_fill_color(229, 240, 234)
+        pdf.ellipse(18, yy + 0.6, 4.6, 4.6, "F")
+        pdf.set_draw_color(46, 107, 78)
+        pdf.set_line_width(0.55)
+        pdf.line(19.3, yy + 3.0, 20.1, yy + 3.9)
+        pdf.line(20.1, yy + 3.9, 21.6, yy + 1.9)
+        pdf.set_line_width(0.2)
+        pdf.set_xy(25, yy)
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.set_text_color(*INK)
+        pdf.cell(w - 7, 5.6, _p(head), new_x="LMARGIN", new_y="NEXT")
+        pdf.set_x(25)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.set_text_color(61, 71, 82)
+        pdf.multi_cell(w - 7, 5, _p(body), new_x="LMARGIN", new_y="NEXT", align="L")
+        pdf.ln(2.2)
     pdf.ln(2)
 
     # Verdict
     y = pdf.get_y()
     pdf.set_fill_color(*AGENT)
-    pdf.rect(18, y, w, 14, "F")
-    pdf.set_xy(23, y + 4)
+    pdf.rect(18, y, w, 22, "F")
+    pdf.set_xy(23, y + 3.5)
     pdf.set_font("Helvetica", "B", 12)
     pdf.set_text_color(255, 255, 255)
     pdf.cell(w - 10, 6, _p("Verdict: " + VERDICT))
-    pdf.set_y(y + 20)
-
-    # Next step
-    pdf.set_fill_color(244, 246, 249)
-    y = pdf.get_y()
-    pdf.rect(18, y, w, 24, "F")
-    pdf.set_xy(22, y + 3)
-    pdf.set_font("Helvetica", "B", 10.5)
-    pdf.set_text_color(*INK)
-    pdf.multi_cell(w - 6, 5.2, "Suggested next step", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_x(22)
+    pdf.set_xy(23, y + 10.5)
     pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(61, 71, 82)
-    pdf.multi_cell(
-        w - 8,
-        5,
-        _p(
-            "Two or three control owners and a risk lead judge a sample of what it found, what it flagged and what it "
-            "set aside, on the recorded output. Then leadership decides whether a supervised pilot is justified."
-        ),
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
+    pdf.multi_cell(w - 10, 5, _p(ASK), new_x="LMARGIN", new_y="NEXT", align="L")
+    pdf.set_y(y + 26)
+
     pdf.set_y(276)
     text(8, "The detailed figures, and every record behind them, are in the app's Evidence room.", MUTED)
     text(8, "Synthetic data only: no real bank, customer or control data.", MUTED)

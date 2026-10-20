@@ -1277,3 +1277,21 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 @media (max-width: 1100px) { .oc { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .oc { grid-template-columns: 1fr; } .ba-row { grid-template-columns: 1fr; gap: 4px; } .ba-leg, .ba-cap { margin-left: 0; } .verdict { flex-direction: column; align-items: flex-start; } }
 #next-step .nx-l { margin-left: -8px; }
+/* Executive headline and checklist */
+.hero-ba { display: grid; grid-template-columns: 1fr 40px 1.25fr; gap: 12px; align-items: stretch; margin-bottom: 18px; }
+.hb-side { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; background: var(--surface); }
+.hb-side.on { background: linear-gradient(135deg, #f2f2fd, #fff); border-color: #cfd0f0; box-shadow: var(--shadow-hi); }
+.hb-k { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.hb-side b { display: block; font: 700 44px/1.05 var(--display); letter-spacing: -.03em; color: var(--ink-3); margin: 6px 0 4px; }
+.hb-side.on b { background: linear-gradient(135deg, var(--navy), var(--agent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hb-side b small { font-size: 18px; letter-spacing: 0; -webkit-text-fill-color: var(--ink-3); }
+.hb-side p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.hb-arrow { display: grid; place-items: center; font-size: 26px; color: var(--agent); }
+.xcheck { list-style: none; margin: 0 0 16px; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.xcheck li { display: flex; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.xcheck .tick { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.xcheck b { display: block; font: 650 14px/1.3 var(--display); color: var(--ink); margin-bottom: 4px; }
+.xcheck p { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.verdict > div { display: flex; flex-direction: column; gap: 4px; } .verdict small { font: 500 13.5px/1.4 var(--body); color: #c9cce0; }
+@media (max-width: 1200px) { .xcheck { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .hero-ba { grid-template-columns: 1fr; } .hb-arrow { transform: rotate(90deg); height: 24px; } .xcheck { grid-template-columns: 1fr; } }

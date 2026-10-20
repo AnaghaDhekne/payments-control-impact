@@ -4,7 +4,7 @@
 import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY, quoteWeakness } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
-import { beforeAfter, outcomeList, verdictBadge, numbers } from "./outcomes.js";
+import { hero, beforeAfter, checklist, verdictBadge, numbers } from "./outcomes.js";
 
 export const MOMENTS = [
   { id: "bank", label: "The test bank", intro: true },
@@ -776,8 +776,9 @@ async function decision(main, app, c) {
     <section class="canvas">
       <div class="card"><div class="card-h"><h2>What changes, across all ${P.changes} unseen test changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change you looked at</span></div></div>
         <div class="card-b">
+          ${hero(P)}
           ${beforeAfter(P)}
-          ${outcomeList()}
+          ${checklist(P)}
           ${verdictBadge()}
           ${numbers(`
           <div class="dec-hl"><div><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div><p>key-control impacts the existing lineage check missed were recommended by the detective (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%. ${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were sent to a person and ${P.key_silent} was not surfaced.</p></div>

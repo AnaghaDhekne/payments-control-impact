@@ -94,7 +94,6 @@ def test_overview_figures_match_the_recorded_run(page, experience):
         f"{surfaced} of {p['key_affected']}" in text
     )
     assert str(p["key_routed"]) in text
-    assert "This page shows the results." in text
     assert f"{p['key_silent']} affected key check, out of {p['key_affected']}" in text
 
 

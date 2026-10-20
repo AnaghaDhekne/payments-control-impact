@@ -151,7 +151,6 @@ export async function renderOverview(main, app) {
       <div class="h-wrap">
         <p class="h-eyebrow">Product overview</p>
         <h1>What the detective delivers, what it costs in review, and what is still unproven.</h1>
-        <p class="h-sub">This page shows the results. If you would rather discover them first, <a href="#" data-demo>take the five-step walkthrough</a>.</p>
       </div>
     </section>
 

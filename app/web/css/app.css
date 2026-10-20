@@ -476,6 +476,7 @@ pre.code { background: var(--ink); color: #e7e9f3; padding: 14px 16px; border-ra
 
 .home-only { display: none; }
 body.is-home .home-only { display: inline-flex; }
+body.is-landing .home-only { display: none; } /* the landing page offers the walkthrough only at its end */
 body.is-home .topbar > nav { visibility: hidden; }
 body.is-home #case { display: none; }
 @media (max-width: 900px) { body.is-home .topbar > nav { display: none; } }

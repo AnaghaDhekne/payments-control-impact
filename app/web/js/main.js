@@ -105,6 +105,7 @@ async function render() {
   main.innerHTML = "";
   main.className = "";
   document.body.classList.toggle("is-home", route === "home" || route === "overview");
+  document.body.classList.toggle("is-landing", route === "home");
   if (route === "home") {
     await renderHome(main, app);
   } else if (route === "overview") {

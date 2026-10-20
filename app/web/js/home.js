@@ -29,8 +29,7 @@ export async function renderHome(main, app) {
           <h1>See which safety checks a system change could quietly break, before it goes live.</h1>
           <p class="h-sub">Banks protect payments with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working. Control Impact Detective reads the change and the bank's own documents, finds the checks at risk, and shows its evidence for each, so the right people can act before release.</p>
           <div class="h-cta">
-            <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
-            <a class="btn lg" href="#how">How it works</a>
+            <a class="btn lg" href="#how">Read how it works <span aria-hidden="true">↓</span></a>
           </div>
           <p class="h-fine">Proof of concept, tested on a realistic made-up bank. No real bank or customer data.</p>
         </div>
@@ -44,7 +43,7 @@ export async function renderHome(main, app) {
             <dt>The request says</dt><dd class="h-case-ticket">“${esc(ex.ticket.text)}”</dd>
           </dl>
           <div class="h-case-check"><span class="h-case-dot" aria-hidden="true"></span>${checkLine}</div>
-          <p class="h-case-q">What might the existing check have missed? The walkthrough lets you find out for yourself.</p>
+          <p class="h-case-q">What might the existing check have missed? Read on, then find out for yourself in the walkthrough at the end of this page.</p>
         </aside>
       </div>
     </section>

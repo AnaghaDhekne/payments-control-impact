@@ -74,7 +74,10 @@ def test_home_sets_up_the_change_but_keeps_the_answer(page, experience):
 
 def test_walkthrough_cta_opens_the_example(page, experience):
     open_home(page)
-    page.locator(".h-hero [data-demo]").click()
+    # The walkthrough is offered only at the end of the landing page.
+    assert page.locator(".h-hero [data-demo]").count() == 0
+    assert not page.locator(".home-only").is_visible()
+    page.locator(".h-final [data-demo]").click()
     page.wait_for_selector("h1.title")
     assert "#/change?case=CHG-027" in page.url
     assert "finds nothing to review" in page.locator("h1.title").inner_text()

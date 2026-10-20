@@ -782,7 +782,7 @@ def page_present():
         _slide_head(
             4,
             "A reviewer would get more to look at, and most of it is real",
-            "About 26 items per change instead of 4: about 18 are real impacts that were being missed, about 4 are not affected.",
+            "Without it these controls still need checking by hand; 331 of the 406 added items are real impacts, 75 come with evidence to clear them.",
         )
         reviewer_chart()
     elif i == 5:

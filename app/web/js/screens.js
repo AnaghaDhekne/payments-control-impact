@@ -146,6 +146,7 @@ async function change(main, app, c) {
       </article>
       ${estate(app, "The bank's 101 controls, as the check sees them", `${c.counts.check_found} flagged`, (id) => (c.baselineSet.has(id) ? "check" : ""))}
       <div class="legend"><span><i class="sw" style="background:var(--check)"></i>Flagged by the existing lineage check</span><span><i class="sw" style="background:var(--idle)"></i>Not flagged</span><span>White inner border: key control</span></div>
+      <p class="tap-hint">Click any square to open that control and its evidence</p>
     </section></div>`);
   main.append(stage);
   wireGo(stage, app);
@@ -184,6 +185,7 @@ async function blindspot(main, app, c) {
             <button type="button" data-scope="focus" aria-pressed="false">Network</button>
             <button type="button" data-scope="all" aria-pressed="false">Whole map · 148 items</button></div></div>
         </div>
+        <p class="tap-hint" id="pv-hint"></p>
         <div class="pv" id="pv"></div>
         <div class="graph-legend legend" id="gl"></div>
       </div>
@@ -340,6 +342,8 @@ async function blindspot(main, app, c) {
 
   const paint = (pulse) => {
     const complete = mode === "complete";
+    const hint = stage.querySelector("#pv-hint");
+    if (hint) hint.textContent = complete || graph ? "Click any control to open its evidence" : "Switch to “What is actually connected” to see the controls the map hides";
     const sel = selected && c.affectedSet.has(selected) ? new Set(c.pathEdges(selected)) : new Set();
     if (!graph) {
       renderPaths();
@@ -481,7 +485,7 @@ async function investigate(main, app, c) {
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
       <p>Nothing on this screen calls a model: it replays the recording.</p>
-      <p>Click any control on the map to inspect the evidence behind its decision.</p>
+      
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
     </aside>
     <section class="canvas"><div class="investigate">
@@ -493,10 +497,12 @@ async function investigate(main, app, c) {
           <button class="btn ghost" id="end" type="button">Show result</button>
         </div>
         <div class="scrub-wrap"><label for="scrub" id="scrubl"></label><input id="scrub" class="scrub" type="range" min="0" max="${n + 1}" step="1"></div>
+        <p class="tap-hint" style="margin:8px 14px 0">Click a step to jump to it</p>
         <ol class="steps" id="steps"></ol>
       </div>
       <div class="right-col">
         <div class="card"><div class="ledger" id="ledger"></div></div>
+        <p class="tap-hint" style="margin:0">Hover a control to see why it landed there · click it to open the evidence</p>
         <div class="graph-wrap" id="gw"><div class="graph-legend legend" id="gl"></div></div>
       </div>
     </div></section></div>`);
@@ -649,7 +655,7 @@ async function consequence(main, app, c) {
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(4, "The consequence")}
-      <h1 class="title">Far more of the real impact reaches a reviewer, at the cost of more review.</h1>
+      <h1 class="title">Far more of the real impact reaches a reviewer, with the evidence attached.</h1>
       <p class="lead">For this change, and across all 18 changes the detective had never seen.</p>
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
       <div class="figure-label">key-control impacts the existing lineage check missed were recommended by the detective (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
@@ -660,13 +666,14 @@ async function consequence(main, app, c) {
         <div class="aside"><div class="seg" role="group" aria-label="Controls shown"><button type="button" data-k="0" aria-pressed="true">All controls</button><button type="button" data-k="1" aria-pressed="false">Key only</button></div></div></div>
         <div class="card-b"><div class="estates" id="estates"></div>
         <div class="legend" style="margin-top:12px"><span><i class="sw" style="background:var(--check)"></i>Existing lineage check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--ink)"></i>Actually affected (synthetic ground truth)</span></div>
+        <p class="tap-hint">Hover a square for its name · click it to open the evidence</p>
         <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The detective recommended <b>${rec.length}</b> (${recRight} actually affected) and sent <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor sent to a person${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
 
       <div class="card"><div class="card-h"><h2>Across all ${P.changes} held-out changes, in brief</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change is selected</span></div></div>
         <div class="card-b">
           <div class="sbar">${[["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]].filter(([, n]) => n).map(([k, n]) => `<span class="${k}" style="flex:${n}">${n / P.key_affected > 0.05 ? n : ""}</span>`).join("")}</div>
           <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
-          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. The cost is review: about ${Math.round(P.per_change.total)} items per change instead of about ${Math.round(P.per_change.check)}, and <b>${P.added_affected} of the ${P.added_items}</b> added items are genuinely affected. Actual reviewer time, operational cost and time savings were not measured. Every record is in the evidence room.</p></div></div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. Without the detective, these controls still have to be checked: by tracing the lineage gaps by hand, or by not knowing and missing them, which is the costly outcome. The detective turns that search into a list with evidence: <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them. Every record is in the evidence room.</p></div></div>
 
       <div class="risk" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
         <div><b>Remaining coverage risk: one affected key control was neither recommended nor sent to a person.</b>
@@ -727,7 +734,7 @@ async function decision(main, app, c) {
           <li>Every step is recorded and can be replayed.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still uncertain</h2></div><div class="card-b"><ul>
           <li>Accuracy on real changes, tickets and control documents.</li>
-          <li>Whether control owners find the output right and useful, and how long review takes.</li>
+          <li>Whether control owners find the output right and useful.</li>
           <li>Whether decisions repeat from run to run.</li>
           <li>Whether anything it marked not affected was missed.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain</h2></div><div class="card-b"><ul>
@@ -743,7 +750,7 @@ async function decision(main, app, c) {
           <div><h3 class="vh">Measured against</h3><ul class="vl">
             <li><b>Correctness:</b> the share of recommendations owners judge right, beside the ${pct(P.precision, 1)} measured against the synthetic answer key.</li>
             <li><b>Coverage:</b> affected key controls owners find among those marked not affected. Expected: none.</li>
-            <li><b>Usefulness and effort:</b> the share owners would act on, and minutes per item, both recorded.</li>
+            <li><b>Usefulness:</b> the share of the list owners would act on.</li>
             <li>Thresholds are agreed with the risk lead before the review starts.</li></ul></div>
           <div><h3 class="vh">Results that would argue against a pilot</h3><ul class="vl">
             <li>A key control missed silently among the not-affected sample.</li>
@@ -753,7 +760,7 @@ async function decision(main, app, c) {
         </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">
-          <div class="option focus"><h3>Practitioner review</h3><p>The validation above.</p><small>Answers the biggest open question.</small></div>
+          <div class="option focus"><span class="badge agent" style="margin-bottom:6px">Suggested first</span><h3>Practitioner review</h3><p>The validation above.</p><small>Answers the biggest open question.</small></div>
           <div class="option"><h3>Close the gaps first</h3><p>A five-run vote, a promote-only tie-break and a second check of not-affected key controls, each registered in advance.</p><small>Model capacity only.</small></div>
           <div class="option"><h3>Both</h3><p>Independent: the review uses existing output; the fixes use new runs.</p><small>Can run in parallel.</small></div>
           <div class="option"><h3>Stop here</h3><p>Keep the benchmark, code and results as documented.</p><small>Nothing runs in production.</small></div>

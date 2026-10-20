@@ -120,8 +120,8 @@ FAQ = [
     ),
     (
         "Leadership",
-        "What does it cost in reviewer effort?",
-        "Version A adds 406 review items beyond the rules baseline’s 64 (470 total). These are not 406 wrong findings: 262 are correct new recommendations, 18 are incorrect, and 126 are UNCERTAIN. Offline synthetic labels show 69 uncertain items are affected and 57 are unaffected. In total, 331 additional items (81.5%) concern affected controls and warrant consideration; 75 (18.5%, 4.2 per change) concern unaffected controls. The original gate counts all additional items, including useful recoveries; it measures volume, not wasted effort or actual review time. Uncertain items do not count as recovered.",
+        "Does it add review work?",
+        "Version A adds 406 review items beyond the rules baseline’s 64 (470 total). These are not 406 wrong findings: 262 are correct new recommendations, 18 are incorrect, and 126 are UNCERTAIN. Offline synthetic labels show 69 uncertain items are affected and 57 are unaffected. Without the detective these controls would still need checking, by tracing lineage gaps by hand or by missing them. In total, 331 additional items (81.5%) concern affected controls; 75 (18.5%) concern unaffected controls and come with evidence to clear them. The original gate counts all additional items, including useful recoveries, so it measures volume, not wasted effort. Uncertain items do not count as recovered.",
     ),
     (
         "Leadership",
@@ -232,8 +232,8 @@ FAQ = [
 
 LIMITS = [
     (
-        "Review burden",
-        "Held-out (A): about 4 unnecessary items per change. Version C with a 3-run vote: 0.3 on a fresh test.",
+        "Some flagged controls are not affected",
+        "Held-out (A): 75 of 406 added items are not affected, each with evidence to clear it. Version C with a 3-run vote cut these sharply on a fresh test.",
         "Variant B tried and rejected (fewer wrong flags, but lower recall and more review). Next: verifier changes, tested only on fresh cases.",
     ),
     (

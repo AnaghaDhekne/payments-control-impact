@@ -172,8 +172,8 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
             f"{h['key_recovered']} of {h['key_misses']} missed key controls found, each with quoted evidence; 18 of 280 recommendations were wrong.",
         ),
         (
-            "The review list is long, but mostly real",
-            "Per change a reviewer would get about 26 items instead of 4: about 18 are real impacts the existing lineage check misses, about 4 are not affected.",
+            "The extra items are mostly real impacts",
+            "Without the detective these controls would still need checking, by tracing lineage gaps by hand or by missing them. Of the 406 items it adds, 331 are real impacts the lineage check missed; 75 are not affected and come with evidence to clear them.",
         ),
         (
             "It is not yet repeatable enough",
@@ -181,7 +181,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         ),
         (
             "Cost and speed",
-            "About 70 model calls and a median of 11 minutes per change on a shared Free Edition endpoint. Reviewer time, running cost and time saved were not measured.",
+            "About 70 model calls and a median of 11 minutes per change on a shared Free Edition endpoint.",
         ),
     ]
     for head, body in lines:
@@ -198,12 +198,12 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         (
             "Review items added",
             "Reported",
-            "406: 331 affected, 75 not affected (about 4 per change)",
+            "406: 331 real impacts, 75 not affected",
         ),
         (
-            "Reviewer time, cost, time saved",
-            "Not measured",
-            "a practitioner pilot would measure them",
+            "Tried with control owners in practice",
+            "Not yet",
+            "the proposed practitioner validation",
         ),
         ("Same key decision across 5 runs >= 95%", "Not met", "80%"),
     ):
@@ -214,7 +214,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         pdf.cell(w * 0.42, 6, _p(target))
         pdf.set_font("Helvetica", "B", 9.5)
         pdf.set_text_color(
-            *{"Met": (30, 107, 73), "Reported": MUTED, "Not measured": MUTED}.get(
+            *{"Met": (30, 107, 73), "Reported": MUTED, "Not yet": MUTED}.get(
                 status, (156, 34, 25)
             )
         )

@@ -259,3 +259,26 @@ def test_case_persists_and_back_works(page):
     page.wait_for_selector("#inspector.open")
     assert "C03" in page.locator("#inspector .cid").inner_text()
     assert "CHG-024" in page.locator("#inspector .cid").inner_text()
+
+
+def test_change_rows_open_their_decisions_in_place(page, experience):
+    """Clicking a change shows its decisions directly below it, not elsewhere on the page."""
+    page.goto(page.base + "#/room/changes?case=CHG-027")
+    page.wait_for_selector(".cl-item")
+    item = page.locator(".cl-item").nth(1)
+    assert item.locator(".cl-body").is_hidden()
+    item.locator(".cl-row").click()
+    body = item.locator(".cl-body")
+    assert body.is_visible()
+    row_box, body_box = item.locator(".cl-row").bounding_box(), body.bounding_box()
+    assert abs(body_box["y"] - (row_box["y"] + row_box["height"])) < 4
+    assert body.locator("tr[data-c]").count() > 0
+    item.locator(".cl-row").click()
+    assert body.is_hidden()
+
+
+def test_no_sixty_percent_damage_level_is_shown(page):
+    for r in ["#/room/results", "#/handbook/degradation", "#/consequence", "#/overview"]:
+        page.goto(page.base + r + "?case=CHG-027")
+        page.wait_for_timeout(600)
+        assert "60%" not in page.locator("main").inner_text()

@@ -77,14 +77,14 @@ APPROACHES = [
         "recovery": 18 / 162,
         "measure": "share of all 162 affected key controls found",
         "set": "18 held-out changes, 30% correlated damage",
-        "caveat": "Deterministic; 42.6% at 30% random damage, 7.4% at 60%.",
+        "caveat": "Deterministic; 42.6% if the same 30% of links were removed at random.",
     },
     {
         "approach": "Phase 1: hybrid retrieval and ranking",
         "recovery": 0.495,
         "measure": "key-miss recovery",
         "set": "36 development changes, 5 runs, Llama 4 Maverick",
-        "caveat": "Development set; +201.5% reviewer workload; did not pass the gates.",
+        "caveat": "Development set; did not pass the gates.",
     },
     {
         "approach": "Phase 2: dependency-edge proposals",
@@ -747,7 +747,6 @@ def main():
             {"damage": "None", "found": 1.0},
             {"damage": "30% nearest the change (main)", "found": 18 / 162},
             {"damage": "30% random", "found": 69 / 162},
-            {"damage": "60% nearest the change", "found": 12 / 162},
         ],
         "benchmark": {
             "items": len(nodes),

@@ -143,12 +143,12 @@ const PAGES = {
       <p class="lead">The check and the detective never see the complete map. For every change, fixed code generates a damaged copy, the same way every time, so results can be reproduced and compared.</p>
       <div class="scope-note" style="margin-bottom:22px">A controlled synthetic stress test: it shows what happens when lineage is incomplete near a change. It is not evidence that a real bank's lineage is missing 30% of its links.</div>
       <section><h2>Worked example: ${esc(c.id)}</h2>${example}</section>
-      <section><h2>The links</h2><ol class="ra-steps">
-        <li><b>Budget.</b> At level L, round(237 × L / 100) recordable links are removed: ${removed} of 237 at the test level of 30% (one of the 238 links is never recordable).</li>
-        <li><b>Nearest the change first.</b> Links are ordered by how close they sit to a changed item, counting steps in either direction, and removed from the closest outwards. A seeded random number breaks ties.</li>
-        <li><b>Keep a local frontier.</b> Each changed item with n recordable links keeps at least ⌈n × (100 − L) / 100⌉ of them, and never fewer than one, so lineage looks stale rather than cut off. If that guard skips links, the rest of the budget comes from links further away. On ${esc(c.id)}: ${keepRule}.</li>
-        <li><b>Reproducible.</b> Every choice is seeded from the run seed (${esc(D.seed)}), the change, the level and the mode.</li>
-      </ol></section>
+      <section><h2>The links, in four rules</h2><div class="vflow">
+        <div class="vc"><span class="vc-n">1</span><b>Budget</b><em>${removed} of 237</em><span>recordable links removed at 30%: round(237 × L / 100)</span></div>
+        <div class="vc"><span class="vc-n">2</span><b>Nearest first</b><em>closest out</em><span>ordered by steps from a changed item; a seeded number breaks ties</span></div>
+        <div class="vc"><span class="vc-n">3</span><b>Keep a frontier</b><em>never cut off</em><span>a changed item keeps ⌈n × (100 − L) / 100⌉ links, at least one. ${esc(c.id)}: ${keepRule}</span></div>
+        <div class="vc"><span class="vc-n">4</span><b>Reproducible</b><em>seed ${esc(D.seed)}</em><span>plus the change, the level and the mode</span></div>
+      </div></section>
       <section><h2>The documents</h2><p style="color:var(--ink-2);margin-top:0">At level L, each of these happens with probability L% (30% in the test), independently:</p>
         ${table(["Damage", "What the reader sees", "Applies to"], [
           `<tr><td><b>Legacy name</b></td><td>“Legacy reference: &lt;old system name&gt;.” added at the start</td><td>Tickets and control procedures that have an old name</td></tr>`,
@@ -156,8 +156,8 @@ const PAGES = {
           `<tr><td><b>Misleading assessment</b></td><td>“Ticket assessment: control impact: N/A.” added at the end</td><td>Tickets of every seventh change only</td></tr>`,
         ])}
         <p style="font-size:13px;color:var(--ink-3)">On ${esc(c.id)}: ${removed} links removed; ticket ${c.ticket_damage?.length ? esc(c.ticket_damage.map((d) => dmg[d] || d).join("; ")) : "unchanged"}.</p></section>
-      <section><h2>Why levels and modes</h2><p style="color:var(--ink-2);margin-top:0">The generator builds every combination of level (${D.levels.join("%, ")}%) and mode (${D.modes.map(esc).join(", ")}). Correlated damage, nearest the change, is the hard case the product is for: documentation lags exactly where change happens. Random damage and 60% show how fragile the existing lineage check is either way.</p>
-        ${table(["Lineage damage", "Key controls the existing lineage check finds (18 test changes)"], app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`))}
+      <section><h2>Why nearest the change</h2><p style="color:var(--ink-2);margin-top:0">Removing links closest to the change is the hard case the product is for: documentation lags exactly where change happens. For comparison, the same 30% removed at random leaves the existing lineage check far more of the picture.</p>
+        <div class="hbars">${app.exp.rules_by_damage.filter((r) => !/^None/.test(r.damage)).map((r) => `<div class="hb"><span>${esc(r.damage)}</span><div class="hb-t"><i style="width:${(100 * r.found).toFixed(1)}%"></i></div><b>${pct(r.found, 1)}</b></div>`).join("")}<p class="hb-c">Key controls the existing lineage check still finds, across the 18 test changes</p></div>
         <p style="font-size:13px;color:var(--ink-3)">Source: scripts/generate_observable.py (degrade_edges, degrade_text). A damage manifest records exactly what was removed; only the scorer reads it.</p></section>`;
     pane.querySelector("#ex-open")?.addEventListener("click", () => openInspector(exId));
   },
@@ -193,13 +193,13 @@ const PAGES = {
         <div class="pa-out"><b>Reply</b><span>Exactly one JSON object: <code>{"action": …, "args": {…}}</code></span></div>
       </div></section>
       <section><h2>Tools</h2>${table(["Tool", "Arguments", "What it does", "Used"], tools.map(([t, a, d]) => `<tr><td><code>${t}</code></td><td><code>${esc(a)}</code></td><td>${esc(d)}</td><td class="num">${acts[t] || 0}</td></tr>`))}</section>
-      <section><h2>What fixed code checks on every reply</h2><ul class="ra-notes">
-        <li><b>Shape.</b> The reply must be one tool call with valid arguments; anything else is rejected and the detective is told why.</li>
-        <li><b>Read before deciding.</b> A finding is refused unless that control's procedure was inspected.</li>
-        <li><b>Verbatim quotes.</b> ticket_quote must appear in the ticket and control_quote in that procedure, exactly; otherwise the finding is rejected and must be corrected.</li>
-        <li><b>Known items only.</b> Every code in evidence_path must exist in the map; reason and counter-evidence must not be empty.</li>
-        <li><b>No early stop.</b> finish is refused while controls are undecided, until the steps run out.</li>
-      </ul></section>
+      <section><h2>What fixed code checks on every reply</h2><div class="vgrid">
+        <div class="vc ok"><b>Shape</b><span>one tool call with valid arguments, or rejected with the reason</span></div>
+        <div class="vc ok"><b>Read before deciding</b><span>no finding on a control whose procedure was not inspected</span></div>
+        <div class="vc ok"><b>Verbatim quotes</b><span>ticket_quote in the ticket, control_quote in the procedure, exactly</span></div>
+        <div class="vc ok"><b>Known items only</b><span>every code in evidence_path exists; reason and counter-evidence filled</span></div>
+        <div class="vc ok"><b>No early stop</b><span>finish refused while controls are undecided</span></div>
+      </div></section>
       <section><h2>Settings</h2>${table(["", ""], [
         `<tr><td>Model</td><td>databricks-gpt-oss-120b (Databricks Model Serving)</td></tr>`,
         `<tr><td>Temperature</td><td>0; an empty reply is retried with a nudge, then once at a small temperature</td></tr>`,
@@ -258,7 +258,10 @@ const PAGES = {
     const mname = miss ? app.graph.nodes.find((n) => n.id === miss.control)?.name : "";
     pane.innerHTML = `<h1>The verifier call</h1>
       <p class="lead">After the investigation, a separate model call judges findings on their own evidence. It does not continue the investigator's conversation. ${calls} verifier calls were recorded across the 18 test changes.</p>
-      <section><h2>When it is called</h2><p style="margin-top:0;color:var(--ink-2)">For every finding the investigator marked <b>affected</b> or <b>uncertain</b>. Findings marked <b>not affected</b> are recorded with their reason but not sent to the verifier.</p></section>
+      <section><h2>When it is called</h2><div class="vgrid">
+        <div class="vc ok"><b>Affected → verifier</b><span>checked on its own evidence</span></div>
+        <div class="vc ok"><b>Uncertain → verifier</b><span>checked on its own evidence</span></div>
+        <div class="vc weak"><b>Not affected → no verifier</b><span>reason recorded, no second look</span></div></div></section>
       <section class="warn-sec"><h2>What independent verification does not guarantee</h2>
         <p>Verification reduces unsupported positive findings and sends disagreements to a person. It cannot catch a false negative, because a control the investigator marks not affected never reaches it. Two model calls agreeing is not proof of completeness.</p>
         ${miss ? `<div class="sm"><div><b>Recorded example: ${esc(miss.control)} ${esc(mname)}, on ${esc(miss.change)}</b>
@@ -333,9 +336,9 @@ const PAGES = {
         <div class="goal"><div class="g-t">Can it recover the key controls the existing lineage check misses?</div>
           <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Goal met · at least 50%</span>
           <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
-        <div class="goal"><div class="g-t">Can it keep the extra review small?</div>
-          <div class="g-v">${P.added_unaffected}<small> unaffected items</small></div><span class="badge review">Original goal not met</span>
-          <p>The goal set at the start was at most 25% more review items than the check's ${P.check_items}. ${P.added_items} were added: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too. This is review volume, not reviewer effort, which was not measured.</p></div>
+        <div class="goal"><div class="g-t">Is the extra review worth it?</div>
+          <div class="g-v">${P.added_affected}<small> of ${P.added_items} are real impacts</small></div><span class="badge review">Original volume goal not met</span>
+          <p>These controls need checking with or without the detective; it hands over a shortlist with evidence. ${P.added_unaffected} are not affected and come with evidence to clear them. The original goal (at most 25% more items) counted real impacts as extra work too.</p></div>
         <div class="goal"><div class="g-t">Are its decisions repeatable?</div>
           <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Goal not met · target 95%</span>
           <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
@@ -424,25 +427,35 @@ const PAGES = {
     const f = { change: "all", type: "all", cat: "attention", key: "all" };
     const seg = (cls, n) => (n ? `<span class="${cls}" style="flex:${n}">${n}</span>` : "");
     const list = app.exp.cases.map(
-      (x) => `<li class="cl-row" data-id="${x.id}" tabindex="0" role="button" aria-label="Show the decisions of ${esc(x.id)}">
+      (x) => `<li class="cl-item" data-id="${x.id}"><div class="cl-row" tabindex="0" role="button" aria-expanded="false" aria-label="Show the decisions of ${esc(x.id)} below">
         <div class="cl-t"><b>${esc(x.id)}</b> ${esc(x.title)}<span>${x.affected} affected controls · ${x.model_calls} model calls</span></div>
-        ${x.key_affected ? `<div class="sbar sm">${seg("check", x.check_found_key)}${seg("agent", x.key_found_by_agent)}${seg("review", x.key_routed)}${seg("silent", x.key_silent)}</div>` : '<div class="bt-none">No key controls affected</div>'}
-        <div class="cl-k">${x.key_affected} key</div></li>`
+        ${x.key_affected ? `<div class="sbar sbar-sm">${seg("check", x.check_found_key)}${seg("agent", x.key_found_by_agent)}${seg("review", x.key_routed)}${seg("silent", x.key_silent)}</div>` : '<div class="bt-none">No key controls affected</div>'}
+        <div class="cl-k">${x.key_affected} key</div><span class="cl-open">Show decisions <i class="chev">▾</i></span></div>
+        <div class="cl-body" hidden></div></li>`
     );
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${v === cur ? "selected" : ""}>${esc(l)}</option>`;
-    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Explore every decision across the held-out changes, or pick one change from the list. Each decision opens its evidence in place.</p>
-      <section><h2>Explore the decisions</h2>
+    const decTable = (hit, inRow = false) => table([...(inRow ? [] : ["Change"]), "Control", "Key", "Decision", "Answer key", ""], hit.slice(0, LIMIT).map(({ k, d, r }) => {
+      const n = app.graph.nodes.find((x) => x.id === d.control);
+      return `<tr class="click" data-case="${k.id}" data-c="${d.control}" tabindex="0" title="Open the evidence for this decision">${inRow ? "" : `<td>${esc(k.id)}</td>`}<td><b>${esc(d.control)}</b> ${esc(n.name)}</td><td>${d.key ? "key" : ""}</td><td><span class="badge ${r}">${esc(ROUTE_LABEL[r])}</span></td><td>${d.truth ? "affected" : "not affected"}</td><td class="open-cue">Evidence ›</td></tr>`;
+    }));
+    const wireRows = (root) => root.querySelectorAll("tr[data-c]").forEach((tr) => {
+      const open = () => openInspector(tr.dataset.c, tr.dataset.case, { stay: true });
+      tr.addEventListener("click", open);
+      tr.addEventListener("keydown", (e) => e.key === "Enter" && open());
+    });
+    const LIMIT = 150;
+    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Click a change to see its decisions right below it. Click any decision to open its evidence.</p>
+      <section>
+        <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span><span>Bars: affected key controls</span></div>
+        <ul class="clist">${list.join("")}</ul></section>
+      <section><details class="xf-d"><summary>Filter decisions across all 18 changes</summary>
         <div class="xf">
           <label>Change<select id="f-change">${opt("all", "All 18 changes", f.change)}${all.map((k) => opt(k.id, `${k.id} · ${typeOf(k)}`, f.change)).join("")}</select></label>
           <label>Type of change<select id="f-type">${opt("all", "Every type", f.type)}${types.map((t) => opt(t, t, f.type)).join("")}</select></label>
           <label>Show<select id="f-cat">${Object.entries(CATS).map(([v, l]) => opt(v, l, f.cat)).join("")}</select></label>
           <label>Controls<select id="f-key">${opt("all", "Key and other", f.key)}${opt("key", "Key controls only", f.key)}</select></label>
         </div>
-        <p class="xf-sum" id="xf-sum"></p><div id="xf-t"></div></section>
-      <section><h2>The 18 changes</h2>
-        <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span><span>Bars show affected key controls; select a change to filter the decisions above</span></div>
-        <ul class="clist">${list.join("")}</ul></section>`;
-    const LIMIT = 150;
+        <p class="xf-sum" id="xf-sum"></p><div id="xf-t"></div></details></section>`;
     const draw = () => {
       const hit = rows.filter(({ k, d, cat, type }) =>
         (f.change === "all" || k.id === f.change) && (f.type === "all" || type === f.type) && (f.key === "all" || d.key) &&
@@ -450,23 +463,37 @@ const PAGES = {
       const counts = {};
       for (const r of rows.filter(({ k, d, type }) => (f.change === "all" || k.id === f.change) && (f.type === "all" || type === f.type) && (f.key === "all" || d.key))) if (r.cat) counts[r.cat] = (counts[r.cat] || 0) + 1;
       pane.querySelector("#xf-sum").innerHTML = `${hit.length} decision${hit.length === 1 ? "" : "s"}${hit.length > LIMIT ? `, first ${LIMIT} shown` : ""}. In this selection: ${["missed", "affRouted", "unaffRec", "unaffRouted"].map((x) => `${CATS[x].toLowerCase()} <b>${counts[x] || 0}</b>`).join(" · ")}.`;
-      pane.querySelector("#xf-t").innerHTML = hit.length ? table(["Change", "Control", "Key", "Decision", "Answer key"], hit.slice(0, LIMIT).map(({ k, d, r }) => {
-        const n = app.graph.nodes.find((x) => x.id === d.control);
-        return `<tr class="click" data-case="${k.id}" data-c="${d.control}" tabindex="0"><td>${esc(k.id)}</td><td><b>${esc(d.control)}</b> ${esc(n.name)}</td><td>${d.key ? "key" : ""}</td><td><span class="badge ${r}">${esc(ROUTE_LABEL[r])}</span></td><td>${d.truth ? "affected" : "not affected"}</td></tr>`;
-      })) : `<p class="bt-none">No decisions match this selection.</p>`;
-      pane.querySelectorAll("#xf-t tr[data-c]").forEach((tr) => {
-        const open = () => openInspector(tr.dataset.c, tr.dataset.case, { stay: true });
-        tr.addEventListener("click", open);
-        tr.addEventListener("keydown", (e) => e.key === "Enter" && open());
-      });
-      pane.querySelectorAll(".cl-row").forEach((li) => li.classList.toggle("on", li.dataset.id === f.change));
+      pane.querySelector("#xf-t").innerHTML = hit.length ? decTable(hit) : `<p class="bt-none">No decisions match this selection.</p>`;
+      wireRows(pane.querySelector("#xf-t"));
     };
     for (const [id, key] of [["f-change", "change"], ["f-type", "type"], ["f-cat", "cat"], ["f-key", "key"]])
       pane.querySelector("#" + id).addEventListener("change", (e) => { f[key] = e.target.value; draw(); });
-    pane.querySelectorAll(".cl-row").forEach((li) => {
-      const pick = () => { f.change = li.dataset.id; pane.querySelector("#f-change").value = f.change; draw(); pane.querySelector("#xf-sum").scrollIntoView({ behavior: "smooth", block: "center" }); };
-      li.addEventListener("click", pick);
-      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), pick()));
+    const body = (id) => {
+      const x = app.exp.cases.find((y) => y.id === id);
+      const mine = rows.filter(({ k, d, r }) => k.id === id && (d.truth || r === "recommended" || r === "review"));
+      const att = mine.filter((m) => m.cat);
+      const tile = (n, l, cls) => `<div class="cl-tile ${cls}"><b>${n}</b><span>${l}</span></div>`;
+      return `<div class="cl-tiles">${tile(x.check_found_key, "key found by the existing check", "check")}${tile(x.key_found_by_agent, "key recommended by the detective", "agent")}${tile(x.key_routed, "key sent to a person", "review")}${tile(x.key_silent, "key not surfaced", "silent")}</div>
+        <div class="cl-tabs" role="tablist"><button type="button" class="${att.length ? "on" : ""}" data-v="att">Needs attention (${att.length})</button><button type="button" class="${att.length ? "" : "on"}" data-v="all">Every flagged or affected control (${mine.length})</button></div>
+        <div class="cl-tab" data-v="att" ${att.length ? "" : "hidden"}>${att.length ? decTable(att, true) : '<p class="bt-none">Nothing needs attention in this change: every affected control was found and nothing unaffected was flagged.</p>'}</div>
+        <div class="cl-tab" data-v="all" ${att.length ? "hidden" : ""}>${att.length ? "" : '<p class="bt-none" style="margin:0 0 8px">Nothing needs attention here: every affected control was found and nothing unaffected was flagged.</p>'}${decTable(mine, true)}</div>`;
+    };
+    pane.querySelectorAll(".cl-item").forEach((li) => {
+      const row = li.querySelector(".cl-row"), b = li.querySelector(".cl-body");
+      const toggle = () => {
+        const open = b.hidden;
+        if (open && !b.innerHTML) {
+          b.innerHTML = body(li.dataset.id); wireRows(b);
+          b.querySelectorAll(".cl-tabs button").forEach((t) => t.addEventListener("click", () => {
+            b.querySelectorAll(".cl-tabs button").forEach((u) => u.classList.toggle("on", u === t));
+            b.querySelectorAll(".cl-tab").forEach((u) => (u.hidden = u.dataset.v !== t.dataset.v));
+          }));
+        }
+        b.hidden = !open; li.classList.toggle("on", open); row.setAttribute("aria-expanded", String(open));
+        row.querySelector(".cl-open").innerHTML = open ? 'Hide decisions <i class="chev">▴</i>' : 'Show decisions <i class="chev">▾</i>';
+      };
+      row.addEventListener("click", toggle);
+      row.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle()));
     });
     draw();
   },
@@ -514,17 +541,17 @@ const PAGES = {
         `<tr><td>Walkthrough, overview, evidence room, handbook</td><td>Databricks App</td><td>Replay of recorded files; no model calls</td></tr>`,
         `<tr><td>Ask about the POC</td><td>Databricks App → Model Serving</td><td>Model, live</td></tr>`,
       ])}</section>
-      <section><h2>Engineering choices</h2><ul class="ra-notes">
-        <li><b>Read-only.</b> The detective's tools only read. It never edits lineage or controls.</li>
-        <li><b>Isolated scoring.</b> Tests check that answer-key labels never appear in a prompt.</li>
-        <li><b>Resumable.</b> Every step is saved as it happens, so an interrupted job continues where it stopped.</li>
-      </ul></section>`;
+      <section><h2>Engineering choices</h2><div class="vgrid">
+        <div class="vc"><b>Read-only</b><span>tools only read; nothing in lineage or controls is edited</span></div>
+        <div class="vc"><b>Isolated scoring</b><span>tests check answer-key labels never reach a prompt</span></div>
+        <div class="vc"><b>Resumable</b><span>every step saved as it happens; a stopped job continues</span></div>
+      </div></section>`;
   },
 
   async limits(pane, app) {
     pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Where the proof of concept falls short, what was tried to fix it, and what that taught. Each fix had its adoption rule written before it ran.</p>
-      <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome.</div>
-      <section><h2>Known weaknesses</h2>${table(["Weakness", "Evidence", "Next step"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}</section>
+      <div class="scope-note" style="margin-bottom:22px"><b>Not yet shown:</b> accuracy on real bank data, how control owners work the list in practice, and any production outcome.</div>
+      <section><h2>Known weaknesses</h2><div class="vgrid wide">${app.exp.limits.map((l) => `<div class="vc weak"><b>${esc(l.issue)}</b><span>${esc(l.evidence)}</span><span class="vc-next">Next: ${esc(l.response)}</span></div>`).join("")}</div></section>
       <section><h2>Experiment decision records</h2><div class="drs">
         ${app.exp.version_tests.map((v) => {
           return `<article class="dr"><div class="dr-h"><span class="dr-v">Version ${esc(v.version)}</span><h3>${esc(v.name)}</h3><span class="badge not_affected">${esc(v.decision)}</span></div>
@@ -535,49 +562,41 @@ const PAGES = {
             <dt>Trade-off</dt><dd>${esc(v.trade_off)}</dd></dl></article>`;
         }).join("")}</div>
         <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Exported with the results by scripts/build_experience_data.py from docs/results.md (pre-registered sections); a test checks each result against that document.</p></section>
-      <section><h2>What we learned</h2><ul class="ra-notes">${app.exp.lessons.map((l) => `<li><b>${esc(l.title)}</b> ${esc(l.detail)}</li>`).join("")}</ul></section>
+      <section><h2>What we learned</h2><div class="vgrid">${app.exp.lessons.map((l, n) => `<div class="vc"><span class="vc-n">${n + 1}</span><b>${esc(l.title.replace(/\.$/, ""))}</b><span>${esc(l.detail)}</span></div>`).join("")}</div></section>
       <details class="terms"><summary>Terms used in the evidence room</summary>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</details>`;
   },
 
   async reproduce(pane, app) {
     const p = app.exp.provenance;
-    pane.innerHTML = `<h1>Reproduce</h1><p class="lead">Three different things, with different guarantees. Inspecting and validating the recorded run gives the same numbers every time. A fresh investigation calls a model again, so its decisions can differ from the recorded ones.</p>
-      <section><h2>1 · Inspect the recorded POC</h2>
-        <p class="rp-m"><b>Needs:</b> Python 3.12. No model, no credentials. <b>Gives:</b> this experience, served from the recorded files (Databricks job ${esc(p.job)}, ${esc(p.date)}).</p>
-        <pre class="code">python app/server.py      # open http://localhost:8000</pre>
-        <p class="rp-f"><b>If it fails:</b> another process holds the port (set PORT=8001), or app/web/data is missing (run step 2's export).</p></section>
-      <section><h2>2 · Validate the results</h2>
-        <p class="rp-m"><b>Needs:</b> requirements-dev.txt. No model. <b>Gives:</b> every test passing, including the checks that each figure shown here equals the archive ${esc(p.archive)}, and a re-export of the app data from it.</p>
-        <pre class="code">python -m pip install -r requirements-dev.txt
+    const path = (n, title, needs, gives, cmd, note) => `<div class="rp-card"><div class="rp-h"><span class="vc-n">${n}</span><b>${title}</b></div>
+      <dl><dt>Needs</dt><dd>${needs}</dd><dt>Gives</dt><dd>${gives}</dd></dl>
+      <details><summary>Show the commands</summary><pre class="code">${cmd}</pre><p class="rp-f">${note}</p></details></div>`;
+    pane.innerHTML = `<h1>Reproduce</h1><p class="lead">Three paths. The first two give the same numbers every time; a fresh run calls the model again, so decisions can differ.</p>
+      <div class="rp-grid">
+      ${path(1, "Inspect the recorded POC", "Python 3.12. No model, no credentials.", `This experience, from the recorded files (job ${esc(p.job)}, ${esc(p.date)}).`,
+        "python app/server.py      # open http://localhost:8000",
+        "<b>If it fails:</b> another process holds the port (set PORT=8001), or app/web/data is missing (run path 2's export).")}
+      ${path(2, "Validate the results", "requirements-dev.txt. No model.", `Every test passing, including each figure here against ${esc(p.archive)}.`,
+        `python -m pip install -r requirements-dev.txt
 python -m pytest -q                          # figures, partitions, prompts, pages
 python -m scripts.validate_graph             # benchmark integrity
 python -m scripts.evaluate_baseline          # the existing lineage check on every change
-python -m scripts.build_experience_data      # rebuild app/web/data from the archive</pre>
-        <p class="rp-f"><b>If it fails:</b> a figure test failing means app/web/data no longer matches the archive; re-run the export and look at what changed. Run commands from the repository root.</p></section>
-      <section><h2>3 · Run a fresh investigation</h2>
-        <p class="rp-m"><b>Needs:</b> a Databricks workspace with the repository as a Git folder, a serving endpoint (default databricks-gpt-oss-120b), a Unity Catalog volume for results, and requirements-llm.txt. <b>Gives:</b> a new run folder with every step, prompt and reply, scored against the answer key.</p>
-        <pre class="code">python -m scripts.probe_model --n 6          # expect 5–6 usable replies
+python -m scripts.build_experience_data      # rebuild app/web/data from the archive`,
+        "<b>If it fails:</b> a figure test failing means app/web/data no longer matches the archive. Run from the repository root.")}
+      ${path(3, "Run a fresh investigation", "Databricks workspace with the repo as a Git folder, a serving endpoint (databricks-gpt-oss-120b), a Unity Catalog volume, requirements-llm.txt.", "A new run folder with every step, prompt and reply, scored against the answer key.",
+        `python -m scripts.probe_model --n 6          # expect 5–6 usable replies
 python -m scripts.detective_job submit --repo /Workspace/Users/&lt;you&gt;/payments-control-impact \\
     --variant A --output-dir /Volumes/workspace/default/detective_runs/&lt;run-name&gt;
 python -m scripts.detective_job status &lt;run_id&gt;
-python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-folder&gt; --runs 1</pre>
-        <p class="rp-f"><b>Expect differences:</b> temperature 0 does not make the endpoint deterministic; decisions differ from run to run (80% of key decisions repeated in the five-run test). Compare pooled metrics, not individual decisions. The held-out split needs an explicit confirmation flag. <b>If it fails:</b> check the endpoint with probe_model first; an interrupted job resumes when resubmitted with the same output folder. Full steps: docs/runbook.md.</p></section>`;
+python -m scripts.compare_runs --a &lt;recorded-run-folder&gt; --b &lt;your-run-folder&gt; --runs 1`,
+        "<b>Expect differences:</b> temperature 0 is not deterministic on this endpoint (80% of key decisions repeated over five runs); compare pooled metrics. The held-out split needs a confirmation flag. An interrupted job resumes with the same output folder. Full steps: docs/runbook.md.")}
+      </div>`;
   },
 
   async pilot(pane) {
     pane.innerHTML = `<h1>From POC to enterprise pilot</h1>
       <p class="lead">What would have to be built or proven before a supervised pilot on real changes. Nothing here is in place today; the POC is not production-ready.</p>
-      ${table(["Area", "Today, in the POC", "Needed for a pilot"], [
-        `<tr><td><b>Data integration</b></td><td>Synthetic files for tickets, lineage and procedures</td><td>Read-only connectors to the change tool, the lineage catalogue and the control library</td></tr>`,
-        `<tr><td><b>Access control</b></td><td>One workspace, one user</td><td>Workspace permissions, service principals, least-privilege access to source systems</td></tr>`,
-        `<tr><td><b>Audit retention</b></td><td>Run files in a Unity Catalog volume</td><td>Retention rules, immutable run records, lineage of every finding to its inputs</td></tr>`,
-        `<tr><td><b>Model reliability</b></td><td>80% repeatability on three development changes</td><td>An agreed threshold, tested on new changes; endpoint version pinning; regression runs on change</td></tr>`,
-        `<tr><td><b>Negative decisions</b></td><td>Not-affected decisions are not checked</td><td>A second check, or sampled human review, of not-affected key controls</td></tr>`,
-        `<tr><td><b>Human review workflow</b></td><td>Routing is recorded; nobody works the queue</td><td>Owner assignment, sign-off, and feedback captured in the change tool</td></tr>`,
-        `<tr><td><b>Operational monitoring</b></td><td>Per-run metrics after the fact</td><td>Latency, cost, error and drift monitoring per change</td></tr>`,
-        `<tr><td><b>Model risk</b></td><td>Not reviewed</td><td>Model-risk validation and documentation under the bank's policy</td></tr>`,
-        `<tr><td><b>Practitioner evaluation</b></td><td>Scored against a synthetic answer key</td><td>Control owners judge real output, including what it left out</td></tr>`,
-      ])}
+      <div class="vgrid wide"><div class="vc pilot"><b>Data integration</b><span class="pl-now"><i>Today</i>Synthetic files for tickets, lineage and procedures</span><span class="pl-need"><i>Needed</i>Read-only connectors to the change tool, the lineage catalogue and the control library</span></div><div class="vc pilot"><b>Access control</b><span class="pl-now"><i>Today</i>One workspace, one user</span><span class="pl-need"><i>Needed</i>Workspace permissions, service principals, least-privilege access to source systems</span></div><div class="vc pilot"><b>Audit retention</b><span class="pl-now"><i>Today</i>Run files in a Unity Catalog volume</span><span class="pl-need"><i>Needed</i>Retention rules, immutable run records, lineage of every finding to its inputs</span></div><div class="vc pilot"><b>Model reliability</b><span class="pl-now"><i>Today</i>80% repeatability on three development changes</span><span class="pl-need"><i>Needed</i>An agreed threshold, tested on new changes; endpoint version pinning; regression runs on change</span></div><div class="vc pilot"><b>Negative decisions</b><span class="pl-now"><i>Today</i>Not-affected decisions are not checked</span><span class="pl-need"><i>Needed</i>A second check, or sampled human review, of not-affected key controls</span></div><div class="vc pilot"><b>Human review workflow</b><span class="pl-now"><i>Today</i>Routing is recorded; nobody works the queue</span><span class="pl-need"><i>Needed</i>Owner assignment, sign-off, and feedback captured in the change tool</span></div><div class="vc pilot"><b>Operational monitoring</b><span class="pl-now"><i>Today</i>Per-run metrics after the fact</span><span class="pl-need"><i>Needed</i>Latency, cost, error and drift monitoring per change</span></div><div class="vc pilot"><b>Model risk</b><span class="pl-now"><i>Today</i>Not reviewed</span><span class="pl-need"><i>Needed</i>Model-risk validation and documentation under the bank's policy</span></div><div class="vc pilot"><b>Practitioner evaluation</b><span class="pl-now"><i>Today</i>Scored against a synthetic answer key</span><span class="pl-need"><i>Needed</i>Control owners judge real output, including what it left out</span></div></div>
       <p style="font-size:13px;color:var(--ink-3)">The practitioner validation proposed for leadership is on the walkthrough's decision screen.</p>`;
   },
 

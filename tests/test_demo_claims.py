@@ -91,7 +91,7 @@ CLAIMS = [
         "5 Consequence",
         "#/consequence?case=CHG-027",
         None,
-        "operational cost and time savings were not measured",
+        "which is the costly outcome",
     ),
     (
         "7 Decision",

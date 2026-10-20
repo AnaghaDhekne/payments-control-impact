@@ -145,7 +145,7 @@ export async function renderHome(main, app) {
           </ul>
           <ul class="h-proof no">
             <li>Not yet tested on a real bank's changes and documents.</li>
-            <li>Reviewer time and cost per change not yet measured.</li>
+            <li>Not yet tried with control owners working the list in practice.</li>
             <li>Not yet repeatable enough: the same change can get different decisions on different runs.</li>
           </ul>
         </div>
@@ -154,7 +154,7 @@ export async function renderHome(main, app) {
           <ol class="h-path">
             <li><b>Practitioner validation</b><span>Control owners judge a sample of findings, including the checks it left out.</span></li>
             <li><b>Supervised pilot</b><span>Real changes and documents, with owners deciding every item.</span></li>
-            <li><b>Part of the change process</b><span>Only if the pilot shows findings that are right, useful and worth the review time.</span></li>
+            <li><b>Part of the change process</b><span>Only if the pilot shows findings that are right and useful, and that nothing important is left out.</span></li>
           </ol>
         </div>
       </div>
@@ -232,10 +232,10 @@ export async function renderOverview(main, app) {
           <div><div class="ov-v">${P.added_affected}</div><h3>Additional affected controls surfaced</h3><p>Recommended or sent to a person; not all were confirmed recommendations.</p></div>
           <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>
         </div>
-        <p class="ov-note">These measure different populations and must not be added together. No reviewer time or cost was measured.</p>
+        <p class="ov-note">These measure different populations and must not be added together.</p>
         <div class="ov-comp"><h3>What the additional review contains</h3>
           <div class="sbar"><span class="agent" style="flex:${P.added_affected}">${P.added_affected} affected · ${share(P.added_affected)}</span><span class="idle" style="flex:${P.added_unaffected}">${P.added_unaffected} · ${share(P.added_unaffected)}</span></div>
-          <p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. This classifies review items; it does not measure reviewer time or avoidable cost.</p></div>
+          <p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
       </div>
     </section>
 

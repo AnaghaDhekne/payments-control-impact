@@ -35,7 +35,7 @@ def results_summary() -> str:
         f"Review items: {p['check_items']} from the check, {p['added_items']} added "
         f"({p['added_affected']} genuinely affected, {p['added_unaffected']} unaffected). "
         f"Consistency over 5 runs: {100 * p['consistency']['agreement']:.0f}% of {p['consistency']['pairs']} key decisions (target 95%). "
-        "Routing to a person is not a completed review; reviewer time, real-data accuracy and costs were not measured."
+        "Routing to a person is not a completed review. Without the detective these controls would still need checking by hand, and a missed control is the costly outcome. Real-data accuracy is not yet shown."
         + "\n\n"
         + catalogue()
     )

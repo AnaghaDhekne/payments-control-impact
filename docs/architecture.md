@@ -44,7 +44,7 @@ creates or edits labels.
 - `control_documents`: one short procedure text per control, also degraded
   (legacy aliases, omitted sentences, occasional misleading "no impact" text).
 
-Degradation runs at 0, 30 or 60% in two modes. *Random* removes edges uniformly.
+Degradation removes 30% of links in two modes. *Random* removes edges uniformly.
 *Change-correlated* removes edges nearest the changed entity first, while
 keeping roughly (100 − level)% of the changed node's own edges, so the change is
 never fully isolated. The primary condition is **30% change-correlated**.

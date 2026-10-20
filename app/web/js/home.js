@@ -1,5 +1,7 @@
 // The product landing page: what the detective is, in plain words, for someone
-// who has never heard of lineage or controls. Every figure comes from the same
+// who has never heard of lineage or controls. It sets up one change and stops
+// before any result, so the walkthrough keeps its reveal; results live on the
+// product overview. Every figure comes from the same
 // recorded run as the rest of the experience; nothing here is a projection.
 
 import { esc, pct, el, highlight } from "./util.js";
@@ -10,43 +12,40 @@ const EXAMPLE = { case: "CHG-027", control: "C02" };
 const arrow = `<div class="fl-arrow" aria-hidden="true"><svg viewBox="0 0 40 16"><path d="M0 8h34M28 2l7 6-7 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></div>`;
 
 export async function renderHome(main, app) {
-  const P = app.exp.portfolio;
-  const B = app.exp.benchmark;
   const ex = await getCase(EXAMPLE.case);
-  const d = ex.decision(EXAMPLE.control);
-  const ctrl = app.graph.nodes.find((n) => n.id === EXAMPLE.control);
-  const doc = ex.document_overrides?.[EXAMPLE.control] || app.graph.documents[EXAMPLE.control]?.text || "";
-  const surfaced = P.check_found_key + P.agent_found_key;
-  const perCall = Math.round(P.model_calls / P.changes);
-  const added = Math.round(P.per_change.total) - Math.round(P.per_change.check);
-
+  const changed = ex.changed
+    .map((id) => app.graph.nodes.find((n) => n.id === id))
+    .map((n) => `<b>${esc(n.name)}</b> (${esc(n.id)})`)
+    .join(", ");
+  const found = ex.counts.check_found;
+  const checkLine = found
+    ? `The existing check flags ${found} control${found > 1 ? "s" : ""} for review.`
+    : "The existing check flags no controls for review.";
   const page = el(`<div class="home">
     <section class="h-hero">
       <div class="h-wrap h-hero-grid">
         <div>
           <p class="h-eyebrow">For banks changing payment systems</p>
           <h1>See which safety checks a system change could quietly break, before it goes live.</h1>
-          <p class="h-sub">Banks protect every payment with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working. Control Impact Detective reads the change and the bank's own documents, finds the checks at risk, and shows its evidence for each, so the right people can act before release.</p>
+          <p class="h-sub">Banks protect payments with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working. Control Impact Detective reads the change and the bank's own documents, finds the checks at risk, and shows its evidence for each, so the right people can act before release.</p>
           <div class="h-cta">
-            <a class="btn primary lg" href="#" data-demo>See it work on an example <span aria-hidden="true">→</span></a>
+            <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
             <a class="btn lg" href="#how">How it works</a>
           </div>
           <p class="h-fine">Proof of concept, tested on a realistic made-up bank. No real bank or customer data.</p>
         </div>
-        <div class="h-compare card" aria-label="One change, two answers">
-          <div class="h-compare-h">One real test case: ${esc(ex.title.split(" — ")[0])}</div>
-          <div class="h-ans today">
-            <span class="h-ans-l">Today's check</span>
-            <span class="h-ans-v">${ex.counts.check_found}</span>
-            <span class="h-ans-t">safety checks flagged. The change looks safe to release.</span>
-          </div>
-          <div class="h-ans with">
-            <span class="h-ans-l">With the detective</span>
-            <span class="h-ans-v">${ex.counts.agent_recommended}</span>
-            <span class="h-ans-t">safety checks found at risk, ${ex.counts.agent_recommended_right} of them correctly, each with quoted evidence.</span>
-          </div>
-          <div class="h-compare-f">${ex.counts.affected} were actually affected, according to the test's answer key.</div>
-        </div>
+        <aside class="h-case card" aria-label="The example change">
+          <div class="h-case-k">Start here: one test change</div>
+          <div class="h-case-id">CHANGE RECORD · ${esc(ex.id)}</div>
+          <div class="h-case-t">${esc(ex.title)}</div>
+          <dl>
+            <dt>What changes</dt><dd>${changed}</dd>
+            <dt>Planned release</dt><dd>${esc(ex.implementation_date || "")}</dd>
+            <dt>The request says</dt><dd class="h-case-ticket">“${esc(ex.ticket.text)}”</dd>
+          </dl>
+          <div class="h-case-check"><span class="h-case-dot" aria-hidden="true"></span>${checkLine}</div>
+          <p class="h-case-q">Is it safe to release? The walkthrough lets you find out for yourself.</p>
+        </aside>
       </div>
     </section>
 
@@ -54,9 +53,9 @@ export async function renderHome(main, app) {
       <div class="h-wrap">
         <h2 class="h-h2">The problem, in plain words</h2>
         <div class="h-three">
-          <div><span class="h-num">1</span><h3>Every change touches safety checks</h3><p>A new field in a payment message or a new screening interface can stop a check from seeing what it needs. Nobody notices until something slips through.</p></div>
+          <div><span class="h-num">1</span><h3>Every change touches safety checks</h3><p>A new field in a payment message or a new screening interface can stop a check from seeing what it needs. It can go unnoticed until something slips through.</p></div>
           <div><span class="h-num">2</span><h3>Teams rely on a map of connections</h3><p>Before release, the bank follows a map of which systems feed which checks. It is like finding which rooms lose power by reading the wiring diagram.</p></div>
-          <div><span class="h-num">3</span><h3>The map always has gaps</h3><p>When wires are missing from the diagram, rooms that will lose power look fine. In our test, the map-based check found <b>${pct(P.check_found_key / P.key_affected)}</b> of the affected key checks.</p></div>
+          <div><span class="h-num">3</span><h3>Dependency maps can have gaps</h3><p>Systems change faster than their documentation, so some connections go unrecorded. When a wire is missing from the diagram, a room that will lose power looks fine.</p></div>
         </div>
       </div>
     </section>
@@ -97,6 +96,64 @@ export async function renderHome(main, app) {
           </div>
         </div>
         <p class="h-fine center">Nothing is approved, re-tested or released on the detective's word. It prepares the evidence; people decide.</p>
+      </div>
+    </section>
+
+    <section class="h-final">
+      <div class="h-wrap">
+        <h2>Investigate the change yourself</h2>
+        <p>Five short steps: the change, the gap in the map, the investigation, the results, and the decision.</p>
+        <div class="h-cta center">
+          <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
+          <a class="btn lg light" href="#/overview">Product overview</a>
+        </div>
+        <p class="h-final-note">The overview covers results, architecture, limits and common questions. It shows the walkthrough's answers.</p>
+      </div>
+    </section>
+  </div>`);
+  main.append(page);
+  wire(page);
+  page.querySelector('a[href="#how"]').addEventListener("click", (e) => {
+    e.preventDefault();
+    page.querySelector("#how").scrollIntoView({ behavior: "smooth" });
+  });
+}
+
+function wire(page) {
+  page.querySelectorAll("[data-demo]").forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      go("change", { caseId: EXAMPLE.case });
+    })
+  );
+  page.querySelector("[data-demo-control]")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    go("investigate", { caseId: EXAMPLE.case, control: EXAMPLE.control });
+  });
+  page.querySelector("[data-room]")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    go("room", { caseId: EXAMPLE.case });
+  });
+}
+
+/** The full product overview, for visitors who want the detail. It shows
+ * results, so the landing page links to it after the walkthrough invitation. */
+export async function renderOverview(main, app) {
+  const P = app.exp.portfolio;
+  const B = app.exp.benchmark;
+  const ex = await getCase(EXAMPLE.case);
+  const d = ex.decision(EXAMPLE.control);
+  const ctrl = app.graph.nodes.find((n) => n.id === EXAMPLE.control);
+  const doc = ex.document_overrides?.[EXAMPLE.control] || app.graph.documents[EXAMPLE.control]?.text || "";
+  const surfaced = P.check_found_key + P.agent_found_key;
+  const perCall = Math.round(P.model_calls / P.changes);
+  const added = Math.round(P.per_change.total) - Math.round(P.per_change.check);
+  const page = el(`<div class="home">
+    <section class="h-hero h-hero-s">
+      <div class="h-wrap">
+        <p class="h-eyebrow">Product overview</p>
+        <h1>What the detective delivers, what it costs in review, and what is still unproven.</h1>
+        <p class="h-sub">This page shows the results. If you would rather discover them first, <a href="#" data-demo>take the five-step walkthrough</a>.</p>
       </div>
     </section>
 
@@ -211,8 +268,8 @@ export async function renderHome(main, app) {
 
     <section class="h-final">
       <div class="h-wrap">
-        <h2>See it on a real test case</h2>
-        <p>Five short steps: the change, the gap in the map, the investigation, the results, and the decision.</p>
+        <h2>See the evidence behind every number</h2>
+        <p>The walkthrough, the one-page summary and the full method are one click away.</p>
         <div class="h-cta center">
           <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
           <a class="btn lg light" href="summary.pdf" download>One-page summary (PDF)</a>
@@ -222,23 +279,5 @@ export async function renderHome(main, app) {
     </section>
   </div>`);
   main.append(page);
-
-  page.querySelectorAll("[data-demo]").forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      go("change", { caseId: EXAMPLE.case });
-    })
-  );
-  page.querySelector("[data-demo-control]").addEventListener("click", (e) => {
-    e.preventDefault();
-    go("investigate", { caseId: EXAMPLE.case, control: EXAMPLE.control });
-  });
-  page.querySelector("[data-room]").addEventListener("click", (e) => {
-    e.preventDefault();
-    go("room", { caseId: EXAMPLE.case });
-  });
-  page.querySelector('a[href="#how"]').addEventListener("click", (e) => {
-    e.preventDefault();
-    page.querySelector("#how").scrollIntoView({ behavior: "smooth" });
-  });
+  wire(page);
 }

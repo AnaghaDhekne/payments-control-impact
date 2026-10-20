@@ -3,7 +3,7 @@
 import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
 import { renderRoom, ROOM_PAGES } from "./room.js";
-import { renderHome } from "./home.js";
+import { renderHome, renderOverview } from "./home.js";
 
 const app = {
   exp: null,
@@ -104,9 +104,11 @@ async function render() {
   const main = document.getElementById("main");
   main.innerHTML = "";
   main.className = "";
-  document.body.classList.toggle("is-home", route === "home");
+  document.body.classList.toggle("is-home", route === "home" || route === "overview");
   if (route === "home") {
     await renderHome(main, app);
+  } else if (route === "overview") {
+    await renderOverview(main, app);
   } else if (route === "room") {
     await renderRoom(main, app, c, sub || ROOM_PAGES[0].id);
   } else {
@@ -120,7 +122,7 @@ async function render() {
   window.scrollTo(0, 0);
 }
 
-const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
+const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "overview" ? "Product overview" : r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
 
 function renderTop() {
   const nav = document.getElementById("journey");

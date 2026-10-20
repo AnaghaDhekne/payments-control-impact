@@ -553,7 +553,7 @@ async function decision(main, app, c) {
       <h1 class="title">Demonstrated on synthetic evidence. Not yet ready for a pilot.</h1>
       <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the lineage check missed, and showed its evidence for each.</p>
       <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
-      <div class="next"><a class="btn" href="#" data-go="room">Open the evidence room</a><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
+      <div class="next"><a class="btn" href="#" data-go="room">Open the evidence room</a><a class="btn" href="#/overview">Product overview</a><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="note">This proof of concept did not measure reviewer time, accuracy on real data, or any cost or saving. None is claimed.</p>
     </aside>
     <section class="canvas">

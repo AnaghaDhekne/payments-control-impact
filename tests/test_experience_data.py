@@ -130,4 +130,7 @@ def test_earlier_approaches_match_results_doc(experience):
     assert rows["Phase 1: hybrid retrieval and ranking"]["recovery"] == 0.495
     assert rows["Phase 2: dependency-edge proposals"]["recovery"] == 0.576
     p = experience["portfolio"]
-    assert rows["Agent investigation (this run)"]["recovery"] == p["agent_found_key"] / p["key_misses"]
+    assert (
+        rows["Agent investigation (this run)"]["recovery"]
+        == p["agent_found_key"] / p["key_misses"]
+    )

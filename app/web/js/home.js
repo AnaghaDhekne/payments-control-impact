@@ -214,6 +214,15 @@ export async function renderOverview(main, app) {
       </div>
     </section>
 
+    <section class="h-sec alt">
+      <div class="h-wrap">
+        <h2 class="h-h2">Operating feasibility: model usage, not a savings claim</h2>
+        <p class="h-intro">The held-out evaluation used <b>${P.model_calls.toLocaleString("en-US")} model calls across ${P.changes} synthetic changes</b> (about <b>${(P.model_calls/P.changes).toFixed(1)} calls per change</b>). Usage varies by change and includes investigation and independent verification.</p>
+        <p>Actual monetary inference cost, input/output token usage, real-bank throughput, and human review time were not measured. A pilot should capture these alongside decision quality before claiming economic benefit.</p>
+        <p class="h-fine">Budget model: estimated inference cost per change = recorded model calls per change × measured or contract-based cost per call. Real deployments must also include compute, storage, retries, integration, and owner review. No dollar estimate is implied by these benchmark counts.</p>
+      </div>
+    </section>
+
     <section class="h-final">
       <div class="h-wrap">
         <h2>What happens next?</h2>

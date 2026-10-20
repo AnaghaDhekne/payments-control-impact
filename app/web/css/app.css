@@ -647,7 +647,6 @@ pre.code { background: var(--ink); color: #e7e9f3; padding: 14px 16px; border-ra
 .sitenav a { display: block; padding: 8px 14px; border-radius: 999px; color: var(--ink-2); text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; }
 .sitenav a:hover { background: var(--sunk); color: var(--ink); }
 .sitenav a[aria-current="page"] { background: var(--navy); color: #fff; }
-.sitenav .short { display: none; }
 
 .subbar { position: sticky; top: 60px; z-index: 29; display: flex; align-items: center; justify-content: space-between; gap: 16px;
   height: 52px; padding: 0 24px; background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -669,8 +668,6 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 }
 @media (max-width: 560px) {
   .mark > div { display: none; }
-  .sitenav .long { display: none; }
-  .sitenav .short { display: inline; }
   .sitenav a { padding: 7px 9px; font-size: 13px; }
 }
 
@@ -822,7 +819,6 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 .pa code, table.t code { font-size: 12px; background: var(--sunk); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
 pre.code.prompt { white-space: pre-wrap; word-break: break-word; font-size: 12.5px; line-height: 1.6; max-height: none; }
 @media (max-width: 900px) { .pa { grid-template-columns: 1fr; } }
-@media (max-width: 1180px) and (min-width: 561px) { .sitenav .long { display: none; } .sitenav .short { display: inline; } .sitenav a { padding: 8px 10px; } }
 @media (max-width: 560px) {
   .topbar > nav { justify-self: stretch; }
   .sitenav { justify-content: flex-end; }
@@ -832,4 +828,22 @@ pre.code.prompt { white-space: pre-wrap; word-break: break-word; font-size: 12.5
   .topbar { padding: 0 8px; gap: 6px; }
   .sitenav { gap: 0; }
   .sitenav a { padding: 6px 7px; font-size: 12.5px; }
+}
+
+/* Header keeps the full section names at every width; on narrow screens the
+   links move to their own row under the logo and scroll sideways if needed. */
+@media (max-width: 1180px) and (min-width: 901px) { .sitenav a { padding: 8px 10px; font-size: 13.5px; } .mark span { display: none; } }
+@media (max-width: 900px) {
+  .topbar { grid-template-columns: 1fr; height: auto; padding: 8px 12px 6px; row-gap: 4px; }
+  .topbar > nav { justify-self: stretch; overflow-x: auto; scrollbar-width: none; }
+  .topbar > nav::-webkit-scrollbar { display: none; }
+  .sitenav { justify-content: flex-start; }
+  .sitenav a[data-nav="home"] { display: block; }
+  body.has-subbar .inspector { top: 0; }
+  .subbar { top: 0; }
+}
+@media (max-width: 560px) { .mark > div { display: block; } .mark span { display: none; } }
+@media (max-width: 560px) {
+  .topbar > nav { overflow: visible; }
+  .sitenav { flex-wrap: wrap; row-gap: 2px; }
 }

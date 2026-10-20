@@ -53,10 +53,16 @@ export async function renderHome(main, app) {
       <div class="h-wrap">
         <p class="h-eyebrow">Why this problem matters beyond the test bank</p>
         <h2 class="h-h2">Payment changes depend on connections that are difficult to keep mapped.</h2>
-        <div class="h-three">
-          <div><h3>Supervisors see the challenge</h3><p>The Basel Committee identifies mapping critical-operation interconnections and dependencies as a common challenge for banks adopting operational-resilience principles.</p><p class="h-fine"><a href="https://www.bis.org/publications/supervisory-newsletter-adoption-por-and-psmor" target="_blank" rel="noopener noreferrer">Basel Committee supervisory newsletter, 2023 ↗</a></p></div>
-          <div><h3>Payments change is not hypothetical</h3><p>Swift extended the ISO 20022 structured-address migration in August 2026 after reporting uneven readiness across regions.</p><p class="h-fine"><a href="https://www.swift.com/insights/news/swift-accepts-community-request-extend-structured-address-migration-iso-20022-payment-messages" target="_blank" rel="noopener noreferrer">Swift announcement, 27 August 2026 ↗</a></p></div>
-          <div><h3>The question this POC tests</h3><p>If a recorded dependency is missing, can an evidence-backed AI investigation still surface the affected payment controls for an owner to assess?</p><p class="h-fine">The industry sources establish the need for reliable change-impact assessment; they do not validate this POC's accuracy.</p></div>
+        <p class="h-intro h-intro-d">Banks follow a map of which systems feed which checks. Dependency maps can have gaps: when a change lands in one, a check can quietly stop working while the map still looks fine.</p>
+        <div class="h-facts">
+          <div class="h-fact"><b>2 of 31</b><p>of the world's largest banks fully meet the Basel risk-data principles, which include knowing where data comes from and goes.</p><a class="h-src" href="https://www.regulationtomorrow.com/2023/11/basel-committee-report-on-implementing-principles-for-effective-risk-data-aggregation-and-reporting-shows-progress-made-but-significant-work-remains/" target="_blank" rel="noopener noreferrer">Basel Committee progress report, Nov 2023 ↗</a></div>
+          <div class="h-fact"><b>£48.65m</b><p>fined to TSB by UK regulators after a 2018 IT migration disrupted services for months; the FCA found the change's planning and governance were not robust enough.</p><a class="h-src" href="https://www.fca.org.uk/news/press-releases/tsb-fined-ps4865m-operational-resilience-failings" target="_blank" rel="noopener noreferrer">FCA, Dec 2022 ↗</a></div>
+          <div class="h-fact"><b>$135.6m</b><p>fined to Citigroup by the OCC and the Federal Reserve for slow progress on data quality management and the controls around it.</p><a class="h-src" href="https://www.fintechfutures.com/regulations-compliance/us-regulators-fine-citigroup-136m-for-insufficient-progress-towards-compliance-with-2020-consent-order" target="_blank" rel="noopener noreferrer">FinTech Futures, Jul 2024 ↗</a></div>
+          <div class="h-fact"><b>Top challenge</b><p>The Basel Committee names mapping the interconnections and interdependencies of critical operations among the most common challenges in adopting its operational-resilience principles.</p><a class="h-src" href="https://www.thestack.technology/banks-need-to-do-better-on-operational-resilience-basel/" target="_blank" rel="noopener noreferrer">Basel Committee newsletter, via The Stack ↗</a></div>
+          <div class="h-fact"><b>End to end</b><p>The ECB's 2024 risk-data guide calls for end-to-end lineage for key risk figures; lineage only at system level falls short.</p><a class="h-src" href="https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/bcbs-239-2-0-resurgence-strengthening-risk-management-and-decision-making" target="_blank" rel="noopener noreferrer">ECB guide, May 2024, via McKinsey ↗</a></div>
+          <div class="h-fact"><b>Change is constant</b><p>Swift extended the ISO 20022 structured-address deadline in August 2026: readiness was still uneven across all regions. Address fields are exactly the kind of change tested here.</p><a class="h-src" href="https://www.swift.com/insights/news/swift-accepts-community-request-extend-structured-address-migration-iso-20022-payment-messages" target="_blank" rel="noopener noreferrer">Swift, Aug 2026 ↗</a></div>
+        </div>
+        <p class="h-q"><b>The question this POC tests:</b> when a recorded dependency is missing, can an evidence-backed AI investigation still surface the affected payment controls for their owners? These sources show the need; they do not validate the POC.</p>
         </div>
       </div>
     </section>
@@ -216,10 +222,13 @@ export async function renderOverview(main, app) {
 
     <section class="h-sec alt">
       <div class="h-wrap">
-        <h2 class="h-h2">Operating feasibility: model usage, not a savings claim</h2>
-        <p class="h-intro">The held-out evaluation used <b>${P.model_calls.toLocaleString("en-US")} model calls across ${P.changes} synthetic changes</b> (about <b>${(P.model_calls/P.changes).toFixed(1)} calls per change</b>). Usage varies by change and includes investigation and independent verification.</p>
-        <p>Actual monetary inference cost, input/output token usage, real-bank throughput, and human review time were not measured. A pilot should capture these alongside decision quality before claiming economic benefit.</p>
-        <p class="h-fine">Budget model: estimated inference cost per change = recorded model calls per change × measured or contract-based cost per call. Real deployments must also include compute, storage, retries, integration, and owner review. No dollar estimate is implied by these benchmark counts.</p>
+        <h2 class="h-h2">Running cost: model usage per change</h2>
+        <div class="ov-cost">
+          <div><b>${(P.model_calls / P.changes).toFixed(0)}</b><span>model calls per change, recorded (${P.model_calls.toLocaleString("en-US")} across ${P.changes})</span></div>
+          <div><b>≈ 450k</b><span>tokens per change, estimated: about 430k read, 20k–70k written</span></div>
+          <div><b>≈ $0.07–$0.11</b><span>per change at Databricks' list rate for GPT-OSS-120B and an example $0.07 per DBU</span></div>
+        </div>
+        <p class="h-fine">Token counts were not logged in the recorded run; they are estimated by replaying its prompts (about four characters per token). List rate: 2.143 DBU per million tokens read, 8.571 written (<a href="https://www.databricks.com/product/pricing/foundation-model-serving" target="_blank" rel="noopener noreferrer">Databricks pricing ↗</a>); contract prices differ. Cost grows with the size of the control catalogue and with any multi-run vote; a pilot would log actual usage.</p>
       </div>
     </section>
 

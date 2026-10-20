@@ -186,7 +186,7 @@ const PAGES = {
           <button class="btn" type="button" id="sv-next" aria-label="Next step">›</button><span id="sv-l" class="sv-l"></span></div>
         <div class="sv" id="sv"></div></section>
       <section><h2>What one call contains</h2><div class="pa">
-        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the end of this page: role, tools, method, how to decide, rules. Identical on every step.</span></div>
+        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the top of this page: role, tools, method, how to decide, rules. Identical on every step.</span></div>
         <div class="pa-b"><b>2 · case</b><span>The change ticket; the changed items with descriptions; an index of every non-control item (code, type, name); the catalogue of 101 controls (code, title, criticality). No links that the damaged map does not show.</span></div>
         <div class="pa-b"><b>3 · notebook</b><span>What has been learnt so far: every procedure read and item explored, with their visible links; decisions already submitted; how many controls are still undecided.</span></div>
         <div class="pa-b"><b>4 · history</b><span>A short record of each earlier step: the action, its arguments and a summary of the result.</span></div>
@@ -194,20 +194,14 @@ const PAGES = {
         <div class="pa-out"><b>Reply</b><span>Exactly one JSON object: <code>{"action": …, "args": {…}}</code></span></div>
       </div></section>
       <section><h2>Tools</h2>${table(["Tool", "Arguments", "What it does", "Used"], tools.map(([t, a, d]) => `<tr><td><code>${t}</code></td><td><code>${esc(a)}</code></td><td>${esc(d)}</td><td class="num">${acts[t] || 0}</td></tr>`))}</section>
-      <section><h2>What fixed code checks on every reply</h2><div class="vgrid">
+      <section><h2>What fixed code checks on every reply</h2><div class="vgrid row5">
         <div class="vc ok"><b>Shape</b><span>one tool call with valid arguments, or rejected with the reason</span></div>
         <div class="vc ok"><b>Read before deciding</b><span>no finding on a control whose procedure was not inspected</span></div>
         <div class="vc ok"><b>Verbatim quotes</b><span>ticket_quote in the ticket, control_quote in the procedure, exactly</span></div>
         <div class="vc ok"><b>Known items only</b><span>every code in evidence_path exists; reason and counter-evidence filled</span></div>
         <div class="vc ok"><b>No early stop</b><span>finish refused while controls are undecided</span></div>
       </div></section>
-      <section><h2>Settings</h2>${table(["", ""], [
-        `<tr><td>Model</td><td>databricks-gpt-oss-120b (Databricks Model Serving)</td></tr>`,
-        `<tr><td>Temperature</td><td>0; an empty reply is retried with a nudge, then once at a small temperature</td></tr>`,
-        `<tr><td>Reply limit</td><td>3,000 tokens per call; findings cut off mid-reply are recovered where complete</td></tr>`,
-        `<tr><td>Steps</td><td>Up to 60 per change; all 18 finished within the limit</td></tr>`,
-        `<tr><td>Version</td><td>${esc(pr.variant)}, agent code ${esc(pr.code)}</td></tr>`,
-      ])}</section>`;
+      <p class="vnote" style="margin-top:4px"><b>Settings:</b> databricks-gpt-oss-120b on Databricks Model Serving · temperature 0 · up to 3,000 tokens per reply · up to 60 steps per change (all 18 finished within it) · version ${esc(pr.variant)}, agent code ${esc(pr.code)}.</p>`;
     wirePrompt(pane);
     // Step viewer: everything shown is taken from the recorded run.
     const named = (id) => `${esc(app.graph.nodes.find((n) => n.id === id)?.name || id)} (${esc(id)})`;
@@ -270,7 +264,7 @@ const PAGES = {
           <button class="btn" type="button" id="sm-open">Open its evidence and decision</button></div>` : ""}
         <p style="font-size:13px;color:var(--ink-3)">The fix tested on development changes, a second look at not-affected key controls, is in Evidence room → Limits and fixes tried.</p></section>
       <section><h2>What one call contains</h2><div class="pa">
-        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the end of this page.</span></div>
+        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the top of this page.</span></div>
         <div class="pa-b"><b>2 · ticket and changed items</b><span>The change ticket and the changed items, with names and descriptions.</span></div>
         <div class="pa-b"><b>3 · change_neighborhood</b><span>Everything two links downstream of the changed items in the visible map, with names.</span></div>
         <div class="pa-b"><b>4 · control</b><span>The control's procedure and its own visible links.</span></div>
@@ -355,15 +349,11 @@ const PAGES = {
       <section><h2>By type of change</h2><p style="color:var(--ink-2);margin-top:0">Key controls the existing lineage check missed, three changes of each type.</p>
         <div class="bytype">${Object.entries(P.by_type).map(([k, v]) => `<div class="bt-row"><div class="bt-n"><b>${esc(k)}</b>${v.key_misses} missed by the check</div>${v.key_misses ? bar([["agent", v.found], ["review", v.routed], ["silent", v.silent]], v.key_misses) : '<div class="bt-none">The check missed none</div>'}</div>`).join("")}</div>
         <p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the independent verifier withholds agreement when no visible link connects the engine to the control, so most findings go to a person rather than being recommended.</p></section>
-      <section><h2>Compared with the approaches tried before</h2>
+      <section><details class="xf-d"><summary>Compared with the approaches tried before</summary>
         <p style="color:var(--ink-2)">Each step added information the lineage metadata lacks. The sets, models and scoring differ, so read this as a progression, not a league table; a plain keyword baseline on the same changes has not been run.</p>
         ${table(["Approach", "Result", "Measured on", "Caveat"], app.exp.approaches.map(
           (a) => `<tr><td>${esc(a.approach)}</td><td class="num">${pct(a.recovery, 1)}<br><span style="font-size:12px;color:var(--ink-3)">${esc(a.measure)}</span></td><td>${esc(a.set)}</td><td>${esc(a.caveat)}</td></tr>`
-        ))}</section>
-      <section><h2>Development runs (not the headline)</h2>${table(["Run", "Changes", "Key misses found", "Precision", "Unaffected items"], [
-        fr && `<tr><td>Frozen check, version A, unseen development changes</td><td class="num">${fr.cases ?? 8}</td><td class="num">${fr.key_recovered} of ${fr.key_misses}</td><td class="num">${pct(fr.new_control_precision, 1)}</td><td class="num">${fr.avoidable_review_items}</td></tr>`,
-        vb && `<tr><td>Version B on the same changes</td><td class="num">${vb.cases ?? 8}</td><td class="num">${vb.key_recovered} of ${vb.key_misses}</td><td class="num">${pct(vb.new_control_precision, 1)}</td><td class="num">${vb.avoidable_review_items}</td></tr>`,
-      ].filter(Boolean))}</section>`;
+        ))}</details></section>`;
     const titles = {
       check: "Affected key controls found by the existing lineage check",
       recovered: "Affected key controls recovered by the detective",
@@ -426,13 +416,18 @@ const PAGES = {
       }
     const f = { change: "all", type: "all", cat: "attention", key: "all" };
     const seg = (cls, n) => (n ? `<span class="${cls}" style="flex:${n}">${n}</span>` : "");
-    const list = app.exp.cases.map(
-      (x) => `<li class="cl-item" data-id="${x.id}"><div class="cl-row" tabindex="0" role="button" aria-expanded="false" aria-label="Show the decisions of ${esc(x.id)} below">
-        <div class="cl-t"><b>${esc(x.id)}</b> ${esc(x.title)}<span>${x.affected} affected controls · ${x.model_calls} model calls</span></div>
+    const statusOf = (x) => (x.affected_silent ? "miss" : x.routed ? "person" : "found");
+    const STATUS = { miss: ["Some not surfaced", "silent"], person: ["Some sent to a person", "review"], found: ["Everything found", "agent"] };
+    const groups = [...new Set(app.exp.cases.map((x) => x.title.split(" — ")[0]))];
+    const row = (x) => `<li class="cl-item" data-id="${x.id}" data-st="${statusOf(x)}"><div class="cl-row" tabindex="0" role="button" aria-expanded="false" aria-label="Show the decisions of ${esc(x.id)} below">
+        <div class="cl-t"><b>${esc(x.id)}</b> ${esc(x.title.split(" — ")[1] || x.title)} <span class="badge ${STATUS[statusOf(x)][1]} cl-st">${STATUS[statusOf(x)][0]}</span><span>${x.affected} affected controls · ${x.model_calls} model calls</span></div>
         ${x.key_affected ? `<div class="sbar sbar-sm">${seg("check", x.check_found_key)}${seg("agent", x.key_found_by_agent)}${seg("review", x.key_routed)}${seg("silent", x.key_silent)}</div>` : '<div class="bt-none">No key controls affected</div>'}
         <div class="cl-k">${x.key_affected} key</div><span class="cl-open">Show decisions <i class="chev">▾</i></span></div>
-        <div class="cl-body" hidden></div></li>`
-    );
+        <div class="cl-body" hidden></div></li>`;
+    const counts = { all: app.exp.cases.length, miss: 0, person: 0, found: 0 };
+    app.exp.cases.forEach((x) => counts[statusOf(x)]++);
+    const chips = `<div class="cl-chips" role="group" aria-label="Show changes">${[["all", "All changes"], ["miss", STATUS.miss[0]], ["person", STATUS.person[0]], ["found", STATUS.found[0]]].map(([v, l], n) => `<button type="button" data-st="${v}" aria-pressed="${n === 0}">${l} <b>${counts[v]}</b></button>`).join("")}</div>`;
+    const list = groups.map((g) => `<li class="cl-grp" data-g="${esc(g)}">${esc(g)}</li>` + app.exp.cases.filter((x) => x.title.startsWith(g + " — ") || x.title === g).map(row).join(""));
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${v === cur ? "selected" : ""}>${esc(l)}</option>`;
     const decTable = (hit, inRow = false) => table([...(inRow ? [] : ["Change"]), "Control", "Key", "Decision", "Answer key", ""], hit.slice(0, LIMIT).map(({ k, d, r }) => {
       const n = app.graph.nodes.find((x) => x.id === d.control);
@@ -447,7 +442,7 @@ const PAGES = {
     pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Click a change to see its decisions right below it. Click any decision to open its evidence.</p>
       <section>
         <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span><span>Bars: affected key controls</span></div>
-        <ul class="clist">${list.join("")}</ul></section>
+        ${chips}<ul class="clist">${list.join("")}</ul></section>
       <section><details class="xf-d"><summary>Filter decisions across all 18 changes</summary>
         <div class="xf">
           <label>Change<select id="f-change">${opt("all", "All 18 changes", f.change)}${all.map((k) => opt(k.id, `${k.id} · ${typeOf(k)}`, f.change)).join("")}</select></label>
@@ -495,6 +490,16 @@ const PAGES = {
       row.addEventListener("click", toggle);
       row.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle()));
     });
+    pane.querySelectorAll(".cl-chips button").forEach((bt) => bt.addEventListener("click", () => {
+      pane.querySelectorAll(".cl-chips button").forEach((u) => u.setAttribute("aria-pressed", String(u === bt)));
+      const v = bt.dataset.st;
+      pane.querySelectorAll(".cl-item").forEach((li) => (li.hidden = v !== "all" && li.dataset.st !== v));
+      pane.querySelectorAll(".cl-grp").forEach((gh) => {
+        let n = gh.nextElementSibling, any = false;
+        while (n && n.classList.contains("cl-item")) { any ||= !n.hidden; n = n.nextElementSibling; }
+        gh.hidden = !any;
+      });
+    }));
     draw();
   },
 
@@ -533,14 +538,6 @@ const PAGES = {
         <li><b>Route.</b> Recommended, to a person, or not affected with its reason.</li>
         <li class="off"><b>Offline, after the run.</b> The scorer compares the routes with the hidden answer key. This is how the results are measured; it plays no part in a decision.</li>
       </ol></section>
-      <section><h2>What runs where</h2>${table(["Part", "Runs in", "Kind"], [
-        `<tr><td>Benchmark and damage generator</td><td>Python, before any run</td><td>Deterministic, seeded</td></tr>`,
-        `<tr><td>Lineage baseline, tools, quote check, routing</td><td>Python inside the Databricks Job</td><td>Deterministic</td></tr>`,
-        `<tr><td>Investigator and verifier</td><td>Databricks Model Serving, called from the Job</td><td>Model</td></tr>`,
-        `<tr><td>Scorer</td><td>Python, after the run</td><td>Deterministic; the only reader of the answer key</td></tr>`,
-        `<tr><td>Walkthrough, overview, evidence room, handbook</td><td>Databricks App</td><td>Replay of recorded files; no model calls</td></tr>`,
-        `<tr><td>Ask about the POC</td><td>Databricks App → Model Serving</td><td>Model, live</td></tr>`,
-      ])}</section>
       <section><h2>Engineering choices</h2><div class="vgrid">
         <div class="vc"><b>Read-only</b><span>tools only read; nothing in lineage or controls is edited</span></div>
         <div class="vc"><b>Isolated scoring</b><span>tests check answer-key labels never reach a prompt</span></div>
@@ -551,7 +548,7 @@ const PAGES = {
   async limits(pane, app) {
     pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">Three things to strengthen before a pilot, the fixes already tested, and what they taught. Each fix had its adoption rule written before it ran.</p>
       <section><h2>What still needs work</h2><div class="vgrid wide">${app.exp.limits.map((l) => `<div class="vc weak"><b>${esc(l.issue)}</b><span>${esc(l.evidence)}</span><span class="vc-next">Next: ${esc(l.response)}</span></div>`).join("")}</div></section>
-      <section><h2>Experiment decision records</h2><div class="drs">
+      <section><details class="xf-d"><summary>Experiment decision records: four fixes tested, version A kept</summary><div class="drs">
         ${app.exp.version_tests.map((v) => {
           return `<article class="dr"><div class="dr-h"><span class="dr-v">Version ${esc(v.version)}</span><h3>${esc(v.name)}</h3><span class="badge not_affected">${esc(v.decision)}</span></div>
             <dl><dt>Hypothesis</dt><dd>${esc(v.hypothesis)}</dd>
@@ -560,8 +557,8 @@ const PAGES = {
             <dt>Result</dt><dd>${esc(v.result)}</dd>
             <dt>Trade-off</dt><dd>${esc(v.trade_off)}</dd></dl></article>`;
         }).join("")}</div>
-        <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Exported with the results by scripts/build_experience_data.py from docs/results.md (pre-registered sections); a test checks each result against that document.</p></section>
-      <section><h2>What we learned</h2><div class="vgrid">${app.exp.lessons.map((l, n) => `<div class="vc"><span class="vc-n">${n + 1}</span><b>${esc(l.title.replace(/\.$/, ""))}</b><span>${esc(l.detail)}</span></div>`).join("")}</div></section>
+        <p style="font-size:13px;color:var(--ink-3)">None met all of its rules, so the original version A is the version evaluated. Exported with the results by scripts/build_experience_data.py from docs/results.md (pre-registered sections); a test checks each result against that document.</p></details></section>
+      <section><h2>What we learned</h2><div class="vgrid row5">${app.exp.lessons.map((l, n) => `<div class="vc"><span class="vc-n">${n + 1}</span><b>${esc(l.title.replace(/\.$/, ""))}</b><span>${esc(l.detail)}</span></div>`).join("")}</div></section>
       <details class="terms"><summary>Terms used in the evidence room</summary>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</details>`;
   },
 

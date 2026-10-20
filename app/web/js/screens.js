@@ -182,8 +182,7 @@ async function blindspot(main, app, c) {
           </div>
           <div class="right"><div class="seg" role="group" aria-label="How to show it">
             <button type="button" data-scope="paths" aria-pressed="true">Paths</button>
-            <button type="button" data-scope="focus" aria-pressed="false">Network</button>
-            <button type="button" data-scope="all" aria-pressed="false">Whole map · 148 items</button></div></div>
+            <button type="button" data-scope="focus" aria-pressed="false">Network</button></div></div>
           <p class="tap-hint" id="pv-hint"></p>
         </div>
         <div class="pv" id="pv"></div>
@@ -476,6 +475,18 @@ async function investigate(main, app, c) {
   const steps = c.steps;
   const n = steps.length;
   const st = (replayState[c.id] ||= { i: 0, playing: false });
+  // Chapters: where each kind of work first starts, so the replay can be read as a story.
+  const firstOf = (acts) => { const k = steps.findIndex((x) => acts.includes(x.action)); return k < 0 ? null : k + 1; };
+  const chapters = [
+    { id: "map", label: "1 · The map", start: firstOf(["trace_metadata"]) ?? 1 },
+    { id: "gap", label: "2 · The gap", start: firstOf(["explore_node"]) },
+    { id: "read", label: "3 · Reading", start: firstOf(["inspect_control", "search_controls"]) },
+    { id: "submit", label: "4 · Findings", start: firstOf(["submit_findings", "submit_finding"]) },
+    { id: "verify", label: "5 · Verifier", start: n + 1 },
+  ].filter((ch) => ch.start != null).sort((a, b) => a.start - b.start);
+  // Key moment: the first submitted finding on a key control the existing check could not reach.
+  const keyStep = steps.findIndex((x) => (x.accepted || []).some((id) => c.keySet.has(id) && c.affectedSet.has(id) && !c.baselineSet.has(id))) + 1;
+  const keyId = keyStep ? steps[keyStep - 1].accepted.find((id) => c.keySet.has(id) && c.affectedSet.has(id) && !c.baselineSet.has(id)) : null;
   const verb = {
     explore_node: "Explore",
     inspect_control: "Read procedures",
@@ -492,7 +503,7 @@ async function investigate(main, app, c) {
       <h1 class="title">Replay how the detective found what the map hides.</h1>
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
-      <p>Watch for the first missing dependency, the control procedure that supplies evidence, and the verifier's decision. Play the full recorded sequence or jump directly to an interesting action in the step list.</p><p>Nothing on this screen calls a model: it replays the recording.</p>
+<p>Nothing on this screen calls a model: it replays the recording.</p>
       
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
     </aside>
@@ -503,11 +514,10 @@ async function investigate(main, app, c) {
           <button class="btn" id="back" type="button" aria-label="Previous step">‹</button>
           <button class="btn" id="fwd" type="button" aria-label="Next step">›</button>
           <button class="btn ghost" id="end" type="button">Show result</button>
-          <label class="tap-hint" for="speed">Replay speed</label>
-          <select id="speed" aria-label="Replay speed"><option value="1800">1×</option><option value="900">2×</option></select>
         </div>
         <div class="scrub-wrap"><label for="scrub" id="scrubl"></label><input id="scrub" class="scrub" type="range" min="0" max="${n + 1}" step="1"></div>
-        <p class="tap-hint" style="margin:8px 14px 0">Click a step to jump to it</p>
+        <div class="chapters" id="chapters" role="group" aria-label="Jump to a chapter">${chapters.map((ch) => `<button type="button" data-start="${ch.start}">${esc(ch.label)}</button>`).join("")}</div>
+        <p class="moment" id="moment" aria-live="polite"></p>
         <ol class="steps" id="steps"></ol>
       </div>
       <div class="right-col">
@@ -612,31 +622,47 @@ async function investigate(main, app, c) {
     } else graph.fit();
     framed = i;
     const now = list.querySelector("li.now");
-    if (now && st.playing) now.scrollIntoView({ block: "nearest", behavior: reducedMotion() ? "auto" : "smooth" });
+    if (now) list.scrollTo({ top: Math.max(0, now.offsetTop - list.clientHeight / 3), behavior: reducedMotion() ? "auto" : "smooth" }); // keep the current step in view without moving the page
     const scrub = stage.querySelector("#scrub");
     scrub.value = i;
     stage.querySelector("#scrubl").textContent = done ? "Complete: routed after the independent check" : i === 0 ? "Ready: press Play or drag" : `Step ${steps[i - 1].step} of ${n}`;
-    stage.querySelector("#play").textContent = st.playing ? "Pause" : done ? "Replay" : "Play";
+    stage.querySelector("#play").textContent = st.playing ? "Pause" : done ? "Replay" : i === 0 ? "▶ Play the investigation" : "▶ Play";
+    const cur = chapters.filter((ch) => ch.start <= i).pop();
+    stage.querySelectorAll("#chapters button").forEach((b) => b.classList.toggle("on", !!cur && +b.dataset.start === cur.start));
+    const m = stage.querySelector("#moment");
+    const caption = done
+      ? `The independent verifier checked each finding: ${rec} recommended, ${rev} sent to a person.`
+      : i === 0 ? `About a minute. It slows down on the moment that matters.`
+      : keyStep > 0 && i === keyStep ? `Key moment: ${named(app, keyId)}, a key control the existing check could not reach, submitted with quoted evidence.`
+      : cur?.id === "map" ? `It starts where the bank starts: the existing lineage check reaches ${c.counts.check_found} affected control${c.counts.check_found === 1 ? "" : "s"}.`
+      : cur?.id === "gap" ? "The map runs out, so it explores the items around the change."
+      : cur?.id === "read" ? "It reads control procedures the map cannot connect to the change."
+      : cur?.id === "submit" ? "Each finding must quote the ticket and the procedure word for word, or it is rejected."
+      : "";
+    m.textContent = caption;
+    m.classList.toggle("key", keyStep > 0 && i === keyStep);
   };
 
   let timer = null;
   const stop = () => {
     st.playing = false;
-    clearInterval(timer);
+    clearTimeout(timer);
     paint();
   };
   const play = () => {
     if (st.i > n) st.i = 0;
     st.playing = true;
-    clearInterval(timer);
-    timer = setInterval(() => {
+    clearTimeout(timer);
+    const base = reducedMotion() ? 2600 : 1600; // one speed, slow enough to read each step
+    const tick = () => {
       st.i += 1;
       if (st.i > n) return stop();
       paint();
-    }, reducedMotion() ? 2600 : Number(stage.querySelector("#speed").value)); // recorded actions, adjustable playback
+      timer = setTimeout(tick, st.i === keyStep ? base * 2.5 : base); // linger on the key moment
+    };
+    timer = setTimeout(tick, base);
     paint();
   };
-  stage.querySelector("#speed").onchange = () => { if (st.playing) play(); };
   stage.querySelector("#play").onclick = () => (st.playing ? stop() : play());
   stage.querySelector("#back").onclick = () => { stop(); st.i = Math.max(0, st.i - 1); paint(); };
   stage.querySelector("#fwd").onclick = () => { stop(); st.i = Math.min(n + 1, st.i + 1); paint(); };
@@ -646,10 +672,19 @@ async function investigate(main, app, c) {
     const li = e.target.closest("li[data-k]");
     if (li) { stop(); st.i = +li.dataset.k; paint(); }
   });
+  stage.querySelectorAll("#chapters button").forEach((b) => (b.onclick = () => { stop(); st.i = +b.dataset.start; paint(); }));
+  // Keyboard: space plays or pauses, arrows step.
+  const keys = (e) => {
+    if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName) || document.getElementById("inspector")?.classList.contains("open")) return;
+    if (e.key === " ") { e.preventDefault(); st.playing ? stop() : play(); }
+    else if (e.key === "ArrowRight") { stop(); st.i = Math.min(n + 1, st.i + 1); paint(); }
+    else if (e.key === "ArrowLeft") { stop(); st.i = Math.max(0, st.i - 1); paint(); }
+  };
+  document.addEventListener("keydown", keys);
   app.listeners.clear();
   app.listeners.add(() => paint());
   // Leaving the screen stops the replay.
-  window.addEventListener("hashchange", () => clearInterval(timer), { once: true });
+  window.addEventListener("hashchange", () => { clearTimeout(timer); document.removeEventListener("keydown", keys); }, { once: true });
   paint();
 }
 
@@ -680,16 +715,6 @@ async function consequence(main, app, c) {
         <p class="tap-hint">Hover a square for its name · click it to open the evidence</p>
         <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The detective recommended <b>${rec.length}</b> (${recRight} actually affected) and sent <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor sent to a person${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
 
-      <div class="card"><div class="card-h"><h2>Across all ${P.changes} held-out changes, in brief</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change is selected</span></div></div>
-        <div class="card-b">
-          <div class="sbar">${[["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]].filter(([, n]) => n).map(([k, n]) => `<span class="${k}" style="flex:${n}">${n / P.key_affected > 0.05 ? n : ""}</span>`).join("")}</div>
-          <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
-          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. Without the detective, these controls still have to be checked: by tracing the lineage gaps by hand, or by not knowing and missing them, which is the costly outcome. The detective turns that search into a list with evidence: <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them. Every record is in the evidence room.</p></div></div>
-
-      <div class="risk soft" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
-        <div><b>One of ${P.key_affected} affected key controls was not surfaced.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The planned fix is a second check on key controls marked not affected, before any pilot.</div></div>
-
     </section></div>`);
   main.append(stage);
   wireGo(stage, app);
@@ -715,13 +740,6 @@ async function consequence(main, app, c) {
   );
   drawEstates();
 
-  stage.querySelectorAll("[data-silent]").forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      const [cs, id] = a.dataset.silent.split("|");
-      openInspector(id, cs);
-    })
-  );
 }
 
 // ------------------------------------------------------------------ 5. the decision
@@ -738,6 +756,15 @@ async function decision(main, app, c) {
       <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
     </aside>
     <section class="canvas">
+      <div class="card"><div class="card-h"><h2>Across all ${P.changes} held-out changes, in brief</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change you looked at</span></div></div>
+        <div class="card-b">
+          <div class="sbar">${[["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]].filter(([, n]) => n).map(([k, n]) => `<span class="${k}" style="flex:${n}">${n / P.key_affected > 0.05 ? n : ""}</span>`).join("")}</div>
+          <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. Without the detective, these controls still have to be checked: by tracing the lineage gaps by hand, or by not knowing and missing them, which is the costly outcome. The detective turns that search into a list with evidence: <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them. Every record is in the evidence room.</p></div></div>
+
+      <div class="risk soft" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
+        <div><b>One of ${P.key_affected} affected key controls was not surfaced.</b>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The planned fix is a second check on key controls marked not affected, before any pilot.</div></div>
       <div class="quad q3">
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--agent)"></span><h2>Demonstrated</h2></div><div class="card-b"><ul>
           <li>Most key controls the existing lineage check missed were recommended, on changes never seen.</li>
@@ -755,20 +782,12 @@ async function decision(main, app, c) {
       </div>
       <div class="card"><div class="card-h"><h2>A practitioner validation, if leadership chooses one</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Uses the recorded output; no new model runs</span></div></div>
         <div class="card-b"><div class="fit3">
-          <div><h3 class="vh">Who and what</h3><ul class="vl">
-            <li><b>Two or three control owners</b> for screening and payment validation, each deciding and signing their own items.</li>
-            <li><b>One risk lead</b>, accountable for the sample design, the thresholds and the sign-off.</li>
-            <li><b>The sample</b>, from the ${P.changes} held-out changes: all ${P.key_routed} key controls sent to a person, plus random samples of those recommended and those marked not affected.</li></ul></div>
-          <div><h3 class="vh">Measured against</h3><ul class="vl">
-            <li><b>Correctness:</b> the share of recommendations owners judge right, beside the ${pct(P.precision, 1)} measured against the synthetic answer key.</li>
-            <li><b>Coverage:</b> affected key controls owners find among those marked not affected. Expected: none.</li>
-            <li><b>Usefulness:</b> the share of the list owners would act on.</li>
-            <li>Thresholds are agreed with the risk lead before the review starts.</li></ul></div>
-          <div><h3 class="vh">Results that would argue against a pilot</h3><ul class="vl">
-            <li>A key control missed silently among the not-affected sample.</li>
-            <li>Owners judging most recommendations not useful.</li>
-            <li>Repeatability not moving towards 95% with a five-run vote.</li></ul>
-            <p class="vnote">A pilot would also need model-risk review, access to real data, an audit trail and monitoring.</p></div>
+          <div><h3 class="vh">Who</h3><ul class="vl">
+            <li><b>Two or three control owners</b>, signing their own items, and <b>one risk lead</b> for the sample and thresholds.</li></ul></div>
+          <div><h3 class="vh">What</h3><ul class="vl">
+            <li>From the ${P.changes} held-out changes: all ${P.key_routed} key controls sent to a person, plus samples of those recommended and those marked not affected.</li></ul></div>
+          <div><h3 class="vh">Measured</h3><ul class="vl">
+            <li><b>Correctness</b> beside the ${pct(P.precision, 1)} measured here; <b>coverage</b> in the not-affected sample (expected: none); <b>usefulness</b> to owners.</li></ul></div>
         </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">
@@ -779,6 +798,13 @@ async function decision(main, app, c) {
         </div></div></div>
     </section></div>`);
   main.append(stage);
+  stage.querySelectorAll("[data-silent]").forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const [cs, id] = a.dataset.silent.split("|");
+      openInspector(id, cs);
+    })
+  );
   wireGo(stage, app);
 }
 

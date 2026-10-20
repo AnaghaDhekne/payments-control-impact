@@ -86,10 +86,10 @@ CLAIMS = [
     ),
     ("5 Consequence", "#/room/results", None, "49.5%"),
     ("5 Consequence", "#/room/results", None, "57.6%"),
-    ("5 Consequence", "#/consequence?case=CHG-027", None, "331 of the 406"),
+    ("7 Decision", "#/decision?case=CHG-027", None, "331 of the 406"),
     (
-        "5 Consequence",
-        "#/consequence?case=CHG-027",
+        "7 Decision",
+        "#/decision?case=CHG-027",
         None,
         "which is the costly outcome",
     ),
@@ -100,10 +100,10 @@ CLAIMS = [
         "Steadier decisions from run to run.",
     ),
     (
-        "5 Consequence",
-        "#/consequence?case=CHG-027",
+        "7 Decision",
+        "#/decision?case=CHG-027",
         None,
-        "second check on key controls marked not affected"
+        "second check on key controls marked not affected",
     ),
     (
         "6 Weaker case",
@@ -130,7 +130,7 @@ CLAIMS = [
         "all 30 key controls sent to a person",
     ),
     ("7 Decision", "#/decision?case=CHG-027", None, "93.6%"),
-    ("7 Decision", "#/decision?case=CHG-027", None, "Expected: none."),
+    ("7 Decision", "#/decision?case=CHG-027", None, "expected: none"),
     ("7 Decision", "#/decision?case=CHG-027", None, "The choice rests with leadership"),
 ]
 
@@ -161,5 +161,6 @@ def test_spoken_claim_is_on_screen(page, step, route, action, text):
     if action == "reveal":
         page.click("[data-mode=complete]")
         page.wait_for_timeout(200)
+    page.evaluate("document.querySelectorAll('details').forEach((d) => (d.open = true))")  # one click away counts
     shown = page.locator("body").inner_text()
     assert text in shown, f"{step}: '{text}' not on {route}"

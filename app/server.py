@@ -110,8 +110,16 @@ class Handler(SimpleHTTPRequestHandler):
                 "key_miss_recovery": p["recovery"],
                 "new_control_precision": p["precision"],
                 "avoidable_review_items_per_case": p["added_unaffected"] / p["changes"],
+                "key_affected": p["key_affected"],
+                "key_routed": p["key_routed"],
+                "added_items": p["added_items"],
+                "added_affected": p["added_affected"],
+                "new_right": p["new_right"],
+                "new_total": p["new_total"],
             }
-            data = onepager.build(h, p["consistency"], "2026-10-19")
+            prov = e["provenance"]
+            label = f"Run {prov['date']}, job {prov['job']}, version {prov['version']}"
+            data = onepager.build(h, p["consistency"], label)
         except Exception as exc:  # fpdf2 not installed
             return self._json(
                 {"error": f"Summary unavailable ({type(exc).__name__})"},

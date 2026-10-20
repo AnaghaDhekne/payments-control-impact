@@ -163,6 +163,7 @@ function renderTop() {
     nx.innerHTML = `Next<span class="nx-l">: ${esc(nextM.label)}</span> <span aria-hidden="true">→</span>`;
     nx.setAttribute("aria-label", `Next: ${nextM.label}`);
     nx.title = `Next: ${nextM.label}`;
+    nx.classList.toggle("show-l", !MOMENTS[idx + 1]); // leaving the walkthrough: always say where to
   }
   const sel = document.getElementById("case");
   if (!sel.options.length) {

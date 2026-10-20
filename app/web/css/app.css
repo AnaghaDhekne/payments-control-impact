@@ -1232,3 +1232,4 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 .subbar .journey a .t { display: inline !important; }
 @media (max-width: 900px) { .subbar .select { width: 100%; max-width: 100%; } .subbar .tools { flex: 1 1 100%; } }
 .pa.row .pa-b > b, .pa.row .pa-out > b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#next-step.show-l .nx-l { display: inline !important; }

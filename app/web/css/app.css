@@ -647,6 +647,8 @@ pre.code { background: var(--ink); color: #e7e9f3; padding: 14px 16px; border-ra
 body.has-subbar main { min-height: calc(100vh - 60px - 52px - 41px); }
 body.has-subbar .stage { min-height: calc(100vh - 153px); }
 body.has-subbar .inspector { top: 112px; }
+body.has-subbar .graph-wrap { min-height: max(480px, calc(100vh - 242px)); }
+body.has-subbar .replay { max-height: calc(100vh - 272px); }
 
 @media (max-width: 900px) {
   .topbar { grid-template-columns: auto 1fr; height: 56px; padding: 0 12px; }
@@ -661,4 +663,11 @@ body.has-subbar .inspector { top: 112px; }
   .sitenav .long { display: none; }
   .sitenav .short { display: inline; }
   .sitenav a { padding: 7px 9px; font-size: 13px; }
+}
+
+/* Keep the map on screen beside a long story column instead of stretching to its height. */
+@media (min-width: 901px) {
+  body.has-subbar .stage > .canvas { position: sticky; top: 112px; align-self: start; height: calc(100vh - 112px - 41px); }
+  body.has-subbar .stage > .canvas > .graph-wrap { flex: 1; min-height: 0; }
+  body.has-subbar .stage > .canvas.change-canvas, body.has-subbar .stage > .canvas:has(.units), body.has-subbar .stage > .canvas:has(.quad), body.has-subbar .stage > .canvas:has(.investigate) { position: static; height: auto; }
 }

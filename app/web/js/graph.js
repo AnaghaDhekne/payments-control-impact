@@ -191,7 +191,9 @@ export function createGraph(host, { nodes, edges, layout, onSelect, label = "Dep
       const h = Math.max(...ys) - y0 + 80;
       const ar = svg.clientWidth / Math.max(1, svg.clientHeight);
       const vw = Math.min(full.w, Math.max(w, h * ar, 760));
-      view = { x: x0 - (vw - w) / 2, y: y0, w: vw, h: Math.max(h, vw / ar) };
+      const vh = Math.max(h, vw / ar);
+      // Centre the focused items in both directions.
+      view = { x: x0 - (vw - w) / 2, y: y0 - (vh - h) / 2, w: vw, h: vh };
       setView();
     },
     pulse(edgeIds) {

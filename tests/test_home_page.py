@@ -73,7 +73,13 @@ def test_home_sets_up_the_change_but_keeps_the_answer(page, experience):
 
 
 def test_one_header_is_the_only_way_between_pages(page, experience):
-    for route in ("#/home", "#/overview", "#/room/results", "#/decision?case=CHG-027"):
+    for route in (
+        "#/home",
+        "#/overview",
+        "#/room/results",
+        "#/handbook/investigator",
+        "#/decision?case=CHG-027",
+    ):
         page.goto(page.base + route)
         page.wait_for_selector("main > *")
         page.wait_for_timeout(200)
@@ -83,11 +89,12 @@ def test_one_header_is_the_only_way_between_pages(page, experience):
             "Walkthrough",
             "Product overview",
             "Evidence room",
+            "Technical handbook",
         ]
         # No page body repeats a link to another page.
         body_links = page.locator(
             "main a[href^='#/home'], main a[href^='#/overview'], "
-            "main a[href^='#/room'], main a[href^='#/change'], "
+            "main a[href^='#/room'], main a[href^='#/handbook'], main a[href^='#/change'], "
             "main a[href^='#/investigate'], main [data-demo], main [data-go]"
         )
         room_nav = page.locator("main .room nav a")
@@ -173,3 +180,22 @@ def test_replay_hover_gives_the_basis_of_each_decision(page):
     ):
         assert part in t
     assert "No confidence score" in t  # none was recorded, so none is invented
+
+
+def test_handbook_shows_the_prompts_of_the_recorded_run(page, experience):
+    page.goto(page.base + "#/handbook/investigator")
+    page.wait_for_selector("pre.prompt")
+    shown = page.locator("pre.prompt").inner_text()
+    assert shown.strip() == experience["prompts"]["investigator"].strip()
+    page.goto(page.base + "#/handbook/verifier")
+    page.wait_for_selector("pre.prompt")
+    assert page.locator("pre.prompt").inner_text().strip() == (
+        experience["prompts"]["verifier"].strip()
+    )
+    page.goto(page.base + "#/handbook/degradation")
+    page.wait_for_selector("main h1")
+    assert "71 of 237" in page.locator("main").inner_text()
+    # Old evidence-room links to moved pages land in the handbook.
+    page.goto(page.base + "#/room/architecture")
+    page.wait_for_timeout(500)
+    assert "#/handbook/architecture" in page.url

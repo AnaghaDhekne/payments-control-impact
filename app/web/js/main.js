@@ -2,7 +2,7 @@
 
 import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness, setNames, expandCodes } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
-import { renderRoom, ROOM_PAGES } from "./room.js";
+import { renderRoom, ROOM_PAGES, BOOK_PAGES } from "./room.js";
 import { renderHome, renderOverview } from "./home.js";
 
 const app = {
@@ -109,7 +109,9 @@ async function render() {
   } else if (route === "overview") {
     await renderOverview(main, app);
   } else if (route === "room") {
-    await renderRoom(main, app, c, sub || ROOM_PAGES[0].id);
+    await renderRoom(main, app, c, sub || ROOM_PAGES[0].id, "room");
+  } else if (route === "handbook") {
+    await renderRoom(main, app, c, sub || BOOK_PAGES[0].id, "handbook");
   } else {
     const screen = SCREENS[route] || SCREENS.change;
     await screen(main, app, c);
@@ -121,15 +123,16 @@ async function render() {
   window.scrollTo(0, 0);
 }
 
-const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "overview" ? "Product overview" : r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
+const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "overview" ? "Product overview" : r === "room" ? "Evidence room" : r === "handbook" ? "Technical handbook" : MOMENTS.find((m) => m.id === r)?.label || "Change");
 
 function renderTop() {
   const inWalk = MOMENTS.some((m) => m.id === app.route);
-  const section = inWalk ? "walkthrough" : app.route === "room" ? "room" : app.route === "overview" ? "overview" : "home";
+  const section = inWalk ? "walkthrough" : ["room", "handbook", "overview"].includes(app.route) ? app.route : "home";
   document.querySelectorAll("#sitenav a").forEach((a) => {
     const n = a.dataset.nav;
     if (n === "walkthrough") a.href = `#/bank?case=${app.caseId}`;
     if (n === "room") a.href = `#/room?case=${app.caseId}`;
+    if (n === "handbook") a.href = `#/handbook?case=${app.caseId}`;
     if (n === section) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });

@@ -114,6 +114,7 @@ async function change(main, app, c) {
     omit_sentence: "one sentence of the ticket is missing",
     legacy_alias: "the ticket uses a legacy system name",
     misleading_na: "the ticket wrongly says “control impact: N/A”",
+    misleading_no_impact: "the ticket wrongly says “control impact: N/A”",
   };
   const dmg = (c.ticket_damage || []).map((d) => damage[d] || d).join("; ");
   const found = c.counts.check_found;

@@ -109,7 +109,10 @@ example change (CHG-027) set up without its result, so the walkthrough keeps
 its reveal. A separate product overview (`#/overview`) holds the example
 finding and the measured results; every figure there is
 read from the same exported results. `tests/test_home_page.py` checks this in a
-browser where Playwright is installed. The walkthrough covers five moments on any of the 18 held-out changes (flagship:
+browser where Playwright is installed. Two reference areas sit in the header: the **evidence room** (results, all 18
+test changes, limits and fixes tried, Ask) and the **technical handbook**
+(architecture, benchmark and scoring, how the map is damaged, the investigator
+and verifier calls with their exact prompts, reproduction). The walkthrough covers five moments on any of the 18 held-out changes (flagship:
 CHG-027, a screening-interface change the lineage check clears; all 20 affected
 controls are recommended, with full-phrase evidence):
 

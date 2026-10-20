@@ -134,3 +134,12 @@ def test_earlier_approaches_match_results_doc(experience):
         rows["Agent investigation (this run)"]["recovery"]
         == p["agent_found_key"] / p["key_misses"]
     )
+
+
+def test_prompts_are_the_recorded_versions(experience):
+    from scripts.detective import VERIFIER_INSTRUCTIONS, instructions_for
+
+    pr = experience["prompts"]
+    assert pr["variant"] == experience["provenance"]["version"] == "A"
+    assert pr["investigator"] == instructions_for("A")
+    assert pr["verifier"] == VERIFIER_INSTRUCTIONS

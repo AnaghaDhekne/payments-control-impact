@@ -102,6 +102,26 @@ APPROACHES = [
     },
 ]
 
+
+def prompts():
+    """The two prompts of the recorded run (version A), from the agent's own code."""
+    from scripts.detective import VERIFIER_INSTRUCTIONS, instructions_for
+
+    return {
+        "variant": PROVENANCE["version"],
+        "code": PROVENANCE["code"],
+        "investigator": instructions_for(PROVENANCE["version"]),
+        "verifier": VERIFIER_INSTRUCTIONS,
+    }
+
+
+def _degradation():
+    """Settings of the damage step, read from the generator itself."""
+    from scripts import generate_observable as g
+
+    return {"seed": g.SEED, "levels": list(g.LEVELS), "modes": list(g.MODES)}
+
+
 # Copied from docs/results.md (pre-registered sections); shown in the evidence room.
 VERSION_TESTS = [
     {
@@ -634,6 +654,8 @@ def main():
         ],
         "version_tests": VERSION_TESTS,
         "approaches": APPROACHES,
+        "prompts": prompts(),
+        "degradation": _degradation(),
         "development_runs": {
             "frozen_check": extra.get("suite-10", {}).get("summary"),
             "variant_b": extra.get("suite-12", {}).get("summary"),

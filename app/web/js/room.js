@@ -1,28 +1,46 @@
-// The evidence room: methodology, results, every held-out change, the
-// pre-registered tests, architecture, limits, reproducibility and Q&A.
+// Two reference areas share one layout:
+//  - the evidence room: what was found (results, every test change, limits, Q&A);
+//  - the technical handbook: how it works (architecture, benchmark, damage,
+//    the investigator and verifier calls with their prompts, reproduction).
 
 import { esc, pct, el, ROUTE_LABEL, TYPE_LABEL } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
 
 export const ROOM_PAGES = [
-  { id: "method", label: "Benchmark and method" },
   { id: "results", label: "Results" },
   { id: "changes", label: "All 18 test changes" },
-  { id: "architecture", label: "Architecture" },
   { id: "limits", label: "Limits and fixes tried" },
-  { id: "reproduce", label: "Reproduce" },
   { id: "ask", label: "Ask about the POC" },
 ];
+export const BOOK_PAGES = [
+  { id: "architecture", label: "Architecture" },
+  { id: "method", label: "Benchmark and scoring" },
+  { id: "degradation", label: "How the map is damaged" },
+  { id: "investigator", label: "The investigator call" },
+  { id: "verifier", label: "The verifier call" },
+  { id: "reproduce", label: "Reproduce" },
+];
+const BOOKS = {
+  room: { title: "Evidence room", pages: ROOM_PAGES },
+  handbook: { title: "Technical handbook", pages: BOOK_PAGES },
+};
+// Old links: pages that moved between the two areas.
+const MOVED = { method: "handbook", architecture: "handbook", reproduce: "handbook", tests: "room" };
 
-export async function renderRoom(main, app, c, page) {
-  const room = el(`<div class="room"><nav aria-label="Evidence room"><h2>Evidence room</h2>
-    ${ROOM_PAGES.map((p) => `<a href="#/room/${p.id}?case=${app.caseId}" ${p.id === page ? 'aria-current="page"' : ""}>${esc(p.label)}</a>`).join("")}</nav>
+export async function renderRoom(main, app, c, page, book = "room") {
+  const B = BOOKS[book];
+  if (page === "tests") page = "limits";
+  if (!B.pages.some((p) => p.id === page)) {
+    if (MOVED[page] && MOVED[page] !== book) return go(MOVED[page], { sub: page });
+    page = B.pages[0].id;
+  }
+  const room = el(`<div class="room"><nav aria-label="${B.title}"><h2>${B.title}</h2>
+    ${B.pages.map((p) => `<a href="#/${book}/${p.id}?case=${app.caseId}" ${p.id === page ? 'aria-current="page"' : ""}>${esc(p.label)}</a>`).join("")}</nav>
     <div class="pane" id="pane"></div></div>`);
   main.append(room);
   const pane = room.querySelector("#pane");
-  const alias = { tests: "limits" }; // old link to the merged page
-  await (PAGES[alias[page] || page] || PAGES.method)(pane, app, c);
+  await PAGES[page](pane, app, c);
 }
 
 const table = (head, rows, cls = "") =>
@@ -30,16 +48,12 @@ const table = (head, rows, cls = "") =>
 
 const PAGES = {
   async method(pane, app) {
-    pane.innerHTML = `<h1>Benchmark and method</h1>
-      <p class="lead">How the test bank is scored and damaged. Its size and make-up are shown at the start of the walkthrough. The agent only ever sees a damaged copy of the map.</p>
+    pane.innerHTML = `<h1>Benchmark and scoring</h1>
+      <p class="lead">How the right answer is known and how results are scored. The bank's size and make-up are shown at the start of the walkthrough.</p>
       <section><h2>How it is scored</h2>
         <p><b>Answer key.</b> A control is affected when the changed item reaches it by following impact-carrying links in their direction through the complete map, at most six steps, stopping at the first control. This is plain code; no model labels anything.</p>
-        <p><b>Damage.</b> For each change, 30% of the 237 recordable links are removed, nearest the change first, while keeping most of the changed item's own links; tickets may lose a sentence, use a legacy name, or wrongly say "control impact: N/A".</p>
+        <p><b>Damage.</b> The check and the agent see a copy of the map with links removed; see <i>How the map is damaged</i>.</p>
         <p><b>Comparison.</b> The current check follows the remaining links. The agent starts from its result and reads the ticket, the item descriptions and the control procedures. Both are scored against the answer key; only key controls the check missed count towards recovery.</p></section>
-      <section><h2>What the damage does to the current check</h2>${table(
-        ["Lineage damage", "Key controls the check finds (18 test changes)"],
-        app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`)
-      )}</section>
       <section><h2>The complete map</h2><p style="color:var(--ink-2)">All 148 items. Drag to pan, scroll or use the buttons to zoom; click an item for its links.</p>
         <div class="graph-wrap" id="full" style="height:620px"></div></section>`;
     const c = await getCase(app.caseId);
@@ -51,6 +65,101 @@ const PAGES = {
       onSelect: (id) => openInspector(id),
     });
     g.update({ node: (id) => (c.changed.includes(id) ? "changed" : ""), edge: () => "vis" });
+  },
+
+  async degradation(pane, app) {
+    const D = app.exp.degradation;
+    const c = await getCase(app.caseId);
+    const removed = c.removed_links.length;
+    const dmg = { omit_sentence: "last sentence removed", legacy_alias: "legacy system name added", misleading_na: "“control impact: N/A” added", misleading_no_impact: "“control impact: N/A” added" };
+    pane.innerHTML = `<h1>How the map is damaged</h1>
+      <p class="lead">The check and the agent never see the complete map. For every change, a damaged copy is generated by fixed code, the same way every time, so results can be reproduced and compared.</p>
+      <section><h2>The links</h2><ol class="ra-steps">
+        <li><b>Budget.</b> At the test level, 30% of the recordable links are removed: ${removed} of 237 for each change (one of the 238 links is never recordable).</li>
+        <li><b>Nearest the change first.</b> Links are ordered by how close they sit to the changed item, counting steps in either direction, and removed from the closest outwards. A seeded random number breaks ties, so the same link type is not always the one to go.</li>
+        <li><b>Keep a local frontier.</b> The changed item keeps about 70% of its own links, and always at least one, so lineage looks stale rather than cut off. If that guard skips links, the rest of the budget is taken from links further away.</li>
+        <li><b>Reproducible.</b> Every choice is seeded from the run seed (${esc(D.seed)}), the change, the level and the mode, so the same change always gets the same damage.</li>
+      </ol></section>
+      <section><h2>The documents</h2><p style="color:var(--ink-2);margin-top:0">At level L, each of these happens with probability L% (30% in the test), independently:</p>
+        ${table(["Damage", "What the reader sees", "Applies to"], [
+          `<tr><td><b>Legacy name</b></td><td>“Legacy reference: &lt;old system name&gt;.” added at the start</td><td>Tickets and control procedures that have an old name</td></tr>`,
+          `<tr><td><b>Missing sentence</b></td><td>The last sentence is dropped</td><td>Tickets and control procedures with more than one sentence</td></tr>`,
+          `<tr><td><b>Misleading assessment</b></td><td>“Ticket assessment: control impact: N/A.” added at the end</td><td>Tickets of every seventh change only</td></tr>`,
+        ])}
+        <p style="font-size:13px;color:var(--ink-3)">On the selected change, ${esc(c.id)}: ${removed} links removed; ticket ${c.ticket_damage?.length ? esc(c.ticket_damage.map((d) => dmg[d] || d).join("; ")) : "unchanged"}.</p></section>
+      <section><h2>Levels and modes</h2><p style="color:var(--ink-2);margin-top:0">The generator builds every combination of level (${D.levels.join("%, ")}%) and mode (${D.modes.map(esc).join(", ")}). The headline uses 30%, correlated; the others test how fragile the current check is.</p>
+        ${table(["Lineage damage", "Key controls the current check finds (18 test changes)"], app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`))}
+        <p style="font-size:13px;color:var(--ink-3)">Source: scripts/generate_observable.py. A damage manifest records exactly what was removed; only the scorer reads it.</p></section>`;
+  },
+
+  async investigator(pane, app) {
+    const pr = app.exp.prompts;
+    const all = await Promise.all(app.exp.cases.map((x) => getCase(x.id)));
+    const acts = {};
+    let steps = 0;
+    for (const k of all) for (const s of k.steps) { steps++; acts[s.action] = (acts[s.action] || 0) + 1; }
+    const tools = [
+      ["trace_metadata", "{}", "Runs the current check: controls reachable through the visible links"],
+      ["explore_node", "{node_id}", "One item: name, description, visible links in and out"],
+      ["search_controls", "{query, limit 1–30}", "Ranks control procedures by word overlap with the query"],
+      ["inspect_control", "{control_ids: up to 15}", "Full procedure text and visible links; required before any finding on that control"],
+      ["submit_findings", "{findings: up to 8}", "Decisions, each with quotes, reason, counter-evidence and the chain of items"],
+      ["finish", "{}", "Stops; refused while controls are still undecided"],
+    ];
+    pane.innerHTML = `<h1>The investigator call</h1>
+      <p class="lead">The investigator is one model call per step. It reads the situation, chooses one tool, and the code runs that tool and feeds the result into the next step. ${steps} steps were recorded across the 18 test changes.</p>
+      <section><h2>What one call contains</h2><div class="pa">
+        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt below: role, tools, method, how to decide, rules. Identical on every step.</span></div>
+        <div class="pa-b"><b>2 · case</b><span>The change ticket; the changed items with descriptions; an index of every non-control item (code, type, name); the catalogue of 101 controls (code, title, criticality). No links that the damaged map does not show.</span></div>
+        <div class="pa-b"><b>3 · notebook</b><span>What has been learnt so far: every procedure read and item explored, with their visible links; decisions already submitted; how many controls are still undecided.</span></div>
+        <div class="pa-b"><b>4 · history</b><span>A short record of each earlier step: the action, its arguments and a summary of the result.</span></div>
+        <div class="pa-b"><b>5 · steps_remaining</b><span>Out of 60 per change.</span></div>
+        <div class="pa-out"><b>Reply</b><span>Exactly one JSON object: <code>{"action": …, "args": {…}}</code></span></div>
+      </div></section>
+      <section><h2>Tools</h2>${table(["Tool", "Arguments", "What it does", "Used"], tools.map(([t, a, d]) => `<tr><td><code>${t}</code></td><td><code>${esc(a)}</code></td><td>${esc(d)}</td><td class="num">${acts[t] || 0}</td></tr>`))}</section>
+      <section><h2>What fixed code checks on every reply</h2><ul class="ra-notes">
+        <li><b>Shape.</b> The reply must be one tool call with valid arguments; anything else is rejected and the agent is told why.</li>
+        <li><b>Read before deciding.</b> A finding is refused unless that control's procedure was inspected.</li>
+        <li><b>Verbatim quotes.</b> ticket_quote must appear in the ticket and control_quote in that procedure, exactly; otherwise the finding is rejected and must be corrected.</li>
+        <li><b>Known items only.</b> Every code in evidence_path must exist in the map; reason and counter-evidence must not be empty.</li>
+        <li><b>No early stop.</b> finish is refused while controls are undecided, until the steps run out.</li>
+      </ul></section>
+      <section><h2>Settings</h2>${table(["", ""], [
+        `<tr><td>Model</td><td>databricks-gpt-oss-120b (Databricks Model Serving)</td></tr>`,
+        `<tr><td>Temperature</td><td>0; an empty reply is retried with a nudge, then once at a small temperature</td></tr>`,
+        `<tr><td>Reply limit</td><td>3,000 tokens per call; findings cut off mid-reply are recovered where complete</td></tr>`,
+        `<tr><td>Steps</td><td>Up to 60 per change; all 18 finished within the limit</td></tr>`,
+        `<tr><td>Version</td><td>${esc(pr.variant)}, agent code ${esc(pr.code)}; the prompt is exported from that code by the build script</td></tr>`,
+      ])}</section>
+      <section><h2>The prompt, exactly as sent</h2><pre class="code prompt">${esc(pr.investigator)}</pre>
+        <p style="font-size:13px;color:var(--ink-3)">Followed on every step by the JSON object with case, notebook, history and steps_remaining. Source: scripts/detective.py, INSTRUCTIONS_TEMPLATE with version ${esc(pr.variant)}'s “Deciding” paragraph.</p></section>`;
+  },
+
+  async verifier(pane, app) {
+    const pr = app.exp.prompts;
+    const all = await Promise.all(app.exp.cases.map((x) => getCase(x.id)));
+    const calls = all.reduce((a, k) => a + k.counts.verify_calls, 0);
+    pane.innerHTML = `<h1>The verifier call</h1>
+      <p class="lead">After the investigation, a separate model call judges each finding on its own evidence. It does not continue the investigator's conversation. ${calls} verifier calls were recorded across the 18 test changes.</p>
+      <section><h2>When it is called</h2><p style="margin-top:0;color:var(--ink-2)">For every finding the investigator marked <b>affected</b> or <b>uncertain</b>. Findings marked <b>not affected</b> are recorded with their reason but not sent to the verifier; this is the gap behind the one silent miss.</p></section>
+      <section><h2>What one call contains</h2><div class="pa">
+        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt below.</span></div>
+        <div class="pa-b"><b>2 · ticket and changed items</b><span>The change ticket and the changed items, with names and descriptions.</span></div>
+        <div class="pa-b"><b>3 · change_neighborhood</b><span>Everything two links downstream of the changed items in the visible map, with names.</span></div>
+        <div class="pa-b"><b>4 · control</b><span>The control's procedure and its own visible links.</span></div>
+        <div class="pa-b"><b>5 · control_family</b><span>Up to 12 controls sharing its title prefix, with their visible links.</span></div>
+        <div class="pa-b"><b>6 · hypothesis</b><span>The investigator's finding and evidence path, marked untrusted.</span></div>
+        <div class="pa-out"><b>Reply</b><span><code>{decision, ticket_quote, control_quote, causal_reason, counter_evidence}</code>; quotes checked verbatim as for the investigator</span></div>
+      </div></section>
+      <section><h2>How the two answers become a route</h2>${table(["Investigator", "Verifier", "Result"], [
+        `<tr><td>affected</td><td>affected</td><td><span class="badge recommended">Recommended</span></td></tr>`,
+        `<tr><td>affected or uncertain</td><td>a different answer</td><td><span class="badge review">Routed to a person</span> (disagreement is never discarded)</td></tr>`,
+        `<tr><td>uncertain</td><td>uncertain</td><td><span class="badge review">Routed to a person</span></td></tr>`,
+        `<tr><td>not affected</td><td>not asked</td><td><span class="badge not_affected">Marked not affected</span>, reason kept</td></tr>`,
+        `<tr><td colspan="2">Reached by the current check</td><td><span class="badge check">Found by the current check</span>, always kept</td></tr>`,
+      ])}</section>
+      <section><h2>The prompt, exactly as sent</h2><pre class="code prompt">${esc(pr.verifier)}</pre>
+        <p style="font-size:13px;color:var(--ink-3)">Followed by the JSON evidence object above. Same model and settings as the investigator. Source: scripts/detective.py, VERIFIER_INSTRUCTIONS and verification_evidence().</p></section>`;
   },
 
   async results(pane, app) {

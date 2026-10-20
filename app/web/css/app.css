@@ -811,3 +811,25 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 .intro-list { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 12px; }
 .intro-list li { font-size: 14.5px; color: var(--ink-2); padding-left: 14px; border-left: 3px solid var(--line-2); }
 .intro-list b { display: block; color: var(--ink); }
+
+/* Technical handbook: anatomy of a model call */
+.pa { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pa-b, .pa-out { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-m); padding: 12px 14px; font-size: 13px; color: var(--ink-2); }
+.pa-b b, .pa-out b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 4px; }
+.pa-b.fixed { background: var(--navy); border-color: var(--navy); color: #c9cce0; }
+.pa-b.fixed b { color: #fff; }
+.pa-out { grid-column: 1 / -1; border-left: 4px solid var(--agent); }
+.pa code, table.t code { font-size: 12px; background: var(--sunk); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+pre.code.prompt { white-space: pre-wrap; word-break: break-word; font-size: 12.5px; line-height: 1.6; max-height: none; }
+@media (max-width: 900px) { .pa { grid-template-columns: 1fr; } }
+@media (max-width: 1180px) and (min-width: 561px) { .sitenav .long { display: none; } .sitenav .short { display: inline; } .sitenav a { padding: 8px 10px; } }
+@media (max-width: 560px) {
+  .topbar > nav { justify-self: stretch; }
+  .sitenav { justify-content: flex-end; }
+  .sitenav a[data-nav="home"] { display: none; } /* the logo goes home */
+}
+@media (max-width: 440px) {
+  .topbar { padding: 0 8px; gap: 6px; }
+  .sitenav { gap: 0; }
+  .sitenav a { padding: 6px 7px; font-size: 12.5px; }
+}

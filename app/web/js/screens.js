@@ -108,12 +108,12 @@ async function blindspot(main, app, c) {
   const missing = c.missingOnPaths.length;
   const unreached = c.affected.filter((id) => !c.baselineSet.has(id)).length;
   let mode = "lineage";
-  let scope = "focus";
+  let scope = "paths";
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(2, "The blind spot")}
       <h1 class="title">The map the check relies on is missing links, exactly around this change.</h1>
-      <p class="lead">Switch between what the lineage records and what is actually connected. Then click a control to trace why the check cannot reach it.</p>
+      <p class="lead">Switch between what the lineage records and what is actually connected. Each row is one route from the changed item to the controls it reaches. Click a control to see the evidence.</p>
       <div class="guide" id="guide" hidden></div>
       <div class="counters" style="grid-template-columns:1fr">
         <div class="counter blue"><div class="v">${c.counts.check_found} of ${c.counts.affected}</div><div class="l">affected controls the check can reach (${c.counts.check_found_key} of ${c.counts.key_affected} key)</div></div>
@@ -130,10 +130,12 @@ async function blindspot(main, app, c) {
             <button type="button" data-mode="lineage" aria-pressed="true">What the lineage records</button>
             <button type="button" data-mode="complete" aria-pressed="false">What is actually connected</button>
           </div>
-          <div class="right"><div class="seg" role="group" aria-label="Map scope">
-            <button type="button" data-scope="focus" aria-pressed="true">This change</button>
+          <div class="right"><div class="seg" role="group" aria-label="How to show it">
+            <button type="button" data-scope="paths" aria-pressed="true">Paths</button>
+            <button type="button" data-scope="focus" aria-pressed="false">Network</button>
             <button type="button" data-scope="all" aria-pressed="false">Whole map · 148 items</button></div></div>
         </div>
+        <div class="pv" id="pv"></div>
         <div class="graph-legend legend" id="gl"></div>
       </div>
     </section></div>`);
@@ -169,12 +171,107 @@ async function blindspot(main, app, c) {
         <dt><i class="sw ctl"></i>Control that may be affected</dt><dd><b>${esc(guideId)}</b> ${esc(n.name)} · key control</dd>
       </dl>
       <p class="guide-risk"><b>Why it matters to the bank:</b> the existing check stops at the missing link, so this control is never put in front of its owner. If the change breaks it, “${esc(n.name.charAt(0).toLowerCase() + n.name.slice(1))}” could stop holding true without anyone being told.</p>
-      <p class="guide-more">Click any other control on the map to trace it.</p>`;
+      <p class="guide-more">Click any other control to trace it.</p>`;
+  };
+
+  const linkOf = (a, b) => app.graph.edges.find((x) => x.source === a && x.target === b && x.carries_impact);
+  const isMissing = (e) => !e || c.removedSet.has(e.id) || !e.exposable;
+  const chip = (id) => {
+    const n = nodeOf(app, id);
+    return `<span class="pv-n ${c.changed.includes(id) ? "changed" : c.reach.has(id) ? "reach" : ""}" title="${esc(n.name)}"><b>${esc(id)}</b> ${esc(n.name)}</span>`;
+  };
+  const renderPaths = () => {
+    const complete = mode === "complete";
+    const groups = new Map();
+    for (const cid of c.affected) {
+      const p = (c.paths[cid] || [])[0];
+      if (!p) continue;
+      const prefix = p.slice(0, -1);
+      const k = prefix.join(">");
+      if (!groups.has(k)) groups.set(k, { prefix, controls: [] });
+      groups.get(k).controls.push(cid);
+    }
+    const rows = [...groups.values()].sort((a, b) => b.controls.length - a.controls.length);
+    if (!complete) {
+      // What the lineage shows: each route only as far as its first missing link.
+      const vis = new Map();
+      for (const cid of c.affected) {
+        const p = (c.paths[cid] || [])[0];
+        if (!p) continue;
+        let k = 1;
+        while (k < p.length && !isMissing(linkOf(p[k - 1], p[k]))) k++;
+        const reached = k === p.length;
+        const chainIds = reached ? p.slice(0, -1) : p.slice(0, k);
+        const key = chainIds.join(">");
+        if (!vis.has(key)) vis.set(key, { chainIds, seen: [], hidden: 0 });
+        if (reached) vis.get(key).seen.push(cid);
+        else vis.get(key).hidden++;
+      }
+      const html = [...vis.values()]
+        .sort((a, b) => b.seen.length + b.hidden - (a.seen.length + a.hidden))
+        .map(({ chainIds, seen, hidden }) => {
+          const chain = chainIds.map((id, i) => (i ? `<span class="pv-l ok"></span>` : "") + chip(id)).join("");
+          return `<div class="pv-g"><div class="pv-chain">${chain}${hidden ? `<span class="pv-end">${seen.length ? "Some routes end here" : "The map ends here"}</span>` : ""}</div>
+            ${seen.length ? `<ul class="pv-cs">${seen.map((cid) => ctrlRow(cid, false)).join("")}</ul>` : ""}
+            ${hidden ? `<p class="pv-hid">${hidden} affected control${hidden > 1 ? "s" : ""} beyond this point ${hidden > 1 ? "are" : "is"} invisible to the check.</p>` : ""}</div>`;
+        })
+        .join("");
+      const pv = stage.querySelector("#pv");
+      pv.innerHTML = html || `<p class="pv-hid">No affected controls for this change.</p>`;
+      wireRows(pv);
+      return;
+    }
+    const html = rows
+      .map(({ prefix, controls }) => {
+        const links = prefix.slice(1).map((id, i) => isMissing(linkOf(prefix[i], id)));
+        const shown = prefix;
+        let chain = "";
+        shown.forEach((id, i) => {
+          if (i) chain += `<span class="pv-l ${links[i - 1] ? "miss" : "ok"}" aria-label="${links[i - 1] ? "link missing from the lineage map" : "recorded link"}"></span>`;
+          chain += chip(id);
+        });
+        const ordered = [...controls].sort((a, b) => c.keySet.has(b) - c.keySet.has(a) || a.localeCompare(b, undefined, { numeric: true }));
+        const lastMissing = (cid) => isMissing(linkOf(prefix[prefix.length - 1], cid));
+        const last = nodeOf(app, prefix[prefix.length - 1]);
+        return `<div class="pv-g"><div class="pv-chain">${chain}</div>
+          <div class="pv-sub">${controls.length} affected control${controls.length > 1 ? "s" : ""} via ${esc(last.name)}</div>
+          <ul class="pv-cs">${ordered.map((cid) => ctrlRow(cid, lastMissing(cid))).join("")}</ul></div>`;
+      })
+      .join("");
+    const pv = stage.querySelector("#pv");
+    pv.innerHTML = html || `<p class="pv-hid">No affected controls for this change.</p>`;
+    wireRows(pv);
+  };
+  const wireRows = (pv) => {
+    pv.querySelectorAll("[data-id]").forEach((li) => {
+      const open = () => {
+        selected = li.dataset.id;
+        paint(false);
+        openInspector(li.dataset.id);
+      };
+      li.addEventListener("click", open);
+      li.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), open()));
+    });
+  };
+  const ctrlRow = (cid, missLast) => {
+    const n = nodeOf(app, cid);
+    const reached = c.baselineSet.has(cid);
+    return `<li class="pv-c ${reached ? "reached" : "hidden"} ${cid === selected ? "sel" : ""}" data-id="${cid}" tabindex="0">
+      <span class="pv-l ${missLast ? "miss" : "ok"} short" aria-hidden="true"></span>
+      <span class="pv-cn"><b>${esc(cid)}</b> ${esc(n.name)}</span>
+      ${c.keySet.has(cid) ? `<span class="pv-key">Key</span>` : ""}
+      <span class="pv-st">${reached ? "Reached by the check" : "Hidden from the check"}</span></li>`;
   };
 
   const build = () => {
     gw.querySelector("svg")?.remove();
     gw.querySelector(".zoom")?.remove();
+    gw.classList.toggle("paths", scope === "paths");
+    if (scope === "paths") {
+      graph = null;
+      paint(false);
+      return;
+    }
     const all = scope === "all";
     const nodes = all ? app.graph.nodes : c.focus.nodes.map((id) => nodeOf(app, id));
     const edges = all ? app.graph.edges.filter((e) => e.carries_impact) : c.focusEdges;
@@ -195,6 +292,17 @@ async function blindspot(main, app, c) {
   const paint = (pulse) => {
     const complete = mode === "complete";
     const sel = selected && c.affectedSet.has(selected) ? new Set(c.pathEdges(selected)) : new Set();
+    if (!graph) {
+      renderPaths();
+      const g = stage.querySelector("#guide");
+      const showGuide = complete && guideId && selected === guideId;
+      g.hidden = !showGuide;
+      if (showGuide) g.innerHTML = guideText();
+      stage.querySelector("#gl").innerHTML = complete
+        ? `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw line" style="border-color:#8a90a6"></i>Recorded link</span><span><i class="sw dash"></i>Missing from lineage</span><span><i class="sw" style="background:var(--check)"></i>Reached by the check</span><span><i class="sw" style="border:1.6px solid var(--ink)"></i>Hidden from the check</span>`
+        : `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw line" style="border-color:#8a90a6"></i>Recorded link</span><span><i class="sw" style="background:var(--check)"></i>Reached by the check</span>`;
+      return;
+    }
     graph.update({
       node: (id) => {
         const cls = [];

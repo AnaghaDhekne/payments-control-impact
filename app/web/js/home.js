@@ -51,11 +51,12 @@ export async function renderHome(main, app) {
 
     <section class="h-band" id="problem">
       <div class="h-wrap">
-        <h2 class="h-h2">The problem, in plain words</h2>
+        <p class="h-eyebrow">Why this problem matters beyond the test bank</p>
+        <h2 class="h-h2">Payment changes depend on connections that are difficult to keep mapped.</h2>
         <div class="h-three">
-          <div><span class="h-num">1</span><h3>A change can affect critical controls</h3><p>A new field in a payment message or a new screening interface can stop a check from seeing what it needs. It can go unnoticed until something slips through.</p></div>
-          <div><span class="h-num">2</span><h3>Teams rely on a map of connections</h3><p>Before release, the bank follows a map of which systems feed which checks. It is like finding which rooms lose power by reading the wiring diagram.</p></div>
-          <div><span class="h-num">3</span><h3>Dependency maps can have gaps</h3><p>Systems change faster than their documentation, so some connections go unrecorded. When a wire is missing from the diagram, a room that will lose power looks fine.</p></div>
+          <div><h3>Supervisors see the challenge</h3><p>The Basel Committee identifies mapping critical-operation interconnections and dependencies as a common challenge for banks adopting operational-resilience principles.</p><p class="h-fine"><a href="https://www.bis.org/publications/supervisory-newsletter-adoption-por-and-psmor" target="_blank" rel="noopener noreferrer">Basel Committee supervisory newsletter, 2023 ↗</a></p></div>
+          <div><h3>Payments change is not hypothetical</h3><p>Swift extended the ISO 20022 structured-address migration in August 2026 after reporting uneven readiness across regions.</p><p class="h-fine"><a href="https://www.swift.com/insights/news/swift-accepts-community-request-extend-structured-address-migration-iso-20022-payment-messages" target="_blank" rel="noopener noreferrer">Swift announcement, 27 August 2026 ↗</a></p></div>
+          <div><h3>The question this POC tests</h3><p>If a recorded dependency is missing, can an evidence-backed AI investigation still surface the affected payment controls for an owner to assess?</p><p class="h-fine">The industry sources establish the need for reliable change-impact assessment; they do not validate this POC's accuracy.</p></div>
         </div>
       </div>
     </section>
@@ -102,35 +103,9 @@ export async function renderHome(main, app) {
 
     <section class="h-sec alt">
       <div class="h-wrap">
-        <h2 class="h-h2">Where it fits in a bank</h2>
-        <p class="h-intro">It sits between raising a change and approving it, inside the bank's own data platform.</p>
-        <div class="h-arch">
-          <div class="h-arch-col">
-            <div class="fl-label">The bank's systems</div>
-            <div class="h-arch-box">Change management<span>change requests</span></div>
-            <div class="h-arch-box">Data lineage catalogue<span>the connection map</span></div>
-            <div class="h-arch-box">Control library<span>check procedures and owners</span></div>
-          </div>
-          ${arrow}
-          <div class="h-arch-col arch-core">
-            <div class="fl-label">Runs in the bank's Databricks workspace</div>
-            <div class="h-arch-core-b">
-              <div class="h-arch-name">Control Impact Detective</div>
-              <div class="h-arch-part"><b>Jobs</b><span>run one investigation per change</span></div>
-              <div class="h-arch-part"><b>Model Serving</b><span>the language model that reads and reasons</span></div>
-              <div class="h-arch-part"><b>Unity Catalog</b><span>inputs, results and the full audit trail</span></div>
-              <div class="h-arch-part"><b>App</b><span>this experience, for reviewers and leaders</span></div>
-            </div>
-          </div>
-          ${arrow}
-          <div class="h-arch-col">
-            <div class="fl-label">Where results go</div>
-            <div class="h-arch-box">Control owners<span>findings to assess, with evidence</span></div>
-            <div class="h-arch-box">Change board<span>a summary for the release decision</span></div>
-            <div class="h-arch-box">Risk and audit<span>a recorded trail of every step</span></div>
-          </div>
-        </div>
-        <p class="h-fine center">In this proof of concept the Databricks parts run for real; the bank systems are replaced by synthetic files. Connecting real systems is part of a pilot.</p>
+        <h2 class="h-h2">Where it fits</h2>
+        <p class="h-intro">Between a payment change request and the human release decision: the detective adds evidence-backed findings to the existing lineage check. It does not approve a release.</p>
+        <p class="h-fine center">The demonstration runs on Databricks with synthetic bank inputs. Platform architecture and integration requirements are documented in the Technical Handbook.</p>
       </div>
     </section>
 
@@ -146,14 +121,7 @@ export async function renderHome(main, app) {
           </ul>
           <p class="h-next"><b>Next to prove:</b> the same results on a real bank's changes, judged by control owners, with steadier run-to-run decisions.</p>
         </div>
-        <div>
-          <h2 class="h-h2">How a bank would adopt it</h2>
-          <ol class="h-path">
-            <li><b>Practitioner validation</b><span>Control owners judge a sample of findings, including the checks it left out.</span></li>
-            <li><b>Supervised pilot</b><span>Real changes and documents, with owners deciding every item.</span></li>
-            <li><b>Part of the change process</b><span>Only if the pilot shows findings that are right and useful, and that nothing important is left out.</span></li>
-          </ol>
-        </div>
+        <div><h2 class="h-h2">What still needs proof</h2><p>Control owners must assess findings and excluded controls on real change records. A supervised pilot would then measure accuracy, stability, review effort, and operational cost.</p></div>
       </div>
     </section>
   </div>`);

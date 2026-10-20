@@ -492,7 +492,7 @@ async function investigate(main, app, c) {
       <h1 class="title">Replay how the detective found what the map hides.</h1>
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
-      <p>Nothing on this screen calls a model: it replays the recording.</p>
+      <p>Watch for the first missing dependency, the control procedure that supplies evidence, and the verifier's decision. Play the full recorded sequence or jump directly to an interesting action in the step list.</p><p>Nothing on this screen calls a model: it replays the recording.</p>
       
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
     </aside>
@@ -503,6 +503,8 @@ async function investigate(main, app, c) {
           <button class="btn" id="back" type="button" aria-label="Previous step">‹</button>
           <button class="btn" id="fwd" type="button" aria-label="Next step">›</button>
           <button class="btn ghost" id="end" type="button">Show result</button>
+          <label class="tap-hint" for="speed">Replay speed</label>
+          <select id="speed" aria-label="Replay speed"><option value="1800">1×</option><option value="900">2×</option></select>
         </div>
         <div class="scrub-wrap"><label for="scrub" id="scrubl"></label><input id="scrub" class="scrub" type="range" min="0" max="${n + 1}" step="1"></div>
         <p class="tap-hint" style="margin:8px 14px 0">Click a step to jump to it</p>
@@ -631,9 +633,10 @@ async function investigate(main, app, c) {
       st.i += 1;
       if (st.i > n) return stop();
       paint();
-    }, reducedMotion() ? 2600 : 1800); // slow enough to read each step aloud
+    }, reducedMotion() ? 2600 : Number(stage.querySelector("#speed").value)); // recorded actions, adjustable playback
     paint();
   };
+  stage.querySelector("#speed").onchange = () => { if (st.playing) play(); };
   stage.querySelector("#play").onclick = () => (st.playing ? stop() : play());
   stage.querySelector("#back").onclick = () => { stop(); st.i = Math.max(0, st.i - 1); paint(); };
   stage.querySelector("#fwd").onclick = () => { stop(); st.i = Math.min(n + 1, st.i + 1); paint(); };

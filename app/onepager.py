@@ -74,41 +74,63 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.ln(2)
     reach = rules_found + h["key_recovered"] + routed
     caught = rules_found + h["key_recovered"]
-    text(20, f"Affected key controls left unflagged before release: from {total - rules_found} to {silent}", INK, "B", 9)
+    cs = h.get("cases") or []
+    if cs:
+        t0 = sum(1 for c in cs if c["key_affected"] - c["check_found_key"] > 0)
+        t1 = sum(1 for c in cs if c["key_silent"] > 0)
+        text(20, f"Releases going live with an unflagged critical control: from {t0} of {len(cs)} to {t1}", INK, "B", 9)
+    else:
+        text(20, f"Affected key controls left unflagged before release: from {total - rules_found} to {silent}", INK, "B", 9)
     pdf.ln(1)
     text(
         10.5,
-        f"Of {total} affected key controls, today's check flags {rules_found}. With the detective, {caught} are caught with evidence and {routed} flagged for a person to decide. Tested on 18 realistic payment changes the detective "
+        f"Across these releases, affected key controls left unflagged fall from {total - rules_found} to {silent}: {caught} caught with evidence, {routed} flagged for a person to decide. Tested on 18 realistic payment changes the detective "
         "had never seen, in a synthetic bank whose dependency map is missing links near each change.",
         MUTED,
     )
     pdf.ln(6)
 
-    # The headline numbers, large: unflagged before release, today and with the detective
-    y = pdf.get_y()
-    pdf.set_fill_color(27, 33, 80)
-    pdf.rect(18, y, w, 34, "F")
-    for x0, label, n, sub, col in (
-        (24, "TODAY'S CHECK", str(total - rules_found), f"of {total} never flagged for review", (160, 168, 214)),
-        (112, "WITH THE DETECTIVE", str(silent), f"of {total} unflagged", (255, 255, 255)),
-    ):
-        pdf.set_xy(x0, y + 4)
-        pdf.set_font("Helvetica", "B", 8)
-        pdf.set_text_color(169, 184, 240)
-        pdf.cell(80, 4, label)
-        pdf.set_xy(x0, y + 9)
-        pdf.set_font("Helvetica", "B", 34)
-        pdf.set_text_color(*col)
-        pdf.cell(80, 14, n)
-        pdf.set_xy(x0, y + 25)
-        pdf.set_font("Helvetica", "", 9.5)
-        pdf.set_text_color(201, 204, 224)
-        pdf.cell(80, 5, _p(sub))
-    pdf.set_xy(95, y + 11)
-    pdf.set_font("Helvetica", "B", 22)
-    pdf.set_text_color(125, 134, 232)
-    pdf.cell(12, 10, "->", align="C")
-    pdf.set_y(y + 40)
+    # The release board: one tile per test change, today and with the detective
+    cases = h.get("cases") or []
+    if cases:
+        y = pdf.get_y()
+        pdf.set_fill_color(246, 247, 251)
+        pdf.rect(18, y, w, 46, "F")
+        today = sum(1 for c in cases if c["key_affected"] - c["check_found_key"] > 0)
+        after = sum(1 for c in cases if c["key_silent"] > 0)
+        for row, (label, n, risky, col) in enumerate((
+            ("TODAY'S CHECK", today, lambda c: c["key_affected"] - c["check_found_key"] > 0, (201, 138, 31)),
+            ("WITH THE DETECTIVE", after, lambda c: c["key_silent"] > 0, AGENT),
+        )):
+            yy = y + 5 + row * 20
+            pdf.set_xy(24, yy)
+            pdf.set_font("Helvetica", "B", 7.5)
+            pdf.set_text_color(*MUTED)
+            pdf.cell(40, 4, label)
+            pdf.set_xy(24, yy + 4)
+            pdf.set_font("Helvetica", "B", 22)
+            pdf.set_text_color(*col)
+            pdf.cell(14, 10, str(n))
+            pdf.set_font("Helvetica", "", 8.5)
+            pdf.set_text_color(*MUTED)
+            pdf.cell(26, 10, _p(f"of {len(cases)} releases"))
+            tx, gap = 72, 0.9
+            tw = (18 + w - 5 - tx - gap * (len(cases) - 1)) / len(cases)
+            for k, c in enumerate(cases):
+                pdf.set_fill_color(*((201, 138, 31) if risky(c) else AGENT))
+                pdf.rect(tx + k * (tw + gap), yy + 3, tw, 9, "F")
+        pdf.set_y(y + 50)
+        pdf.set_font("Helvetica", "", 8.5)
+        lx = 18
+        for col, label in (((201, 138, 31), "Goes live with an unflagged critical control"), (AGENT, "Every affected critical control caught or flagged")):
+            pdf.set_fill_color(*col)
+            pdf.rect(lx, pdf.get_y() + 1.2, 3.4, 2.6, "F")
+            pdf.set_xy(lx + 4.6, pdf.get_y())
+            pdf.set_text_color(*MUTED)
+            t = _p(label)
+            pdf.cell(pdf.get_string_width(t) + 2, 5, t)
+            lx += 4.6 + pdf.get_string_width(t) + 8
+        pdf.ln(9)
 
     # The picture: two bars on one scale, no figures
     def bar(y, label, segs):

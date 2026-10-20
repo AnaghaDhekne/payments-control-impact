@@ -14,18 +14,62 @@ export function beforeAfter(P) {
   </div>`;
 }
 
-/** The headline: affected key controls that nobody is asked to look at before release, today and with the detective. */
-export function hero(P) {
-  const caught = P.check_found_key + P.agent_found_key;
-  const unflaggedToday = P.key_affected - P.check_found_key;
-  return `<div class="hero-x">
-    <p class="hx-q">Affected key controls left unflagged before release</p>
-    <div class="hx-row">
-      <div class="hx-side"><span class="hb-k">Today's check</span><b class="hx-n">${unflaggedToday}</b><p>of ${P.key_affected} never flagged for review.</p></div>
-      <div class="hx-arrow" aria-hidden="true">→</div>
-      <div class="hx-side on"><span class="hb-k">With the detective</span><b class="hx-n">${P.key_silent}</b><p>of ${P.key_affected}. ${caught} are caught with evidence and ${P.key_routed} flagged for a person to decide.</p></div>
+/** Per release: would it go live with an affected key control nobody was asked to look at? */
+const atRisk = (x, withDetective) => (withDetective ? x.key_silent > 0 : x.key_affected - x.check_found_key > 0);
+
+/**
+ * The headline as a release board: one tile per test change. Red means the release
+ * would go live with at least one affected key control left unflagged.
+ */
+export function releaseBoard(app) {
+  const cases = app.exp.cases;
+  const P = app.exp.portfolio;
+  const today = cases.filter((x) => atRisk(x, false)).length;
+  const after = cases.filter((x) => atRisk(x, true)).length;
+  const clean = cases.filter((x) => x.key_affected > 0 && x.check_found_key === 0).length;
+  const tile = (x) => {
+    const t = atRisk(x, false), a = atRisk(x, true);
+    const why = (r, w) => (r ? (w ? `${x.key_silent} affected key control left unflagged` : `${x.key_affected - x.check_found_key} affected key controls left unflagged`) : x.key_affected ? "every affected key control caught or flagged" : "no key control affected");
+    return `<span class="rt ${t ? "r0" : "g0"} ${a ? "r1" : "g1"}" data-tip-today="${x.id} · ${why(t, false)}" data-tip-after="${x.id} · ${why(a, true)}"></span>`;
+  };
+  return `<div class="rboard" data-state="after">
+    <div class="rb-head">
+      <p class="hx-q">Releases that would go live with a critical control nobody was asked to check</p>
+      <div class="seg rb-seg" role="group" aria-label="Show"><button type="button" data-rb="today" aria-pressed="false">Today's check</button><button type="button" data-rb="after" aria-pressed="true">With the detective</button></div>
+    </div>
+    <div class="rb-main">
+      <div class="rb-count"><b class="rb-n" data-today="${today}" data-after="${after}">${after}</b><span>of ${cases.length} releases</span></div>
+      <div class="rb-tiles" aria-hidden="true">${cases.map(tile).join("")}</div>
+    </div>
+    <div class="rb-foot">
+      <span><i class="rt-k r"></i>Goes live with an unflagged critical control</span><span><i class="rt-k g"></i>Every affected critical control caught or flagged</span>
+      <span class="rb-note">Today: <b>${today} of ${cases.length}</b>, and ${clean} of them looked completely clean to the check. With the detective: <b>${after}</b>. Unflagged affected key controls fall from ${P.key_affected - P.check_found_key} to ${P.key_silent}.</span>
     </div>
   </div>`;
+}
+
+/** Toggle and, where motion is welcome, play the board from today to with-the-detective once. */
+export function wireBoard(root) {
+  const b = root.querySelector(".rboard");
+  if (!b) return;
+  const n = b.querySelector(".rb-n");
+  const set = (state) => {
+    b.dataset.state = state;
+    n.textContent = n.dataset[state];
+    b.querySelectorAll("[data-rb]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.rb === state)));
+    b.querySelectorAll(".rt").forEach((t) => (t.title = state === "today" ? t.dataset.tipToday : t.dataset.tipAfter));
+  };
+  set(b.dataset.state);
+  b.querySelectorAll("[data-rb]").forEach((x) => x.addEventListener("click", () => set(x.dataset.rb)));
+  const quiet = navigator.webdriver || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window);
+  if (quiet) return;
+  set("today");
+  const io = new IntersectionObserver((es) => {
+    if (!es.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    setTimeout(() => set("after"), 1100);
+  }, { threshold: 0.5 });
+  io.observe(b);
 }
 
 /** The checks an executive runs on a result, each answered in one line. */

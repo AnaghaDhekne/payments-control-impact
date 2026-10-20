@@ -1305,3 +1305,42 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 .hx-arrow { font-size: 40px; color: #7d86e8; text-align: center; }
 @media (max-width: 700px) { .hx-row { grid-template-columns: 1fr; } .hx-arrow { transform: rotate(90deg); } .hx-n { font-size: 60px; } }
 .hx-row { align-items: start; } .hx-arrow { align-self: center; }
+/* Release board: one tile per test change */
+.rboard { border-radius: 16px; padding: 20px 22px; margin-bottom: 18px; color: #fff; background: radial-gradient(600px 200px at 85% 0%, rgba(125, 134, 232, .25), transparent 60%), linear-gradient(135deg, #171c45, var(--navy)); box-shadow: var(--shadow-hi); }
+.rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.rb-head .hx-q { margin: 4px 0 0; max-width: 46ch; }
+.rb-seg { background: rgba(255, 255, 255, .1); box-shadow: none; }
+.rb-seg button { color: #c9cce0; } .rb-seg button[aria-pressed="true"] { background: #fff; color: var(--navy); }
+.rb-main { display: grid; grid-template-columns: 220px 1fr; gap: 22px; align-items: center; margin: 16px 0 14px; }
+.rb-count b { display: block; font: 800 84px/1 var(--display); letter-spacing: -.04em; transition: color .4s; }
+.rboard[data-state="today"] .rb-count b { color: #ff8a80; } .rboard[data-state="after"] .rb-count b { color: #fff; text-shadow: 0 0 30px rgba(140, 150, 255, .55); }
+.rb-count span { font-size: 15px; color: #c9cce0; }
+.rb-tiles { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+.rt { aspect-ratio: 1.6; border-radius: 8px; transition: background .5s var(--ease), transform .5s var(--ease), box-shadow .5s; cursor: default; }
+.rt:nth-child(3n+2) { transition-delay: .06s; } .rt:nth-child(3n) { transition-delay: .12s; }
+.rboard[data-state="today"] .rt.r0, .rboard[data-state="after"] .rt.r1 { background: #e0574e; box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset, 0 6px 16px -6px rgba(224, 87, 78, .8); }
+.rboard[data-state="today"] .rt.g0, .rboard[data-state="after"] .rt.g1 { background: #3fb68b; box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset; }
+.rboard[data-state="after"] .rt.r0.g1 { transform: rotateX(360deg); }
+.rb-foot { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: 12.5px; color: #c9cce0; }
+.rt-k { display: inline-block; width: 12px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; } .rt-k.r { background: #e0574e; } .rt-k.g { background: #3fb68b; }
+.rb-note { flex-basis: 100%; color: #e6e8f5; font-size: 13.5px; } .rb-note b { color: #fff; }
+@media (max-width: 760px) { .rb-main { grid-template-columns: 1fr; } .rb-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } .rb-count b { font-size: 64px; } }
+/* Release board, restrained: flat tiles, no glow or flip */
+.rboard { background: linear-gradient(135deg, #1a1f4d, var(--navy)); }
+.rboard[data-state="after"] .rb-count b { text-shadow: none; }
+.rboard[data-state="today"] .rb-count b { color: #f19a92; }
+.rboard[data-state="today"] .rt.r0, .rboard[data-state="after"] .rt.r1 { background: #d46a62; box-shadow: none; }
+.rboard[data-state="today"] .rt.g0, .rboard[data-state="after"] .rt.g1 { background: #4fa98a; box-shadow: none; }
+.rboard[data-state="after"] .rt.r0.g1 { transform: none; }
+.rt { border-radius: 6px; aspect-ratio: 1.8; }
+.rt-k.r { background: #d46a62; } .rt-k.g { background: #4fa98a; }
+/* Release board in the app's own palette: light card, amber = at risk, indigo = covered */
+.rboard { background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.rboard .hx-q { color: var(--ink-3); }
+.rb-seg { background: #eceef4; } .rb-seg button { color: var(--ink-2); } .rb-seg button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+.rboard[data-state="today"] .rb-count b { color: var(--missing); } .rboard[data-state="after"] .rb-count b { color: var(--agent); }
+.rb-count span { color: var(--ink-3); }
+.rboard[data-state="today"] .rt.r0, .rboard[data-state="after"] .rt.r1 { background: var(--missing); }
+.rboard[data-state="today"] .rt.g0, .rboard[data-state="after"] .rt.g1 { background: var(--agent); }
+.rt-k.r { background: var(--missing); } .rt-k.g { background: var(--agent); }
+.rb-foot { color: var(--ink-3); } .rb-note { color: var(--ink-2); } .rb-note b { color: var(--ink); }

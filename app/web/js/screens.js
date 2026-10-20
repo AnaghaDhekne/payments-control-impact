@@ -4,7 +4,7 @@
 import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY, quoteWeakness } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
-import { hero, beforeAfter, checklist, verdictBadge, numbers } from "./outcomes.js";
+import { releaseBoard, wireBoard, beforeAfter, checklist, verdictBadge, numbers } from "./outcomes.js";
 
 export const MOMENTS = [
   { id: "bank", label: "The test bank", intro: true },
@@ -776,7 +776,7 @@ async function decision(main, app, c) {
     <section class="canvas">
       <div class="card"><div class="card-h"><h2>What changes, across all ${P.changes} unseen test changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change you looked at</span></div></div>
         <div class="card-b">
-          ${hero(P)}
+          ${releaseBoard(app)}
           ${beforeAfter(P)}
           ${checklist(P)}
           ${verdictBadge()}
@@ -813,6 +813,7 @@ async function decision(main, app, c) {
         </div></div></div>
     </section></div>`);
   main.append(stage);
+  wireBoard(stage);
   stage.querySelectorAll("[data-silent]").forEach((a) =>
     a.addEventListener("click", (e) => {
       e.preventDefault();

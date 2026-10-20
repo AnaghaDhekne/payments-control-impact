@@ -116,6 +116,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "added_affected": p["added_affected"],
                 "new_right": p["new_right"],
                 "new_total": p["new_total"],
+                "cases": e["cases"],
             }
             prov = e["provenance"]
             label = f"Run {prov['date']}, job {prov['job']}, version {prov['version']}"

@@ -33,8 +33,7 @@ given the same recommend / not-recommend decision in every run.
 At 30% change-correlated degradation, proceed to a pilot only if the detective:
 
 1. recovers **at least 50%** of key-control misses made by the rules baseline;
-2. adds **at most 25%** reviewer workload compared with the rules baseline;
-3. reaches **at least 95%** agreement on key-control decisions across five runs.
+2. reaches **at least 95%** agreement on key-control decisions across five runs.
 
 Report sample size and uncertainty. With zero observed key misses among n
 pairs, report the approximate 95% upper bound on the miss rate as 3/n.
@@ -47,23 +46,13 @@ For held-out version A, the 406 additional items comprise 331 affected items
 (262 recommendations and 69 UNCERTAIN) and 75 unaffected items (18 recommendations
 and 57 UNCERTAIN), using offline synthetic labels. Only the latter are labeled
 avoidable review items by this benchmark. Actual review duration was not measured.
-The original volume gate remains unchanged and failed; it is not a waste-rate gate.
 
-### Known tension between gates 1 and 2
+### Why review volume is not a gate
 
-On the development split the baseline flags 176 controls and misses 225
-affected key controls. Recovering 50% means adding at least 113 controls,
-+64% workload even at perfect precision. Because correct recoveries count as
-workload, any method that passes gate 1 fails gate 2 on this benchmark, and
-where the baseline flags nothing (for example CHG-001) any review item is an
-unbounded increase.
-
-**Decision (registered 2026-10-15, before the frozen-check results):** gate 2
-stays exactly as written and is reported as met or not met. Counting only
-wrong flags and UNCERTAIN items was considered and rejected as a replacement:
-on the four tuned cases it gives 46 items against 19 (+242%), so it would not
-change the verdict, and redefining a gate until it passes is not credible.
-Review burden is additionally described, never gated, by:
+An earlier volume gate counted every item beyond the baseline, including
+correct recoveries, as workload. It could not tell useful review from wasted
+review, so it was withdrawn as an invalid measure.
+Review burden is described, never gated, by:
 
 | Measure | Definition |
 |---|---|

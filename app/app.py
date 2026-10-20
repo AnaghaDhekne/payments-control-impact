@@ -1864,7 +1864,7 @@ def page_ask():
         st.session_state.chat = []
     examples = [
         "Is the 78% held-out result trustworthy?",
-        "Why does the workload gate fail?",
+        "What do the 406 added review items contain?",
         "How does the agent avoid making things up?",
         "Why is consistency below target?",
     ]

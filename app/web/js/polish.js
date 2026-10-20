@@ -35,7 +35,7 @@ function countUp(el) {
 }
 
 const COUNT = ".figure .big, .dec-hl .big, .ov-v, .goal .g-v, .h-fact > b, .ov-cost b, .cl-tile b, .vc > em";
-const RISE = ".h-sec .h-wrap > *, .card, .goal, .dr, .vc, .h-fact, .ov-m > div, .ov-cost > div, .rp-card, .pane > section, .option";
+const RISE = ".h-arg, .h-sec .h-wrap > *, .card, .goal, .dr, .vc, .h-fact, .ov-m > div, .ov-cost > div, .rp-card, .pane > section, .option";
 
 export function enhance(root) {
   if (quiet()) return;

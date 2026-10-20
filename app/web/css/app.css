@@ -1233,3 +1233,19 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 @media (max-width: 900px) { .subbar .select { width: 100%; max-width: 100%; } .subbar .tools { flex: 1 1 100%; } }
 .pa.row .pa-b > b, .pa.row .pa-out > b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #next-step.show-l .nx-l { display: inline !important; }
+/* Landing: four connected statements, each with its evidence and source */
+.h-args { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: none; }
+.h-arg { display: flex; flex-direction: column; gap: 10px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); border-radius: 16px; padding: 18px; position: relative; }
+.h-arg + .h-arg::before { content: "→"; position: absolute; left: -13px; top: 22px; color: #7f8bc4; font-size: 14px; }
+.h-arg-n { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #a9b8f0; }
+.h-arg h3 { margin: 0; font: 650 17px/1.3 var(--display); color: #fff; letter-spacing: -.01em; }
+.h-ev { background: rgba(0, 0, 0, .18); border-radius: 10px; padding: 10px 12px; }
+.h-ev-l { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8f98c6; margin-bottom: 4px; }
+.h-ev p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: #c9cce0; }
+.h-ev .h-src { margin-top: 0; }
+.h-take { margin: auto 0 0; padding-left: 12px; border-left: 3px solid #7d86e8; font-size: 14.5px; line-height: 1.5; color: #fff; font-weight: 500; }
+.h-turn { margin: 30px auto 0; max-width: 62ch; text-align: center; font: 500 20px/1.45 var(--display); color: #e6e8f5; letter-spacing: -.01em; }
+.h-turn b { display: block; color: #fff; font-weight: 700; margin-top: 4px; }
+.h-fine-d { color: #9ea3c8 !important; text-align: center; max-width: 80ch; margin: 14px auto 0; }
+@media (max-width: 1150px) { .h-args { grid-template-columns: repeat(2, minmax(0, 1fr)); } .h-arg + .h-arg::before { display: none; } }
+@media (max-width: 620px) { .h-args { grid-template-columns: 1fr; } .h-turn { font-size: 17px; } }

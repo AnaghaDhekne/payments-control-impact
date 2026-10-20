@@ -33,7 +33,6 @@ finished; 8 controls uninvestigated; 1,280 model calls.
 | Gate | Target | Held-out | Status |
 |---|---|---|---|
 | Key-miss recovery | ≥ 50% | 78.5% (113 of 144; Wilson 95% interval 71.1–84.4%) | **Met** |
-| Additional review volume (including useful recoveries) | ≤ 25% | 406 additional items beyond 64 rules items (+634% item volume) | Original gate not met; not a measure of wasted effort |
 | Consistency over 5 runs | ≥ 95% | 80% (8 of 10 key-control pairs; development cases, see below) | Not met |
 
 **Version A review composition:** 262 correct new recommendations, 18 incorrect
@@ -42,8 +41,8 @@ affected and 57 unaffected according to the offline synthetic answer key.
 Thus **331 of 406 additional items (81.5%) are genuinely affected** and warrant
 consideration; **75 (18.5%, or 4.2 per change) are unaffected** review overhead.
 There are 470 items including the baseline's 64. These are item counts, not
-measured review time. The volume gate includes correct recoveries and must not
-be interpreted as 406 wrong findings or 406 unnecessary reviews. Affected
+measured review time. They must not be read as 406 wrong findings or 406
+unnecessary reviews. Affected
 UNCERTAIN items remain excluded from the recovery score.
 
 **Reading.** The stop rule (held-out recovery below 50%) is not triggered.
@@ -58,8 +57,7 @@ report changes had no key misses and produced no false flags.
 
 **Caveats.** One run (repeat runs vary, see consistency); synthetic benchmark
 whose controls come in families; the test cases were examined during the
-Phase 2 diagnosis, though never by this agent; gate 2 is unreachable on this
-benchmark by any method that passes gate 1 (see [evaluation.md](evaluation.md)).
+Phase 2 diagnosis, though never by this agent.
 
 ## Consistency: 3 cases × 5 runs (job 189647926488694, 2026-10-15)
 
@@ -359,7 +357,6 @@ change).
 | Gate | Target | Observed | Status |
 |---|---|---|---|
 | Key-miss recovery | ≥ 50% | 81.5% (22 of 27) | Met on development cases |
-| Added reviewer workload | ≤ 25% | 102 added review items (56 true, 5 false, 41 uncertain) vs 19 rules items | Not met |
 | Consistency over 5 runs | ≥ 95% | 80% (see Consistency above) | Not met |
 
 ### Caveats

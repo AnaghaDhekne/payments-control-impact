@@ -241,9 +241,9 @@ function controlBody(c, cid) {
   }
   if (d?.proposer) {
     sections.push(`<section><h4>Reasoning, as recorded</h4>
-      <div class="verdict"><span class="who a">AI</span><div><b>Agent: ${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "")}
-      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter)}</span>` : ""}</div></div>
-      ${d.checker ? `<div class="verdict"><span class="who c">2nd</span><div><b>Independent checker: ${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the agent.")}</div></div>` : ""}
+      <div class="verdict"><span class="who a">AI</span><div><b>Agent: ${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "", cid)}
+      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter, cid)}</span>` : ""}</div></div>
+      ${d.checker ? `<div class="verdict"><span class="who c">2nd</span><div><b>Independent checker: ${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the agent.", cid)}</div></div>` : ""}
       </section>`);
   }
   sections.push(`<section><h4>Proposed reviewer action</h4><p style="margin:0;font-size:13.5px">${esc(action)}</p>

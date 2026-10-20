@@ -94,8 +94,17 @@ let NAMES = {};
 export const setNames = (map) => (NAMES = map);
 const CODE = /\b(RP\d{2}|[CDRISPE]\d{2,3})\b(?!\s*\()/g;
 /** Escape text and put the name in front of every known code: "Screening Engine (S03)". */
-export function expandCodes(text) {
-  return esc(text).replace(CODE, (m) => (NAMES[m] ? `${esc(NAMES[m])} (${m})` : m));
+export function expandCodes(text, self = null) {
+  const t = String(text ?? "");
+  return esc(t).replace(CODE, (m, _g, off) => {
+    if (m === self) return `${off === 0 ? "This" : "this"} control (${m})`;
+    const name = NAMES[m];
+    if (!name) return m;
+    // Already named right after the code ("S03, the Screening Engine ...")?
+    const after = esc(t).slice(off + m.length, off + m.length + name.length + 8).toLowerCase();
+    if (after.includes(esc(name).toLowerCase())) return m;
+    return `${esc(name)} (${m})`;
+  });
 }
 export const CODE_KEY =
   "Every item in the bank's map has a short code. The letter gives its type: C control, S system, I interface, D data element, R rule, P process, RP report, E evidence.";

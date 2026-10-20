@@ -145,4 +145,22 @@ def test_reference_codes_are_explained(page):
     page.wait_for_selector("#inspector.open")
     reasons = page.locator("#inspector .verdict").first.inner_text()
     assert "Screening request interface (I02)" in reasons
-    assert "Screening Engine (S03)" in reasons
+    assert "S03, the Screening Engine" in reasons  # already named: not repeated
+
+
+def test_replay_hover_gives_the_basis_of_each_decision(page):
+    page.goto(page.base + "#/investigate?case=CHG-027")
+    page.wait_for_selector("#end")
+    page.locator("#end").click()
+    page.wait_for_timeout(300)
+    page.locator(".g-node").filter(has_text="C02 ").first.hover()
+    page.wait_for_timeout(200)
+    t = page.locator("#tip").inner_text()
+    for part in (
+        "Recommended by the agent",
+        "Second opinion",
+        "affected (agreed)",
+        "inferred link",
+    ):
+        assert part in t
+    assert "No confidence score" in t  # none was recorded, so none is invented

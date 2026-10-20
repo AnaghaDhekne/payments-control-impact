@@ -773,3 +773,14 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 @media (min-width: 901px) {
   .room > nav { position: sticky; top: 60px; align-self: start; max-height: calc(100vh - 60px); overflow-y: auto; }
 }
+
+/* Replay hover: the basis of each decision. */
+.tip { max-width: 340px; }
+.tip .tb-r { display: block; font-style: normal; font-weight: 600; margin: 6px 0 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.18); color: #fff; }
+.tip .tb-r.recommended::before, .tip .tb-r.review::before, .tip .tb-r.check::before, .tip .tb-r.not_affected::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.tip .tb-r.recommended::before { background: var(--agent); } .tip .tb-r.review::before { background: var(--review); }
+.tip .tb-r.check::before { background: var(--check); } .tip .tb-r.not_affected::before { background: var(--idle); }
+.tip .tb-l { display: inline-block; min-width: 104px; color: #9ea3bd; }
+.tip .tb-why { display: block; margin-top: 6px; color: #e3e5f1; }
+.tip .tb-n { display: block; margin-top: 6px; color: #9ea3bd; font-size: 11.5px; }
+.tip > span:not([class]) { display: block; }

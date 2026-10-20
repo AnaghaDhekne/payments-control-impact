@@ -86,7 +86,7 @@ export function createGraph(host, { nodes, edges, layout, onSelect, label = "Dep
     const g = evt.target.closest(".g-node");
     if (!g) return tip(evt, null);
     const n = byId[g.dataset.id];
-    tip(evt, `<b>${esc(n.id)} · ${esc(n.name)}</b><span>${esc(TYPE_LABEL[n.type])}${n.criticality === "KEY" ? " · key control" : ""}</span>${hoverText(n.id) ? `<br>${hoverText(n.id)}` : ""}`);
+    tip(evt, `<b>${esc(n.id)} · ${esc(n.name)}</b><span>${esc(TYPE_LABEL[n.type])}${n.criticality === "KEY" ? " · key control" : ""}</span>${hoverText(n.id) ? `<div class="tb">${hoverText(n.id)}</div>` : ""}`);
   });
   gNodes.addEventListener("mouseleave", (evt) => tip(evt, null));
   gNodes.addEventListener("click", (evt) => {

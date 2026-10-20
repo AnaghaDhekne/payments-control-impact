@@ -1,7 +1,7 @@
 // The five moments of the client journey. Each screen = a story column (the
 // question and the answer) and a canvas where the evidence can be explored.
 
-import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY } from "./util.js";
+import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY, quoteWeakness } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
 
@@ -370,6 +370,43 @@ async function blindspot(main, app, c) {
 
 // ------------------------------------------------------------------ 3. the investigation
 
+const wrapRows = (rows) => rows.map((r) => (r.startsWith("<em") || r.startsWith('<span class="tb-why') || r.startsWith('<span class="tb-n') ? r : `<div class="tb-row">${r}</div>`)).join("");
+
+/** Hover summary of why a control landed where it did, from the recorded run only.
+ * There is no confidence score: the model was not asked for one, so none is shown. */
+function decisionBasis(app, c, id, d) {
+  const route = c.baselineSet.has(id) ? "check" : d.route;
+  const rows = [`<em class="tb-r ${route}">${esc(ROUTE_LABEL[route])}</em>`];
+  if (route === "check") {
+    rows.push("Reached through links the lineage map records. No model judgement needed.");
+    return wrapRows(rows);
+  }
+  const verdict = (v) => (v ? v.toLowerCase() : "not asked");
+  rows.push(`<span class="tb-l">Agent</span> ${esc(verdict(d.proposer))}`);
+  if (d.proposer === "AFFECTED") {
+    const agreed = d.checker === "AFFECTED";
+    rows.push(`<span class="tb-l">Second opinion</span> ${esc(verdict(d.checker))}${agreed ? " (agreed)" : d.checker ? " (disagreed)" : ""}`);
+  } else {
+    rows.push(`<span class="tb-l">Second opinion</span> not asked; not-affected decisions are not double-checked`);
+  }
+  const ep = d.evidence_path?.length ? [...d.evidence_path, id].filter((x, i, a) => a.indexOf(x) === i) : [];
+  if (ep.length > 1) {
+    let doc = 0, inf = 0;
+    for (let i = 1; i < ep.length; i++) {
+      const e = app.graph.edges.find((x) => x.source === ep[i - 1] && x.target === ep[i] && x.carries_impact);
+      e && e.exposable && !c.removedSet.has(e.id) ? doc++ : inf++;
+    }
+    rows.push(`<span class="tb-l">Chain</span> ${doc} documented, ${inf} inferred link${inf === 1 ? "" : "s"}`);
+  }
+  if (d.ticket_quote || d.control_quote) {
+    const weak = quoteWeakness(d.ticket_quote) || quoteWeakness(d.control_quote);
+    rows.push(`<span class="tb-l">Quotes</span> ${weak ? `weak (${esc(weak)})` : "full phrases from both documents"}`);
+  }
+  if (d.proposer_reason) rows.push(`<span class="tb-why">${expandCodes(d.proposer_reason.length > 140 ? d.proposer_reason.slice(0, 139) + "…" : d.proposer_reason, id)}</span>`);
+  rows.push(`<span class="tb-n">No confidence score: the model was not asked for one. Click for the full evidence.</span>`);
+  return wrapRows(rows);
+}
+
 const replayState = {};
 
 async function investigate(main, app, c) {
@@ -470,7 +507,7 @@ async function investigate(main, app, c) {
       },
       hover: (id) => {
         const d = c.decision(id);
-        if (done && d) return esc(ROUTE_LABEL[c.baselineSet.has(id) ? "check" : d.route]);
+        if (done && d) return decisionBasis(app, c, id, d);
         if (accepted.has(id)) return "Finding submitted; awaiting the independent check";
         if (read.has(id)) return "Procedure read by the agent";
         if (explored.has(id)) return "Explored by the agent";

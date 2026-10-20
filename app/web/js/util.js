@@ -48,9 +48,9 @@ export function tip(evt, html) {
 }
 
 export const ROUTE_LABEL = {
-  check: "Found by the current check",
-  recommended: "Recommended by the agent",
-  review: "Routed to a control owner",
+  check: "Found by the existing lineage check",
+  recommended: "Recommended for owner assessment",
+  review: "Sent to a person for review",
   not_affected: "Marked not affected",
   undecided: "Not decided",
 };
@@ -71,9 +71,9 @@ export const short = (s, n = 24) => (s.length <= n ? s : s.slice(0, n - 1) + "â€
 /** Plain-language routing reasons; internal labels never reach the screen. */
 export function routingReason(reason) {
   if (!reason) return "";
-  if (/disagree/i.test(reason)) return "The agent and its independent checker disagreed, so the item goes to a person.";
+  if (/disagree/i.test(reason)) return "The detective and the independent verifier disagreed, so the item goes to a person.";
   if (/UNAFFECTED/.test(reason))
-    return "The agent judged this control not affected. In this version, not-affected decisions are not double-checked by the independent checker.";
+    return "The detective judged this control not affected. In this version, not-affected decisions are not double-checked by the independent verifier.";
   return /[A-Z]{4,}/.test(reason) ? "" : reason;
 }
 

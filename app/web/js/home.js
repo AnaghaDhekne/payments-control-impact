@@ -19,8 +19,8 @@ export async function renderHome(main, app) {
     .join(", ");
   const found = ex.counts.check_found;
   const checkLine = found
-    ? `The existing check flags ${found} control${found > 1 ? "s" : ""} for review.`
-    : "The existing check flags no controls for review.";
+    ? `The existing lineage check flags ${found} control${found > 1 ? "s" : ""} for review.`
+    : "The existing lineage check flags no controls for review.";
   const page = el(`<div class="home">
     <section class="h-hero">
       <div class="h-wrap h-hero-grid">
@@ -44,7 +44,7 @@ export async function renderHome(main, app) {
             <dt>The request says</dt><dd class="h-case-ticket">“${esc(ex.ticket.text)}”</dd>
           </dl>
           <div class="h-case-check"><span class="h-case-dot" aria-hidden="true"></span>${checkLine}</div>
-          <p class="h-case-q">What might the existing check have missed? Read on, then find out for yourself in the Walkthrough.</p>
+          <p class="h-case-q">What might the existing lineage check have missed? Read on, then find out for yourself in the Walkthrough.</p>
         </aside>
       </div>
     </section>
@@ -63,7 +63,7 @@ export async function renderHome(main, app) {
     <section class="h-sec" id="how">
       <div class="h-wrap">
         <h2 class="h-h2">How it works</h2>
-        <p class="h-intro">It does not need a perfect map. It does what a careful reviewer would do with unlimited time: start from today's check, then read the documents to find what the map leaves out.</p>
+        <p class="h-intro">It does not need a perfect map. It does what a careful reviewer would do with unlimited time: start from the existing lineage check, then read the documents to find what the map leaves out.</p>
         <div class="flow" role="list">
           <div class="fl-col" role="listitem">
             <div class="fl-label">What goes in</div>
@@ -75,10 +75,10 @@ export async function renderHome(main, app) {
           <div class="fl-col fl-engine" role="listitem">
             <div class="fl-label">What the detective does</div>
             <ol class="fl-steps">
-              <li><b>Runs today's check</b><span>Follows the map, exactly as the bank does now</span></li>
+              <li><b>Runs the existing lineage check</b><span>Follows the map, exactly as the bank does now</span></li>
               <li><b>Investigates the gaps</b><span>Reads the change and the procedures, and traces likely missing connections</span></li>
               <li><b>Quotes its evidence</b><span>Every finding must quote the change and the procedure exactly</span></li>
-              <li><b>Gets a second opinion</b><span>An independent check agrees or disagrees; disagreements go to a person</span></li>
+              <li><b>Gets a independent verifier's view</b><span>An independent check agrees or disagrees; disagreements go to a person</span></li>
             </ol>
           </div>
           ${arrow}
@@ -192,17 +192,17 @@ export async function renderOverview(main, app) {
         <p class="h-sub">A Databricks-based AI investigation that combines the existing dependency check with document evidence to surface controls a payment-system change may affect, before it is released.</p>
         <div class="ov-facts">
           <div><span>Core capability</span><b>Evidence-backed impact discovery</b></div>
-          <div><span>Current maturity</span><b>Validated synthetic proof of concept</b></div>
-          <div><span>Basis</span><b>Recorded Databricks run · ${P.changes} held-out synthetic changes · not production-validated</b></div>
+          <div><span>Maturity</span><b>POC demonstrated; not production-validated</b></div>
+          <div><span>Basis</span><b>Synthetic held-out evaluation: a recorded Databricks run on ${P.changes} changes</b></div>
         </div>
-        <p class="ov-diff"><b>What makes this different.</b> A lineage check can only follow dependencies someone recorded. This keeps that check and adds a tool-using AI investigation that reads the change request and the control procedures to find relationships the recorded map cannot show. Evidence checks and an independent second review guard each recommendation; they do not remove the risk of a missed control.</p>
+        <p class="ov-diff"><b>What makes this different.</b> An existing lineage check can only follow dependencies someone recorded. This keeps that check and adds a tool-using AI investigation that reads the change request and the control procedures to find relationships the recorded map cannot show. Evidence checks and an independent second review guard each recommendation; they do not remove the risk of a missed control.</p>
       </div>
     </section>
 
     <section class="h-sec alt">
       <div class="h-wrap">
         <h2 class="h-h2">What it delivers for each change</h2>
-        <p class="h-intro">A list of controls at risk, each with its evidence and a second opinion. A recorded example:</p>
+        <p class="h-intro">A list of controls at risk, each with its evidence and a independent verifier's view. A recorded example:</p>
         <article class="card ov-ex" aria-label="Example output">
           <div class="ov-ex-h"><div><div class="h-sample-id">Example output · change ${esc(EXAMPLE.case)} · control ${esc(EXAMPLE.control)}</div><h3>${esc(ctrl.name)}</h3></div></div>
           <div class="ov-status">
@@ -227,7 +227,7 @@ export async function renderOverview(main, app) {
         <h2 class="h-h2">What the held-out evaluation shows</h2>
         <p class="h-intro">Recorded run of version A on ${P.changes} synthetic changes the detective had never seen.</p>
         <div class="ov-m">
-          <div><div class="ov-v">${pct(P.recovery, 1)}</div><h3>Key-control recovery</h3><p>${P.agent_found_key} of ${P.key_misses} key-control impacts the lineage check missed were recommended.</p></div>
+          <div><div class="ov-v">${pct(P.recovery, 1)}</div><h3>Key-control recovery</h3><p>${P.agent_found_key} of ${P.key_misses} key-control impacts the existing lineage check missed were recommended.</p></div>
           <div><div class="ov-v">${pct(P.precision, 1)}</div><h3>Recommendation precision</h3><p>${P.new_right} of ${P.new_total} new recommendations were affected in the synthetic answer key.</p></div>
           <div><div class="ov-v">${P.added_affected}</div><h3>Additional affected controls surfaced</h3><p>Recommended or sent to a person; not all were confirmed recommendations.</p></div>
           <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>

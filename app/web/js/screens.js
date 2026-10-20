@@ -126,7 +126,7 @@ async function change(main, app, c) {
       <h1 class="title">A routine ${isAddress ? "address-data" : "payment-system"} change. ${verdict}</h1>
       <p class="lead">Before release, a bank checks which controls a change could break, by following its lineage map from the changed item to the controls that depend on it. A control the check misses is not re-tested before release, and can fail unnoticed afterwards.</p>
       <div class="figure"><span class="big">${c.counts.check_found}</span><span class="of">controls flagged</span></div>
-      <div class="figure-label">by the conventional lineage check, out of 101</div>
+      <div class="figure-label">by the existing lineage check, out of 101</div>
       <p class="question">Can this change proceed, or is something missing?</p>
     </aside>
     <section class="canvas change-canvas">
@@ -145,7 +145,7 @@ async function change(main, app, c) {
           <span>Lineage traversal from ${c.changed.map((id) => named(app, id)).join(", ")} through recorded links. ${found ? "The list looks complete." : "The result looks reassuring."}</span></div></div>
       </article>
       ${estate(app, "The bank's 101 controls, as the check sees them", `${c.counts.check_found} flagged`, (id) => (c.baselineSet.has(id) ? "check" : ""))}
-      <div class="legend"><span><i class="sw" style="background:var(--check)"></i>Flagged by the lineage check</span><span><i class="sw" style="background:var(--idle)"></i>Not flagged</span><span>White inner border: key control</span></div>
+      <div class="legend"><span><i class="sw" style="background:var(--check)"></i>Flagged by the existing lineage check</span><span><i class="sw" style="background:var(--idle)"></i>Not flagged</span><span>White inner border: key control</span></div>
     </section></div>`);
   main.append(stage);
   wireGo(stage, app);
@@ -195,7 +195,7 @@ async function blindspot(main, app, c) {
   let selected = null;
 
   // One traced example for the reveal: a key control the check cannot reach,
-  // preferably one the agent recommended, whose path crosses a missing link.
+  // preferably one the detective recommended, whose path crosses a missing link.
   const missingOn = (cid) => c.pathEdges(cid).filter((id) => c.removedSet.has(id) || !c.edgeMap[id].exposable);
   const candidates = c.key.filter((id) => !c.baselineSet.has(id) && missingOn(id).length);
   const guideId =
@@ -219,7 +219,7 @@ async function blindspot(main, app, c) {
         <dt><i class="sw dash"></i>Missing from the map</dt><dd>${lost.map(fmt).join(", ")}</dd>
         <dt><i class="sw ctl"></i>Control that may be affected</dt><dd><b>${esc(guideId)}</b> ${esc(n.name)} · key control</dd>
       </dl>
-      <p class="guide-risk"><b>Why it matters to the bank:</b> the existing check stops at the missing link, so this control is never put in front of its owner. If the change breaks it, “${esc(n.name.charAt(0).toLowerCase() + n.name.slice(1))}” could stop holding true without anyone being told.</p>
+      <p class="guide-risk"><b>Why it matters to the bank:</b> the existing lineage check stops at the missing link, so this control is never put in front of its owner. If the change breaks it, “${esc(n.name.charAt(0).toLowerCase() + n.name.slice(1))}” could stop holding true without anyone being told.</p>
       <p class="guide-more">Click any other control to trace it.</p>`;
   };
 
@@ -376,7 +376,7 @@ async function blindspot(main, app, c) {
         c.changed.includes(id)
           ? "The changed item"
           : c.reach.has(id)
-          ? "Reachable by the current check"
+          ? "Reachable by the existing lineage check"
           : complete && c.affectedSet.has(id)
           ? "Affected by the change, but not reachable through recorded links"
           : "",
@@ -425,12 +425,12 @@ function decisionBasis(app, c, id, d) {
   const route = c.baselineSet.has(id) ? "check" : d.route;
   const rows = [`<em class="tb-r ${route}">${esc(ROUTE_LABEL[route])}</em>`];
   if (route === "check") {
-    rows.push(`<span class="tb-plain">The bank's existing check already finds this control through links on record. No AI judgement was needed.</span>`);
+    rows.push(`<span class="tb-plain">The bank's existing lineage check already finds this control through links on record. No AI judgement was needed.</span>`);
     return wrapRows(rows);
   }
   const plain = {
-    recommended: "Both AI reviews say this control is affected, so it goes to its owner to check before release.",
-    review: d.proposer === "UNCERTAIN" && d.checker === "UNCERTAIN" ? "Neither AI review could decide, so a person decides." : "The two AI reviews disagreed, so a person decides.",
+    recommended: "The investigator and the independent verifier both say this control is affected, so it goes to its owner to check before release.",
+    review: d.proposer === "UNCERTAIN" && d.checker === "UNCERTAIN" ? "Neither the investigator nor the independent verifier could decide, so a person decides." : "The investigator and the independent verifier disagreed, so a person decides.",
     not_affected: "The AI judged this control not affected. That judgement was not double-checked.",
     undecided: "The AI did not reach a decision on this control.",
   }[route];
@@ -449,12 +449,12 @@ function decisionBasis(app, c, id, d) {
     const clear = (d.ticket_quote || d.control_quote) && !weak;
     const level = agreed && clear ? "strong" : agreed || clear ? "moderate" : "thin";
     rows.push(`<span class="tb-l">Evidence strength</span><span class="tb-strength ${level}">${level[0].toUpperCase() + level.slice(1)}</span>`);
-    rows.push(`<span class="tb-l">Second AI review</span> ${agreed ? "agreed" : d.checker ? "did not agree" : "not done"}`);
+    rows.push(`<span class="tb-l">Independent verifier</span> ${agreed ? "agreed" : d.checker ? "did not agree" : "not done"}`);
     if (ep.length > 1) rows.push(`<span class="tb-l">Link to the change</span> ${inf ? `${inf} of ${doc + inf} link${doc + inf > 1 ? "s" : ""} worked out by the AI, not on record` : "all on record"}`);
     rows.push(`<span class="tb-l">Quoted wording</span> ${clear ? "clear phrases from both documents" : weak ? "very short, so weak" : "none"}`);
   }
   if (d.proposer_reason) rows.push(`<span class="tb-why">“${expandCodes(d.proposer_reason.length > 140 ? d.proposer_reason.slice(0, 139) + "…" : d.proposer_reason, id)}”</span>`);
-  rows.push(`<span class="tb-n">Strength is a summary of the checks above, not an AI confidence percentage. Strong: the second review agreed and the quotes are clear. Click for the full evidence.</span>`);
+  rows.push(`<span class="tb-n">Strength is a summary of the checks above, not an AI confidence percentage. Strong: the independent verifier agreed and the quotes are clear. Click for the full evidence.</span>`);
   return wrapRows(rows);
 }
 
@@ -470,14 +470,14 @@ async function investigate(main, app, c) {
     search_controls: "Search procedures",
     submit_findings: "Submit findings",
     submit_finding: "Submit findings",
-    trace_metadata: "Run the current check",
+    trace_metadata: "Run the existing lineage check",
     finish: "Finish",
     "invalid reply": "Invalid reply",
   };
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(3, "The investigation")}
-      <h1 class="title">Replay how the agent found what the map hides.</h1>
+      <h1 class="title">Replay how the detective found what the map hides.</h1>
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
       <p>Nothing on this screen calls a model: it replays the recording.</p>
@@ -560,31 +560,31 @@ async function investigate(main, app, c) {
         const d = c.decision(id);
         if (done && d) return decisionBasis(app, c, id, d);
         if (accepted.has(id)) return "Finding submitted; awaiting the independent check";
-        if (read.has(id)) return "Procedure read by the agent";
-        if (explored.has(id)) return "Explored by the agent";
+        if (read.has(id)) return "Procedure read by the detective";
+        if (explored.has(id)) return "Explored by the detective";
         return "";
       },
     });
     const rec = done ? c.decisions.filter((d) => d.route === "recommended").length : 0;
     const rev = done ? c.decisions.filter((d) => d.route === "review").length : 0;
     stage.querySelector("#ledger").innerHTML = done
-      ? `<div><div class="v">${c.counts.check_found}</div><div class="l"><i class="sw" style="background:var(--check)"></i>Current check</div></div>
+      ? `<div><div class="v">${c.counts.check_found}</div><div class="l"><i class="sw" style="background:var(--check)"></i>Existing lineage check</div></div>
          <div><div class="v">${rec}</div><div class="l"><i class="sw" style="background:var(--agent)"></i>Recommended</div></div>
-         <div><div class="v">${rev}</div><div class="l"><i class="sw" style="background:var(--review)"></i>Routed to a person</div></div>
+         <div><div class="v">${rev}</div><div class="l"><i class="sw" style="background:var(--review)"></i>Sent to a person</div></div>
          <div><div class="v">${101 - rec - rev - c.counts.check_found}</div><div class="l">Not affected, with reasons</div></div>`
       : `<div><div class="v">${explored.size}</div><div class="l">Items explored</div></div>
          <div><div class="v">${read.size}</div><div class="l">Procedures read</div></div>
          <div><div class="v">${accepted.size}</div><div class="l">Findings submitted</div></div>
          <div><div class="v">${Math.min(i, n)} / ${n}</div><div class="l">Steps</div></div>`;
     stage.querySelector("#gl").innerHTML = done
-      ? `<span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Routed for review</span><span><i class="sw" style="background:var(--check)"></i>Current check</span>`
+      ? `<span><i class="sw" style="background:var(--agent)"></i>Recommended</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--check)"></i>Existing lineage check</span>`
       : `<span><i class="sw" style="border:2px solid var(--agent)"></i>Explored</span><span><i class="sw" style="background:var(--agent-soft)"></i>Procedure read</span><span><i class="sw" style="background:var(--navy)"></i>Changed item</span>`;
     list.querySelectorAll("li").forEach((li) => {
       const k = +li.dataset.k;
       li.classList.toggle("future", k > i);
       li.classList.toggle("now", k === i);
     });
-    // Follow the agent: frame the items touched in this step, so labels stay readable.
+    // Follow the detective: frame the items touched in this step, so labels stay readable.
     if (framed === i) {
       /* keep the user's own pan and zoom */
     } else if (i >= 1 && i <= n) {
@@ -651,38 +651,36 @@ async function consequence(main, app, c) {
     <aside class="story">
       ${kicker(4, "The consequence")}
       <h1 class="title">Far more of the real impact reaches a reviewer, at the cost of more review.</h1>
-      <p class="lead">For this change, and across all 18 changes the agent had never seen.</p>
+      <p class="lead">For this change, and across all 18 changes the detective had never seen.</p>
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
-      <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
-      <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were routed to a person and ${P.key_silent} was not surfaced at all.</p>
+      <div class="figure-label">key-control impacts the existing lineage check missed were recommended by the detective (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
+      <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were sent to a person and ${P.key_silent} was not surfaced at all.</p>
     </aside>
     <section class="canvas">
       <div class="card"><div class="card-h"><h2>This change, ${esc(c.id)}: three views of the same 101 controls</h2>
         <div class="aside"><div class="seg" role="group" aria-label="Controls shown"><button type="button" data-k="0" aria-pressed="true">All controls</button><button type="button" data-k="1" aria-pressed="false">Key only</button></div></div></div>
         <div class="card-b"><div class="estates" id="estates"></div>
-        <div class="legend" style="margin-top:12px"><span><i class="sw" style="background:var(--check)"></i>Current check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person</span><span><i class="sw" style="background:var(--ink)"></i>Actually affected (synthetic ground truth)</span></div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The agent recommended <b>${rec.length}</b> (${recRight} actually affected) and routed <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor routed${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
+        <div class="legend" style="margin-top:12px"><span><i class="sw" style="background:var(--check)"></i>Existing lineage check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--ink)"></i>Actually affected (synthetic ground truth)</span></div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The detective recommended <b>${rec.length}</b> (${recRight} actually affected) and routed <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor routed${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
 
       <div class="sec-h"><h2>Across all 18 held-out changes</h2><p>Everything below is the whole test, the same whichever change is selected above.</p></div>
       <div class="card"><div class="card-h"><h2>All 162 key-control impacts across the 18 held-out changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Each square is one key control affected by one change. Click to inspect.</span></div></div>
         <div class="card-b"><div class="units" id="units"></div>
-        <div class="legend" style="margin-top:14px"><span><i class="sw" style="background:var(--check)"></i>Found by the lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></div></div>
+        <div class="legend" style="margin-top:14px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></div></div>
 
       <div class="risk" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
         <div><b>Remaining coverage risk: one affected key control was neither recommended nor routed for review.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The agent judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} routed items are only safe if a control owner works them.</div></div>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The detective judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} routed items are only safe if a control owner works them.</div></div>
 
       <div class="card"><div class="card-h"><h2>What a reviewer would receive per change</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Average over the 18 changes</span></div></div>
         <div class="card-b"><div class="compare">
           <span>Lineage check</span><div><div class="stack" style="width:${(100 * P.per_change.check) / P.per_change.total}%"><div style="width:100%;background:var(--check)">${P.per_change.check}</div></div></div>
-          <span>With the agent</span><div><div class="stack">
+          <span>With the detective</span><div><div class="stack">
             <div style="width:${(100 * P.per_change.check) / P.per_change.total}%;background:var(--check)">${P.per_change.check}</div>
             <div style="width:${(100 * P.per_change.real) / P.per_change.total}%;background:var(--agent)">${P.per_change.real}</div>
             <div style="width:${(100 * P.per_change.unaffected) / P.per_change.total}%;background:var(--idle);color:var(--ink)">${P.per_change.unaffected}</div></div></div></div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the agent adds are genuinely affected controls the lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Actual reviewer time, operational cost and time savings were not measured.</p></div></div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the detective adds are genuinely affected controls the existing lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Actual reviewer time, operational cost and time savings were not measured.</p></div></div>
 
-      <div class="card"><div class="card-h"><h2>Consistency: the same change, run five times</h2><div class="aside"><span class="badge review">${Math.round(P.consistency.agreement * 100)}% · target 95% · not met</span></div></div>
-        <div class="card-b"><p style="margin:0;font-size:13.5px;color:var(--ink-2)">On three development changes run five times each, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of the ${P.consistency.pairs} affected key controls got the same recommend-or-not decision every time. How much it found was stable; which items went to review varied.</p></div></div>
     </section></div>`);
   main.append(stage);
   wireGo(stage, app);
@@ -754,7 +752,7 @@ async function decision(main, app, c) {
     <aside class="story">
       ${kicker(5, "The decision")}
       <h1 class="title">Demonstrated on synthetic evidence. Not yet ready for a pilot.</h1>
-      <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the lineage check missed, and showed its evidence for each.</p>
+      <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the existing lineage check missed, and showed its evidence for each.</p>
       <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
       <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
@@ -762,8 +760,8 @@ async function decision(main, app, c) {
     <section class="canvas">
       <div class="quad q3">
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--agent)"></span><h2>Demonstrated</h2></div><div class="card-b"><ul>
-          <li>Most key controls the lineage check missed were recommended, on changes never seen.</li>
-          <li>Each recommendation carries quoted evidence and a second opinion.</li>
+          <li>Most key controls the existing lineage check missed were recommended, on changes never seen.</li>
+          <li>Each recommendation carries quoted evidence and a independent verifier's view.</li>
           <li>Every step is recorded and can be replayed.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still uncertain</h2></div><div class="card-b"><ul>
           <li>Accuracy on real changes, tickets and control documents.</li>
@@ -779,7 +777,7 @@ async function decision(main, app, c) {
           <div><h3 class="vh">Who and what</h3><ul class="vl">
             <li><b>Two or three control owners</b> for screening and payment validation, each deciding and signing their own items.</li>
             <li><b>One risk lead</b>, accountable for the sample design, the thresholds and the sign-off.</li>
-            <li><b>The sample</b>, from the ${P.changes} held-out changes: all ${P.key_routed} key controls routed to a person, plus random samples of those recommended and those marked not affected.</li></ul></div>
+            <li><b>The sample</b>, from the ${P.changes} held-out changes: all ${P.key_routed} key controls sent to a person, plus random samples of those recommended and those marked not affected.</li></ul></div>
           <div><h3 class="vh">Measured against</h3><ul class="vl">
             <li><b>Correctness:</b> the share of recommendations owners judge right, beside the ${pct(P.precision, 1)} measured against the synthetic answer key.</li>
             <li><b>Coverage:</b> affected key controls owners find among those marked not affected. Expected: none.</li>

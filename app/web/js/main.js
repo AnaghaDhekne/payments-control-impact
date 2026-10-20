@@ -37,7 +37,7 @@ function enrich(c) {
   const pair = {};
   for (const e of app.graph.edges) if (e.carries_impact) pair[`${e.source}>${e.target}`] = e.id;
   const visible = (e) => e.exposable && !removed.has(e.id);
-  // What the current check can reach: follow visible impact links from the
+  // What the existing lineage check can reach: follow visible impact links from the
   // changed items; a control ends a path.
   const nodes = Object.fromEntries(app.graph.nodes.map((n) => [n.id, n]));
   const reach = new Set(c.changed);
@@ -153,7 +153,8 @@ function renderTop() {
   // Point to the next step, both in the step bar and with a Next button.
   nav.querySelectorAll("a")[idx + 1]?.classList.add("up-next");
   const nx = document.getElementById("next-step");
-  const nextM = inWalk ? MOMENTS[idx + 1] : null;
+  // After the last step the journey continues to the product overview.
+  const nextM = inWalk ? MOMENTS[idx + 1] || { id: "overview", label: "Product overview" } : null;
   nx.hidden = !nextM;
   if (nextM) {
     nx.href = `#/${nextM.id}?case=${app.caseId}`;
@@ -204,16 +205,16 @@ function controlBody(c, cid) {
   const verifierAsked = !!d?.checker;
   const why = {
     check: "The bank's existing lineage check reaches this control through links on record, so it is already on the list. No AI judgement was needed.",
-    recommended: "The investigator found evidence that the change affects this control, and an independent second review agreed. It is recommended for its owner to assess.",
+    recommended: "The investigator found evidence that the change affects this control, and the independent verifier agreed. It is recommended for its owner to assess.",
     review: d?.proposer === "UNCERTAIN" && d?.checker === "UNCERTAIN" ? "Neither the investigator nor the second review could decide, so the control goes to a person." : "The investigator and the independent second review disagreed, so the control goes to a person.",
-    not_affected: "The investigator judged this control not affected and recorded why. Not-affected decisions are not sent to the second review, so nobody checked this one.",
+    not_affected: "The investigator judged this control not affected and recorded why. Not-affected decisions are not sent to the independent verifier, so nobody checked this one.",
     undecided: "The investigation ended before this control received a decision.",
   }[route];
   const action = {
     check: "Assess the impact and re-test before release.",
     recommended: "The control owner assesses the impact and decides whether to re-test before release.",
     review: "The control owner weighs both arguments below and decides whether the control is affected.",
-    not_affected: "None proposed; nothing is routed to a person.",
+    not_affected: "None proposed; nothing is sent to a person.",
     undecided: "None.",
   }[route];
   const hasQuotes = !!(d?.ticket_quote || d?.control_quote);
@@ -225,7 +226,7 @@ function controlBody(c, cid) {
   // 2. Three different questions, kept apart.
   sections.push(`<section><h4>Three separate questions</h4><dl class="tq">
     <dt>Is the evidence really in the documents?</dt><dd>${route === "check" ? "Not needed: found through recorded links." : hasQuotes ? "Yes. Code checked that both quotes appear word for word." : "No quotes were recorded."}</dd>
-    <dt>Does the evidence support the impact?</dt><dd>${route === "check" ? "Not needed." : verifierAsked ? (d.proposer === d.checker ? "The second review agreed." : "The second review did not agree.") + " A person makes the final judgement." : "Not checked: the second review was not asked."}</dd>
+    <dt>Does the evidence support the impact?</dt><dd>${route === "check" ? "Not needed." : verifierAsked ? (d.proposer === d.checker ? "The independent verifier agreed." : "The independent verifier did not agree.") + " A person makes the final judgement." : "Not checked: the independent verifier was not asked."}</dd>
     <dt>Is the outcome right?</dt><dd>${esc(outcome)}</dd></dl>
     <p class="tq-n">A quote found word for word shows the words exist, not that the reasoning is right.</p></section>`);
   // 3. Observed evidence.
@@ -260,9 +261,9 @@ function controlBody(c, cid) {
     sections.push(`<section><h4>Investigator</h4>
       <div class="verdict"><span class="who a">AI</span><div><b>${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "", cid)}
       ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter, cid)}</span>` : ""}</div></div></section>`);
-    sections.push(`<section><h4>Independent second review</h4>
+    sections.push(`<section><h4>Independent verifier</h4>
       ${verifierAsked ? `<div class="verdict"><span class="who c">2nd</span><div><b>${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the investigator.", cid)}</div></div>`
-        : `<p class="not-asked">Not invoked. The investigator marked this control not affected, and not-affected decisions are not sent to the second review. This is how a missed control can go unnoticed.</p>`}</section>`);
+        : `<p class="not-asked">Not invoked. The investigator marked this control not affected, and not-affected decisions are not sent to the independent verifier. This is how a missed control can go unnoticed.</p>`}</section>`);
   }
   // 6. Final routing.
   sections.push(`<section><h4>Final routing and proposed action</h4><p style="margin:0;font-size:13.5px">${esc(action)}</p>
@@ -297,7 +298,7 @@ function itemBody(c, id) {
       ${n.aliases?.length ? `<p style="font-size:12.5px;color:var(--ink-3);margin:6px 0 0">Also called: ${esc(n.aliases.join(", "))}</p>` : ""}</section>
       <section><h4>Links in the complete map (${out.length}; ${missingN} missing from lineage in this change)</h4><ul style="list-style:none;padding:0;margin:0;font-size:13px">${rows}</ul></section>
       ${c.changed.includes(id) ? `<section><p class="honest">This is the item the change modifies.</p></section>` : ""}
-      ${c.reach.has(id) && !c.changed.includes(id) ? `<section><p class="honest">The current check can reach this item through recorded links.</p></section>` : ""}`,
+      ${c.reach.has(id) && !c.changed.includes(id) ? `<section><p class="honest">The existing lineage check can reach this item through recorded links.</p></section>` : ""}`,
   };
 }
 

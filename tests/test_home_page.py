@@ -61,7 +61,7 @@ def test_home_sets_up_the_change_but_keeps_the_answer(page, experience):
     case = next(c for c in experience["cases"] if c["id"] == "CHG-027")
     hero = page.locator(".h-case").inner_text()
     assert "CHG-027" in hero
-    assert "The existing check flags no controls for review." in hero
+    assert "The existing lineage check flags no controls for review." in hero
     # Nothing on the landing page reveals what the investigation finds.
     assert "With the detective" not in text
     assert f"{case['agent_recommended']} safety checks" not in text
@@ -150,7 +150,11 @@ def test_next_button_walks_every_step(page):
         page.locator("#next-step").click()
         page.wait_for_timeout(400)
         assert f"#/{step}?case=CHG-027" in page.url
-    assert not page.locator("#next-step").is_visible()
+    # The walkthrough's last step hands over to the product overview.
+    assert "Product overview" in page.locator("#next-step").inner_text()
+    page.locator("#next-step").click()
+    page.wait_for_selector(".ov-m")
+    assert "#/overview" in page.url
 
 
 def test_reference_codes_are_explained(page):
@@ -177,8 +181,8 @@ def test_replay_hover_gives_the_basis_of_each_decision(page):
     page.wait_for_timeout(200)
     t = page.locator("#tip").inner_text()
     for part in (
-        "Recommended by the agent",
-        "Both AI reviews say",
+        "Recommended for owner assessment",
+        "both say this control is affected",
         "Evidence strength",
         "Strong",
         "worked out by the AI",
@@ -232,3 +236,26 @@ def test_evidence_room_counts_reconcile_on_screen(page, experience):
     page.wait_for_timeout(200)
     out = page.locator("#rec-out").inner_text()
     assert "8 of 10 affected key controls" in out
+
+
+def test_case_persists_and_back_works(page):
+    page.goto(page.base + "#/consequence?case=CHG-027")
+    page.wait_for_selector("#units .u")
+    page.select_option("#case", "CHG-015")
+    page.wait_for_timeout(400)
+    assert "#/consequence?case=CHG-015" in page.url
+    page.locator("#sitenav a[data-nav=room]").click()
+    page.wait_for_selector(".room")
+    assert "case=CHG-015" in page.url
+    page.go_back()
+    page.wait_for_selector("#units .u")
+    assert "#/consequence?case=CHG-015" in page.url
+    assert page.locator("#case").input_value() == "CHG-015"
+    assert "case=CHG-015" in page.locator(
+        "#sitenav a[data-nav=walkthrough]"
+    ).get_attribute("href")
+    # A deep link to one control opens its evidence.
+    page.goto(page.base + "#/investigate?case=CHG-024&control=C03")
+    page.wait_for_selector("#inspector.open")
+    assert "C03" in page.locator("#inspector .cid").inner_text()
+    assert "CHG-024" in page.locator("#inspector .cid").inner_text()

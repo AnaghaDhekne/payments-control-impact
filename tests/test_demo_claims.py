@@ -15,8 +15,13 @@ from app.server import Handler  # noqa: E402
 
 CLAIMS = [
     ("1 Opening", "#/home", None, "Banks protect payments with safety checks"),
-    ("1 Opening", "#/home", None, "The existing check flags no controls for review."),
-    ("1 Opening", "#/home", None, "What might the existing check have missed?"),
+    (
+        "1 Opening",
+        "#/home",
+        None,
+        "The existing lineage check flags no controls for review.",
+    ),
+    ("1 Opening", "#/home", None, "What might the existing lineage check have missed?"),
     (
         "2 Change",
         "#/change?case=CHG-027",
@@ -54,7 +59,7 @@ CLAIMS = [
         "4 Investigation",
         "#/investigate?case=CHG-027&control=C02",
         None,
-        "The second review agreed.",
+        "The independent verifier agreed.",
     ),
     (
         "4 Investigation",
@@ -77,7 +82,7 @@ CLAIMS = [
         "5 Consequence",
         "#/consequence?case=CHG-027",
         None,
-        "30 were routed to a person and 1 was not surfaced",
+        "30 were sent to a person and 1 was not surfaced",
     ),
     ("5 Consequence", "#/room/results", None, "49.5%"),
     ("5 Consequence", "#/room/results", None, "57.6%"),
@@ -88,7 +93,12 @@ CLAIMS = [
         None,
         "operational cost and time savings were not measured",
     ),
-    ("5 Consequence", "#/consequence?case=CHG-027", None, "8 of the 10"),
+    (
+        "7 Decision",
+        "#/decision?case=CHG-027",
+        None,
+        "Whether decisions repeat from run to run.",
+    ),
     (
         "5 Consequence",
         "#/consequence?case=CHG-027",
@@ -105,7 +115,7 @@ CLAIMS = [
         "6 Weaker case",
         "#/consequence?case=CHG-015",
         None,
-        "The agent recommended 3 (3 actually affected) and routed 10 to a person",
+        "The detective recommended 3 (3 actually affected) and routed 10 to a person",
     ),
     (
         "7 Decision",
@@ -117,7 +127,7 @@ CLAIMS = [
         "7 Decision",
         "#/decision?case=CHG-027",
         None,
-        "all 30 key controls routed to a person",
+        "all 30 key controls sent to a person",
     ),
     ("7 Decision", "#/decision?case=CHG-027", None, "93.6%"),
     ("7 Decision", "#/decision?case=CHG-027", None, "Expected: none."),

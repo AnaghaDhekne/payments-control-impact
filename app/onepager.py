@@ -55,7 +55,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.ln(2)
     text(
         19,
-        "The agent finds nearly four in five of the controls the current check misses",
+        "The detective finds nearly four in five of the controls the existing lineage check misses",
         INK,
         "B",
         8.5,
@@ -63,7 +63,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.ln(1)
     text(
         10.5,
-        "Measured on 18 synthetic payment changes the agent had never seen, with 30% of the lineage map removed. "
+        "Measured on 18 synthetic payment changes the detective had never seen, with 30% of the lineage map removed. "
         "Compared with today's automated check, not with a person.",
         MUTED,
     )
@@ -117,8 +117,8 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     y = pdf.get_y()
     x = 18
     for n, col, label in (
-        (rules_found, BLUE, "Found by the current check"),
-        (h["key_recovered"], GREEN, "Found by the agent"),
+        (rules_found, BLUE, "Found by the existing lineage check"),
+        (h["key_recovered"], GREEN, "Found by the detective"),
         (still, GREY, "Still missed"),
     ):
         bw = w * n / 162
@@ -132,7 +132,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.set_y(y + 11)
     text(
         8.5,
-        "Blue: found by the current check   Green: found by the agent   Grey: still missed (30 of 31 routed for human review; 1 silent miss)",
+        "Blue: found by the existing lineage check   Green: found by the detective   Grey: still missed (30 of 31 routed for human review; 1 silent miss)",
         MUTED,
     )
     pdf.ln(3)
@@ -157,7 +157,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         4.4,
         _p(
             "1 of 162 affected key controls was neither recommended nor routed for review (C03, unresolved "
-            "sanctions alerts, change CHG-024): the agent judged it not affected, and this version does not "
+            "sanctions alerts, change CHG-024): the detective judged it not affected, and this version does not "
             "double-check those decisions. The other 30 misses were routed for human review."
         ),
         new_x="LMARGIN",
@@ -168,12 +168,12 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     # Key lines
     lines = [
         (
-            "It finds what the current check misses",
+            "It finds what the existing lineage check misses",
             f"{h['key_recovered']} of {h['key_misses']} missed key controls found, each with quoted evidence; 18 of 280 recommendations were wrong.",
         ),
         (
             "The review list is long, but mostly real",
-            "Per change a reviewer would get about 26 items instead of 4: about 18 are real impacts the current check misses, about 4 are not affected.",
+            "Per change a reviewer would get about 26 items instead of 4: about 18 are real impacts the existing lineage check misses, about 4 are not affected.",
         ),
         (
             "It is not yet repeatable enough",
@@ -246,7 +246,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         w - 6,
         5,
         _p(
-            "A practitioner review of a sample of the agent's output, including controls it marked not affected; "
+            "A practitioner review of a sample of the detective's output, including controls it marked not affected; "
             "closing the gaps on the benchmark first (a five-run vote, a promote-only tie-break, a second check of "
             "not-affected key controls, each registered in advance); both; or stopping at the proof of concept."
         ),

@@ -80,18 +80,18 @@ const PAGES = {
     pane.innerHTML = `<h1>Benchmark and scoring</h1>
       <p class="lead">How the right answer is known, which changes the numbers come from, and exactly what each metric counts.</p>
       <section><h2>The answer key</h2>
-        <p>A control is affected when the changed item reaches it by following impact-carrying links in their direction through the complete map, at most six steps, stopping at the first control. This is plain code; no model labels anything. The check and the agent only ever see a damaged copy of the map (<i>How the map is damaged</i>).</p></section>
+        <p>A control is affected when the changed item reaches it by following impact-carrying links in their direction through the complete map, at most six steps, stopping at the first control. This is plain code; no model labels anything. The check and the detective only ever see a damaged copy of the map (<i>How the map is damaged</i>).</p></section>
       <section><h2>Development and held-out changes</h2>${table(["Set", "Changes", "Used for"], [
-        `<tr><td><b>Development</b></td><td class="num">36</td><td>Building and tuning the agent, and the version tests (B, C, D). Results from these are labelled as development.</td></tr>`,
+        `<tr><td><b>Development</b></td><td class="num">36</td><td>Building and tuning the detective, and the version tests (B, C, D). Results from these are labelled as development.</td></tr>`,
         `<tr><td><b>Held-out</b></td><td class="num">${P.changes}</td><td>One frozen run of version A, after the design was fixed. Every headline figure comes from these. Guarded in code: the test split needs an explicit confirmation flag.</td></tr>`,
       ])}</section>
       <section><h2>Metrics</h2>${table(["Metric", "Exact meaning", "Held-out value"], [
-        `<tr><td><b>Key-control recovery</b></td><td>Affected key controls the baseline missed that the agent recommended (both calls said affected) ÷ affected key controls the baseline missed</td><td class="num">${P.agent_found_key} / ${P.key_misses}</td></tr>`,
+        `<tr><td><b>Key-control recovery</b></td><td>Affected key controls the baseline missed that the detective recommended (both calls said affected) ÷ affected key controls the baseline missed</td><td class="num">${P.agent_found_key} / ${P.key_misses}</td></tr>`,
         `<tr><td><b>Recommendation precision</b></td><td>New recommendations that are affected in the answer key ÷ all new recommendations (beyond the baseline)</td><td class="num">${P.new_right} / ${P.new_total}</td></tr>`,
-        `<tr><td><b>Added review items</b></td><td>Every control added beyond the baseline: new recommendations plus findings routed to a person, split by the answer key into affected and unaffected</td><td class="num">${P.added_items} = ${P.added_affected} + ${P.added_unaffected}</td></tr>`,
+        `<tr><td><b>Added review items</b></td><td>Every control added beyond the baseline: new recommendations plus findings sent to a person, split by the answer key into affected and unaffected</td><td class="num">${P.added_items} = ${P.added_affected} + ${P.added_unaffected}</td></tr>`,
         `<tr><td><b>Review overhead</b></td><td>Added review items that are unaffected in the answer key</td><td class="num">${P.added_unaffected}</td></tr>`,
         `<tr><td><b>Consistency</b></td><td>Affected key controls given the same recommend-or-not decision in every one of five runs ÷ affected key controls (three development changes)</td><td class="num">${Math.round(P.consistency.agreement * P.consistency.pairs)} / ${P.consistency.pairs}</td></tr>`,
-        `<tr><td><b>Silent miss</b></td><td>Affected key controls neither reached by the baseline, nor recommended, nor routed to a person</td><td class="num">${P.key_silent}</td></tr>`,
+        `<tr><td><b>Silent miss</b></td><td>Affected key controls neither reached by the baseline, nor recommended, nor sent to a person</td><td class="num">${P.key_silent}</td></tr>`,
       ])}
         <p style="font-size:13px;color:var(--ink-3)">Routed (uncertain) findings never count as recovered, even when the answer key shows the control was affected. Recovery counts only recommendations. Source: scripts/score_detective.py.</p></section>
       <section><h2>The complete map</h2><p style="color:var(--ink-2)">All 148 items. Drag to pan, scroll or use the buttons to zoom; click an item for its links.</p>
@@ -128,19 +128,19 @@ const PAGES = {
       const chain = (showMissing) => path.map((id, i) => (i ? `<span class="pv-l ${links[i - 1].miss ? (showMissing ? "miss" : "cut") : "ok"}"></span>` : "") + `<span class="pv-n ${i === 0 ? "changed" : ""}"><b>${esc(id)}</b> ${esc(nodeName(id))}</span>`).join("");
       example = `<div class="ba">
           <div><div class="ba-h">Complete map (answer key)</div><div class="pv-chain">${chain(true)}</div></div>
-          <div><div class="ba-h">What the check and the agent see</div><div class="pv-chain">${path.slice(0, path.indexOf(cut.b)).map((id, i) => (i ? '<span class="pv-l ok"></span>' : "") + `<span class="pv-n ${i === 0 ? "changed" : ""}"><b>${esc(id)}</b> ${esc(nodeName(id))}</span>`).join("")}<span class="pv-end">The map ends here</span></div></div>
+          <div><div class="ba-h">What the check and the detective see</div><div class="pv-chain">${path.slice(0, path.indexOf(cut.b)).map((id, i) => (i ? '<span class="pv-l ok"></span>' : "") + `<span class="pv-n ${i === 0 ? "changed" : ""}"><b>${esc(id)}</b> ${esc(nodeName(id))}</span>`).join("")}<span class="pv-end">The map ends here</span></div></div>
         </div>
         <ul class="ra-notes">
           <li><b>Removed:</b> the link ${named(cut.a)} → ${named(cut.b)}.</li>
           <li><b>Effect on the check:</b> it follows recorded links only, so it stops at ${named(cut.a)} and never reaches ${named(exId)}.</li>
-          <li><b>Evidence still available to the agent:</b> ${d?.ticket_quote ? `the ticket says “${esc(d.ticket_quote)}”, and the procedure says “${esc(d.control_quote)}”.` : "the ticket and the control procedures, which the damage does not remove."}</li>
+          <li><b>Evidence still available to the detective:</b> ${d?.ticket_quote ? `the ticket says “${esc(d.ticket_quote)}”, and the procedure says “${esc(d.control_quote)}”.` : "the ticket and the control procedures, which the damage does not remove."}</li>
         </ul>
         <button class="btn" type="button" id="ex-open">Open the evidence for ${esc(exId)}</button>`;
     }
     const inc = (id) => app.graph.edges.filter((e) => e.exposable && (e.source === id || e.target === id)).length;
     const keepRule = c.changed.map((id) => { const n = inc(id); return `${named(id)}: ${n} recordable links, keeps at least ${Math.max(1, Math.ceil((n * 70) / 100))}`; }).join("; ");
     pane.innerHTML = `<h1>How the map is damaged</h1>
-      <p class="lead">The check and the agent never see the complete map. For every change, fixed code generates a damaged copy, the same way every time, so results can be reproduced and compared.</p>
+      <p class="lead">The check and the detective never see the complete map. For every change, fixed code generates a damaged copy, the same way every time, so results can be reproduced and compared.</p>
       <div class="scope-note" style="margin-bottom:22px">A controlled synthetic stress test: it shows what happens when lineage is incomplete near a change. It is not evidence that a real bank's lineage is missing 30% of its links.</div>
       <section><h2>Worked example: ${esc(c.id)}</h2>${example}</section>
       <section><h2>The links</h2><ol class="ra-steps">
@@ -156,8 +156,8 @@ const PAGES = {
           `<tr><td><b>Misleading assessment</b></td><td>“Ticket assessment: control impact: N/A.” added at the end</td><td>Tickets of every seventh change only</td></tr>`,
         ])}
         <p style="font-size:13px;color:var(--ink-3)">On ${esc(c.id)}: ${removed} links removed; ticket ${c.ticket_damage?.length ? esc(c.ticket_damage.map((d) => dmg[d] || d).join("; ")) : "unchanged"}.</p></section>
-      <section><h2>Why levels and modes</h2><p style="color:var(--ink-2);margin-top:0">The generator builds every combination of level (${D.levels.join("%, ")}%) and mode (${D.modes.map(esc).join(", ")}). Correlated damage, nearest the change, is the hard case the product is for: documentation lags exactly where change happens. Random damage and 60% show how fragile the current check is either way.</p>
-        ${table(["Lineage damage", "Key controls the current check finds (18 test changes)"], app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`))}
+      <section><h2>Why levels and modes</h2><p style="color:var(--ink-2);margin-top:0">The generator builds every combination of level (${D.levels.join("%, ")}%) and mode (${D.modes.map(esc).join(", ")}). Correlated damage, nearest the change, is the hard case the product is for: documentation lags exactly where change happens. Random damage and 60% show how fragile the existing lineage check is either way.</p>
+        ${table(["Lineage damage", "Key controls the existing lineage check finds (18 test changes)"], app.exp.rules_by_damage.map((r) => `<tr><td>${esc(r.damage)}</td><td class="num">${pct(r.found, 1)}</td></tr>`))}
         <p style="font-size:13px;color:var(--ink-3)">Source: scripts/generate_observable.py (degrade_edges, degrade_text). A damage manifest records exactly what was removed; only the scorer reads it.</p></section>`;
     pane.querySelector("#ex-open")?.addEventListener("click", () => openInspector(exId));
   },
@@ -170,7 +170,7 @@ const PAGES = {
     for (const k of all) for (const s of k.steps) { steps++; acts[s.action] = (acts[s.action] || 0) + 1; }
     const c = await getCase(app.caseId);
     const tools = [
-      ["trace_metadata", "{}", "Runs the current check: controls reachable through the visible links"],
+      ["trace_metadata", "{}", "Runs the existing lineage check: controls reachable through the visible links"],
       ["explore_node", "{node_id}", "One item: name, description, visible links in and out"],
       ["search_controls", "{query, limit 1–30}", "Ranks control procedures by word overlap with the query"],
       ["inspect_control", "{control_ids: up to 15}", "Full procedure text and visible links; required before any finding on that control"],
@@ -194,7 +194,7 @@ const PAGES = {
       </div></section>
       <section><h2>Tools</h2>${table(["Tool", "Arguments", "What it does", "Used"], tools.map(([t, a, d]) => `<tr><td><code>${t}</code></td><td><code>${esc(a)}</code></td><td>${esc(d)}</td><td class="num">${acts[t] || 0}</td></tr>`))}</section>
       <section><h2>What fixed code checks on every reply</h2><ul class="ra-notes">
-        <li><b>Shape.</b> The reply must be one tool call with valid arguments; anything else is rejected and the agent is told why.</li>
+        <li><b>Shape.</b> The reply must be one tool call with valid arguments; anything else is rejected and the detective is told why.</li>
         <li><b>Read before deciding.</b> A finding is refused unless that control's procedure was inspected.</li>
         <li><b>Verbatim quotes.</b> ticket_quote must appear in the ticket and control_quote in that procedure, exactly; otherwise the finding is rejected and must be corrected.</li>
         <li><b>Known items only.</b> Every code in evidence_path must exist in the map; reason and counter-evidence must not be empty.</li>
@@ -276,10 +276,10 @@ const PAGES = {
       </div></section>
       <section><h2>How the two answers become a route</h2>${table(["Investigator", "Verifier", "Result"], [
         `<tr><td>affected</td><td>affected</td><td><span class="badge recommended">Recommended</span></td></tr>`,
-        `<tr><td>affected or uncertain</td><td>a different answer</td><td><span class="badge review">Routed to a person</span> (disagreement is never discarded)</td></tr>`,
-        `<tr><td>uncertain</td><td>uncertain</td><td><span class="badge review">Routed to a person</span></td></tr>`,
+        `<tr><td>affected or uncertain</td><td>a different answer</td><td><span class="badge review">Sent to a person</span> (disagreement is never discarded)</td></tr>`,
+        `<tr><td>uncertain</td><td>uncertain</td><td><span class="badge review">Sent to a person</span></td></tr>`,
         `<tr><td>not affected</td><td>not asked</td><td><span class="badge not_affected">Marked not affected</span>, reason kept</td></tr>`,
-        `<tr><td colspan="2">Reached by the current check</td><td><span class="badge check">Found by the current check</span>, always kept</td></tr>`,
+        `<tr><td colspan="2">Reached by the existing lineage check</td><td><span class="badge check">Found by the existing lineage check</span>, always kept</td></tr>`,
       ])}</section>
       ${promptBlock("verifier", pr.verifier, "scripts/detective.py · VERIFIER_INSTRUCTIONS, followed by the JSON evidence built by verification_evidence(). Same model and settings as the investigator.")}`;
     wirePrompt(pane);
@@ -316,13 +316,13 @@ const PAGES = {
     pane.innerHTML = `<h1>Evaluation evidence</h1>
       <p class="lead">What the held-out evaluation established, and the records behind each claim. Every list below opens the control's evidence in place.</p>
       <div class="conds">
-        <div><b>${P.changes}</b>held-out changes, never used while building the agent</div>
+        <div><b>${P.changes}</b>held-out changes, never used while building the detective</div>
         <div><b>30%</b>lineage damage, nearest the change first</div>
         <div><b>${B.controls}</b>controls in the benchmark, ${B.key_controls} key</div>
         <div><b>A</b>frozen version, one recorded run</div>
       </div>
       <section><h2>Evidence index</h2>${table(["Claim", "Records behind it", ""], [
-        `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
+        `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the existing lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
         `<tr><td><b>Recommendation precision</b></td><td>The ${P.new_total} new recommendations compared with the answer key; the ${rec.newWrong.length} that were wrong</td><td>${showBtn("newWrong", rec.newWrong.length)}</td></tr>`,
         `<tr><td><b>Review composition</b></td><td>The ${P.added_items} added items: recommendations and findings sent to a person, by the answer key</td><td>${showBtn("addAff", rec.addAff.length)} ${showBtn("addUnaff", rec.addUnaff.length)}</td></tr>`,
         `<tr><td><b>Consistency</b></td><td>Every affected key control of three development changes, decided in each of ${app.exp.repeat_runs.runs} runs</td><td><button class="btn sm" type="button" id="rep-btn">Show ${app.exp.repeat_runs.rows.length} records</button></td></tr>`,
@@ -330,12 +330,12 @@ const PAGES = {
         `<tr><td><b>Version selection</b></td><td>Pre-registered tests of versions B, C and D, and why each was not adopted: <i>Limits and fixes tried</i>, in this room</td><td></td></tr>`,
       ])}<div id="rec-out"></div></section>
       <section><h2>The three evaluation questions</h2><div class="goals">
-        <div class="goal"><div class="g-t">Can it recover the key controls the lineage check misses?</div>
+        <div class="goal"><div class="g-t">Can it recover the key controls the existing lineage check misses?</div>
           <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Goal met · at least 50%</span>
           <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
         <div class="goal"><div class="g-t">Can it keep the extra review small?</div>
-          <div class="g-v">${P.added_unaffected}<small> avoidable items</small></div><span class="badge review">Original goal not met</span>
-          <p>The goal set at the start was at most 25% more review items than the check's ${P.check_items}. ${P.added_items} were added: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too.</p></div>
+          <div class="g-v">${P.added_unaffected}<small> unaffected items</small></div><span class="badge review">Original goal not met</span>
+          <p>The goal set at the start was at most 25% more review items than the check's ${P.check_items}. ${P.added_items} were added: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too. This is review volume, not reviewer effort, which was not measured.</p></div>
         <div class="goal"><div class="g-t">Are its decisions repeatable?</div>
           <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Goal not met · target 95%</span>
           <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
@@ -343,15 +343,15 @@ const PAGES = {
       <section><h2>Where the ${P.key_affected} affected key controls went</h2>
         ${bar([["check", rec.check.length], ["agent", rec.recovered.length], ["review", rec.routed.length], ["silent", rec.silent.length]], P.key_affected)}
         ${table(["Outcome", "What it means", "Count", ""], [
-          `<tr><td><span class="badge check">Found by the lineage check</span></td><td>The existing lineage already identified it</td><td class="num">${rec.check.length}</td><td>${showBtn("check", rec.check.length)}</td></tr>`,
-          `<tr><td><span class="badge recommended">Recovered by the detective</span></td><td>Missed by the lineage check; both AI reviews said affected, so it is recommended</td><td class="num">${rec.recovered.length}</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
-          `<tr><td><span class="badge review">Sent to a person</span></td><td>Affected in the answer key, but the two reviews did not agree, so not counted as recovered</td><td class="num">${rec.routed.length}</td><td>${showBtn("routed", rec.routed.length)}</td></tr>`,
+          `<tr><td><span class="badge check">Found by the existing lineage check</span></td><td>The existing lineage already identified it</td><td class="num">${rec.check.length}</td><td>${showBtn("check", rec.check.length)}</td></tr>`,
+          `<tr><td><span class="badge recommended">Recovered by the detective</span></td><td>Missed by the existing lineage check; the investigator and the independent verifier both said affected, so it is recommended</td><td class="num">${rec.recovered.length}</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
+          `<tr><td><span class="badge review">Sent to a person</span></td><td>Affected in the answer key, but the investigator and the independent verifier did not agree, so not counted as recovered</td><td class="num">${rec.routed.length}</td><td>${showBtn("routed", rec.routed.length)}</td></tr>`,
           `<tr><td><span class="badge silent">Silent miss</span></td><td>Neither recommended nor sent to a person</td><td class="num">${rec.silent.length}</td><td>${showBtn("silent", rec.silent.length)}</td></tr>`,
           `<tr class="total"><td colspan="2"><b>Total, across the ${P.changes} changes</b></td><td class="num"><b>${rec.check.length + rec.recovered.length + rec.routed.length + rec.silent.length}</b></td><td></td></tr>`,
         ])}</section>
-      <section><h2>By type of change</h2><p style="color:var(--ink-2);margin-top:0">Key controls the existing check missed, three changes of each type.</p>
+      <section><h2>By type of change</h2><p style="color:var(--ink-2);margin-top:0">Key controls the existing lineage check missed, three changes of each type.</p>
         <div class="bytype">${Object.entries(P.by_type).map(([k, v]) => `<div class="bt-row"><div class="bt-n"><b>${esc(k)}</b>${v.key_misses} missed by the check</div>${v.key_misses ? bar([["agent", v.found], ["review", v.routed], ["silent", v.silent]], v.key_misses) : '<div class="bt-none">The check missed none</div>'}</div>`).join("")}</div>
-        <p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the checker withholds agreement when no visible link connects the engine to the control, so most findings go to a person rather than being recommended.</p></section>
+        <p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the independent verifier withholds agreement when no visible link connects the engine to the control, so most findings go to a person rather than being recommended.</p></section>
       <section><h2>Compared with the approaches tried before</h2>
         <p style="color:var(--ink-2)">Each step added information the lineage metadata lacks. The sets, models and scoring differ, so read this as a progression, not a league table; a plain keyword baseline on the same changes has not been run.</p>
         ${table(["Approach", "Result", "Measured on", "Caveat"], app.exp.approaches.map(
@@ -362,7 +362,7 @@ const PAGES = {
         vb && `<tr><td>Version B on the same changes</td><td class="num">${vb.cases ?? 8}</td><td class="num">${vb.key_recovered} of ${vb.key_misses}</td><td class="num">${pct(vb.new_control_precision, 1)}</td><td class="num">${vb.avoidable_review_items}</td></tr>`,
       ].filter(Boolean))}</section>`;
     const titles = {
-      check: "Affected key controls found by the lineage check",
+      check: "Affected key controls found by the existing lineage check",
       recovered: "Affected key controls recovered by the detective",
       routed: "Affected key controls sent to a person",
       silent: "Silent misses",
@@ -483,7 +483,7 @@ const PAGES = {
         <div class="ra-arrow" aria-hidden="true">→</div>
         <div class="ra-col ra-core"><div class="ra-h">2 · Investigation</div><div class="ra-sub">Databricks Job, one run per change</div>
           <div class="ra-loop"><b>Agent loop</b>
-            <ol><li>Run today's lineage check</li><li>Explore items and their recorded links</li><li>Search and read control procedures</li><li>Submit findings with quotes and reasons</li></ol>
+            <ol><li>Run today's existing lineage check</li><li>Explore items and their recorded links</li><li>Search and read control procedures</li><li>Submit findings with quotes and reasons</li></ol>
             <span>repeats until every candidate control is decided, within 60 steps</span></div>
           <div class="ra-box model"><b>Model Serving</b>GPT OSS 120B: chooses the next step and writes each finding</div></div>
         <div class="ra-arrow" aria-hidden="true">→</div>
@@ -499,9 +499,9 @@ const PAGES = {
       </div></section>
       <section><h2>What happens when a change is submitted</h2><ol class="seq">
         <li><b>Observable inputs only.</b> The ticket, the damaged lineage map and the control procedures. No answer-key labels.</li>
-        <li><b>Deterministic baseline.</b> The lineage check follows the visible links. Whatever it reaches is always kept.</li>
+        <li><b>Deterministic baseline.</b> The existing lineage check follows the visible links. Whatever it reaches is always kept.</li>
         <li><b>Agent loop.</b> The model selects a tool → the tool runs → the observation is added to the notebook → the model sees it on the next step. Repeated within the step budget.</li>
-        <li><b>Deterministic validation.</b> Each submitted finding must cite an inspected control, verbatim quotes and known item codes, or it is rejected back to the agent.</li>
+        <li><b>Deterministic validation.</b> Each submitted finding must cite an inspected control, verbatim quotes and known item codes, or it is rejected back to the detective.</li>
         <li><b>Independent verification.</b> Findings marked affected or uncertain go to a separate model call with their evidence.</li>
         <li><b>Route.</b> Recommended, to a person, or not affected with its reason.</li>
         <li class="off"><b>Offline, after the run.</b> The scorer compares the routes with the hidden answer key. This is how the results are measured; it plays no part in a decision.</li>
@@ -515,7 +515,7 @@ const PAGES = {
         `<tr><td>Ask about the POC</td><td>Databricks App → Model Serving</td><td>Model, live</td></tr>`,
       ])}</section>
       <section><h2>Engineering choices</h2><ul class="ra-notes">
-        <li><b>Read-only.</b> The agent's tools only read. It never edits lineage or controls.</li>
+        <li><b>Read-only.</b> The detective's tools only read. It never edits lineage or controls.</li>
         <li><b>Isolated scoring.</b> Tests check that answer-key labels never appear in a prompt.</li>
         <li><b>Resumable.</b> Every step is saved as it happens, so an interrupted job continues where it stopped.</li>
       </ul></section>`;
@@ -551,7 +551,7 @@ const PAGES = {
         <pre class="code">python -m pip install -r requirements-dev.txt
 python -m pytest -q                          # figures, partitions, prompts, pages
 python -m scripts.validate_graph             # benchmark integrity
-python -m scripts.evaluate_baseline          # the current check on every change
+python -m scripts.evaluate_baseline          # the existing lineage check on every change
 python -m scripts.build_experience_data      # rebuild app/web/data from the archive</pre>
         <p class="rp-f"><b>If it fails:</b> a figure test failing means app/web/data no longer matches the archive; re-run the export and look at what changed. Run commands from the repository root.</p></section>
       <section><h2>3 · Run a fresh investigation</h2>

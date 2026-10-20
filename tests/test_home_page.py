@@ -120,14 +120,18 @@ def test_one_header_is_the_only_way_between_pages(page, experience):
 def test_overview_figures_match_the_recorded_run(page, experience):
     p = experience["portfolio"]
     page.goto(page.base + "#/overview")
-    page.wait_for_selector(".h-benefits")
+    page.wait_for_selector(".ov-m")
     text = page.locator("main").inner_text()
-    surfaced = p["check_found_key"] + p["agent_found_key"]
-    assert f"{surfaced}\nof {p['key_affected']}" in text or (
-        f"{surfaced} of {p['key_affected']}" in text
+    assert f"{p['agent_found_key']} of {p['key_misses']}" in text
+    assert f"{p['new_right']} of {p['new_total']}" in text
+    assert str(p["added_affected"]) in text and str(p["added_unaffected"]) in text
+    uncertain = p["added_items"] - p["new_total"]
+    assert (
+        f"{p['added_items']} added items are {p['new_total']} new recommendations"
+        f" and {uncertain} findings sent to a person" in text
     )
-    assert str(p["key_routed"]) in text
-    assert "The trade-off is review workload" in text
+    assert "must not be added together" in text
+    assert "Hidden impacts, found early" not in text
 
 
 def test_home_fits_a_phone(page):

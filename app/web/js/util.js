@@ -97,7 +97,8 @@ const CODE = /\b(RP\d{2}|[CDRISPE]\d{2,3})\b(?!\s*\()/g;
 export function expandCodes(text, self = null) {
   const t = String(text ?? "");
   return esc(t).replace(CODE, (m, _g, off) => {
-    if (m === self) return `${off === 0 ? "This" : "this"} control (${m})`;
+    const before = t.slice(Math.max(0, off - 8), off).toLowerCase();
+    if (m === self) return before.endsWith("control ") ? m : `${off === 0 ? "This" : "this"} control (${m})`;
     const name = NAMES[m];
     if (!name) return m;
     // Already named right after the code ("S03, the Screening Engine ...")?

@@ -9,9 +9,8 @@ export const ROOM_PAGES = [
   { id: "method", label: "Benchmark and method" },
   { id: "results", label: "Results" },
   { id: "changes", label: "All 18 test changes" },
-  { id: "tests", label: "Versions tested" },
   { id: "architecture", label: "Architecture" },
-  { id: "limits", label: "Limits" },
+  { id: "limits", label: "Limits and fixes tried" },
   { id: "reproduce", label: "Reproduce" },
   { id: "ask", label: "Ask about the POC" },
 ];
@@ -22,7 +21,8 @@ export async function renderRoom(main, app, c, page) {
     <div class="pane" id="pane"></div></div>`);
   main.append(room);
   const pane = room.querySelector("#pane");
-  await (PAGES[page] || PAGES.method)(pane, app, c);
+  const alias = { tests: "limits" }; // old link to the merged page
+  await (PAGES[alias[page] || page] || PAGES.method)(pane, app, c);
 }
 
 const table = (head, rows, cls = "") =>
@@ -72,32 +72,32 @@ const PAGES = {
     const P = app.exp.portfolio;
     const fr = app.exp.development_runs.frozen_check;
     const vb = app.exp.development_runs.variant_b;
+    const bar = (parts, total) =>
+      `<div class="sbar">${parts.filter(([, n]) => n).map(([cls, n]) => `<span class="${cls}" style="flex:${n}" title="${n}">${n / total >= 0.06 ? n : ""}</span>`).join("")}</div>`;
     pane.innerHTML = `<h1>Results</h1>
-      <p class="lead">Held-out test: 18 synthetic changes never used while building the agent, version A frozen before the run, one run. Development results are labelled as such.</p>
-      <section><h2>Against the targets set at the start</h2>${table(["Target", "Result", "Status"], [
-        `<tr><td>Find ≥ 50% of the key controls the check misses</td><td>${P.agent_found_key} of ${P.key_misses} (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)})</td><td><span class="badge recommended">Met</span></td></tr>`,
-        `<tr><td>Added review volume ≤ 25% of the check's</td><td>${P.added_items} added vs ${P.check_items}. The target counts every added item, including the ${P.added_affected} genuinely affected ones; this tension was noted before any results and the target was kept as written.</td><td><span class="badge review">Not met as defined</span></td></tr>`,
-        `<tr><td>Same key decision across 5 runs ≥ 95%</td><td>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} (${pct(P.consistency.agreement)}), three development changes</td><td><span class="badge review">Not met</span></td></tr>`,
-      ])}</section>
+      <p class="lead">Held-out test: 18 synthetic changes never used while building the agent; version A frozen before the run; one run.</p>
+      <section><h2>Against the three goals set at the start</h2><div class="goals">
+        <div class="goal"><div class="g-t">Find at least half of the key controls the existing check misses</div>
+          <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Met</span>
+          <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
+        <div class="goal"><div class="g-t">Keep the extra review small</div>
+          <div class="g-v">${P.added_unaffected}<small> avoidable items</small></div><span class="badge review">Not met as set</span>
+          <p>${P.added_items} items were added for review: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too. Reviewer time was not measured.</p></div>
+        <div class="goal"><div class="g-t">Give the same decision on every run</div>
+          <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Not met · target 95%</span>
+          <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
+      </div></section>
+      <section><h2>Where the ${P.key_affected} affected key controls went</h2>
+        ${bar([["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]], P.key_affected)}
+        <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></section>
+      <section><h2>By type of change</h2><p style="color:var(--ink-2);margin-top:0">Key controls the existing check missed, three changes of each type.</p>
+        <div class="bytype">${Object.entries(P.by_type).map(([k, v]) => `<div class="bt-row"><div class="bt-n"><b>${esc(k)}</b>${v.key_misses} missed by the check</div>${v.key_misses ? bar([["agent", v.found], ["review", v.routed], ["silent", v.silent]], v.key_misses) : '<div class="bt-none">The check missed none</div>'}</div>`).join("")}</div>
+        <p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the checker withholds agreement when no visible link connects the engine to the control, so most findings go to a person rather than being recommended.</p></section>
       <section><h2>Compared with the approaches tried before</h2>
-        <p style="color:var(--ink-2)">Each step added information the lineage metadata lacks: first the text of tickets and procedures, then proposed links, then an investigation that reads, traces and must quote its evidence. The sets, models and scoring differ, so read this as a progression, not a league table. It does not show that only a language model could do this; a plain keyword baseline on the same changes has not been run.</p>
+        <p style="color:var(--ink-2)">Each step added information the lineage metadata lacks. The sets, models and scoring differ, so read this as a progression, not a league table; a plain keyword baseline on the same changes has not been run.</p>
         ${table(["Approach", "Result", "Measured on", "Caveat"], app.exp.approaches.map(
           (a) => `<tr><td>${esc(a.approach)}</td><td class="num">${pct(a.recovery, 1)}<br><span style="font-size:12px;color:var(--ink-3)">${esc(a.measure)}</span></td><td>${esc(a.set)}</td><td>${esc(a.caveat)}</td></tr>`
         ))}</section>
-      <section><h2>Where the 162 key-control impacts went</h2>${table(["", "Count"], [
-        `<tr><td>Found by the current check</td><td class="num">${P.check_found_key}</td></tr>`,
-        `<tr><td>Recommended by the agent (and actually affected)</td><td class="num">${P.agent_found_key}</td></tr>`,
-        `<tr><td>Routed to a person after the agent and its checker disagreed</td><td class="num">${P.key_routed}</td></tr>`,
-        `<tr><td>Not surfaced</td><td class="num">${P.key_silent}</td></tr>`,
-      ])}</section>
-      <section><h2>By change type</h2>${table(["Change type", "Changes", "Key misses", "Recommended", "Routed", "Not surfaced"], Object.entries(P.by_type).map(
-        ([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v.changes}</td><td class="num">${v.key_misses}</td><td class="num">${v.found}</td><td class="num">${v.routed}</td><td class="num">${v.silent}</td></tr>`
-      ))}<p style="font-size:13px;color:var(--ink-3)">Screening-engine changes are the weak spot: the checker withholds agreement when no visible link connects the engine to the control, so most findings are routed rather than recommended.</p></section>
-      <section><h2>Review items added</h2>${table(["", "Items", "Per change"], [
-        `<tr><td>From the current check</td><td class="num">${P.check_items}</td><td class="num">${P.per_change.check}</td></tr>`,
-        `<tr><td>Added by the agent, genuinely affected</td><td class="num">${P.added_affected}</td><td class="num">${P.per_change.real}</td></tr>`,
-        `<tr><td>Added by the agent, not affected</td><td class="num">${P.added_unaffected}</td><td class="num">${P.per_change.unaffected}</td></tr>`,
-      ])}</section>
       <section><h2>Development runs (not the headline)</h2>${table(["Run", "Changes", "Key misses found", "Precision", "Unaffected items"], [
         fr && `<tr><td>Frozen check, version A, unseen development changes</td><td class="num">${fr.cases ?? 8}</td><td class="num">${fr.key_recovered} of ${fr.key_misses}</td><td class="num">${pct(fr.new_control_precision, 1)}</td><td class="num">${fr.avoidable_review_items}</td></tr>`,
         vb && `<tr><td>Version B on the same changes</td><td class="num">${vb.cases ?? 8}</td><td class="num">${vb.key_recovered} of ${vb.key_misses}</td><td class="num">${pct(vb.new_control_precision, 1)}</td><td class="num">${vb.avoidable_review_items}</td></tr>`,
@@ -105,16 +105,21 @@ const PAGES = {
   },
 
   async changes(pane, app, c) {
+    const seg = (cls, n, total) => (n ? `<span class="${cls}" style="flex:${n}">${n}</span>` : "");
     const rows = app.exp.cases.map(
-      (x) => `<tr class="click" data-id="${x.id}" tabindex="0"><td>${esc(x.id)}</td><td>${esc(x.title)}</td><td class="num">${x.affected}</td><td class="num">${x.key_affected}</td><td class="num">${x.check_found_key}</td><td class="num">${x.key_found_by_agent}</td><td class="num">${x.key_routed}</td><td class="num">${x.key_silent}</td><td class="num">${x.model_calls}</td></tr>`
+      (x) => `<li class="cl-row" data-id="${x.id}" tabindex="0" role="button" aria-label="${esc(x.id)} ${esc(x.title)}">
+        <div class="cl-t"><b>${esc(x.id)}</b> ${esc(x.title)}<span>${x.affected} affected controls · ${x.model_calls} model calls</span></div>
+        ${x.key_affected ? `<div class="sbar sm">${seg("check", x.check_found_key)}${seg("agent", x.key_found_by_agent)}${seg("review", x.key_routed)}${seg("silent", x.key_silent)}</div>` : '<div class="bt-none">No key controls affected</div>'}
+        <div class="cl-k">${x.key_affected} key</div></li>`
     );
-    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Select a change to see every control decision against the answer key, and open any control's evidence.</p>
-      <section>${table(["Change", "Title", "Affected", "Key", "Key: check", "Key: agent", "Key: routed", "Key: not surfaced", "Model calls"], rows)}</section>
+    pane.innerHTML = `<h1>All 18 test changes</h1><p class="lead">Each bar is one change's affected key controls: who found them. Select a change to see every decision against the answer key and open any control's evidence.</p>
+      <div class="legend" style="margin-bottom:10px"><span><i class="sw" style="background:var(--check)"></i>Existing check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced</span></div>
+      <ul class="clist">${rows.join("")}</ul>
       <section id="detail"></section>`;
     const detail = pane.querySelector("#detail");
     const show = async (id) => {
       const k = await getCase(id);
-      pane.querySelectorAll("tr[data-id]").forEach((r) => (r.style.background = r.dataset.id === id ? "var(--agent-soft)" : ""));
+      pane.querySelectorAll("[data-id]").forEach((r) => r.classList.toggle("on", r.dataset.id === id));
       let filter = "issues";
       const draw = () => {
         const ds = k.decisions.filter((d) => {
@@ -150,55 +155,63 @@ const PAGES = {
       );
       draw();
     };
-    pane.querySelectorAll("tr[data-id]").forEach((r) => {
+    pane.querySelectorAll(".cl-row").forEach((r) => {
       r.addEventListener("click", () => show(r.dataset.id));
-      r.addEventListener("keydown", (e) => e.key === "Enter" && show(r.dataset.id));
+      r.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), show(r.dataset.id)));
     });
     show(c.id);
   },
 
-  async tests(pane, app) {
-    pane.innerHTML = `<h1>Versions tested to close the gaps</h1>
-      <p class="lead">Each alternative was registered with an adoption rule before it ran. None met all of its rules, so the original agent (version A) is final.</p>
-      ${table(["Version", "Test", "Rule fixed in advance", "Result", "Decision"], app.exp.version_tests.map(
-        (v) => `<tr><td><b>${esc(v.name)}</b><br><span style="color:var(--ink-3);font-size:12px">${esc(v.version)}</span></td><td>${esc(v.test)}</td><td>${esc(v.rule)}</td><td>${esc(v.result)}</td><td><span class="badge not_affected">${esc(v.decision)}</span></td></tr>`
-      ))}
-      <p style="font-size:13px;color:var(--ink-3);margin-top:12px">Source: ${esc(app.exp.version_tests.map((v) => v.source.split(" · ")[1]).join("; "))}, in docs/results.md.</p>
-      <section style="margin-top:24px"><h2>What was learnt</h2><p>The tie-break is reliable when it promotes a finding (68 of 70 promotions were right) but not when it dismisses one. Voting across runs steadies decisions, but a three-run vote reached 94.4%, just short of 95%.</p></section>`;
-  },
-
   async architecture(pane) {
-    pane.innerHTML = `<h1>Architecture</h1><p class="lead">Everything runs inside one Databricks workspace. The answer key is used only for scoring and never reaches the model.</p>
-      <section><div class="arch">
-        <div class="lane"><h3>Build · Git folder</h3><div class="box"><b>Benchmark generator</b>148 items, 238 links, 54 changes</div><div class="box"><b>Damage step</b>removes 30% of links, damages tickets</div><div class="box key"><b>Answer key</b>computed offline; scoring only</div></div>
-        <div class="lane"><h3>Run · Databricks Jobs</h3><div class="box"><b>Detective job</b>one agent run per change; resumable; every step saved</div><div class="box"><b>Model Serving</b>databricks-gpt-oss-120b, temperature 0</div><div class="box"><b>Scorer</b>compares decisions with the answer key</div></div>
-        <div class="lane"><h3>Store and show</h3><div class="box"><b>Unity Catalog volume</b>run files: steps, findings, metrics</div><div class="box"><b>Databricks App</b>this experience, served from recorded files</div></div>
+    pane.innerHTML = `<h1>Architecture</h1>
+      <p class="lead">One Databricks workspace. A job investigates each change with a language model, fixed code checks every finding, and this app shows the recorded result. The answer key is used only for scoring and never reaches the model.</p>
+      <section><div class="ra">
+        <div class="ra-col"><div class="ra-h">1 · Inputs</div><div class="ra-sub">Unity Catalog volume</div>
+          <div class="ra-box"><b>Change tickets</b>what is changing, as written</div>
+          <div class="ra-box"><b>Lineage map</b>with 30% of links removed</div>
+          <div class="ra-box"><b>Control procedures</b>101 controls, as written</div>
+          <div class="ra-box key"><b>Answer key</b>kept apart; scoring only</div></div>
+        <div class="ra-arrow" aria-hidden="true">→</div>
+        <div class="ra-col ra-core"><div class="ra-h">2 · Investigation</div><div class="ra-sub">Databricks Job, one run per change</div>
+          <div class="ra-loop"><b>Agent loop</b>
+            <ol><li>Run today's lineage check</li><li>Explore items and their recorded links</li><li>Search and read control procedures</li><li>Submit findings with quotes and reasons</li></ol>
+            <span>repeats until every candidate control is decided</span></div>
+          <div class="ra-box model"><b>Model Serving</b>GPT OSS 120B: chooses the next step and writes each finding</div></div>
+        <div class="ra-arrow" aria-hidden="true">→</div>
+        <div class="ra-col"><div class="ra-h">3 · Checks and routing</div><div class="ra-sub">fixed code + a second model call</div>
+          <div class="ra-box"><b>Quote check</b>both quotes must appear verbatim, or the finding is rejected</div>
+          <div class="ra-box model"><b>Independent checker</b>a separate call agrees or disagrees</div>
+          <div class="ra-box"><b>Routing</b>agree → recommended · disagree → to a person · not affected → reason kept</div></div>
+        <div class="ra-arrow" aria-hidden="true">→</div>
+        <div class="ra-col"><div class="ra-h">4 · Results</div><div class="ra-sub">Unity Catalog volume</div>
+          <div class="ra-box"><b>Run record</b>every step, finding and decision</div>
+          <div class="ra-box"><b>Scorer</b>compares decisions with the answer key</div>
+          <div class="ra-box"><b>Databricks App</b>this experience, read from the recorded files</div></div>
       </div></section>
-      <section><h2>Who decides what</h2>${table(["", "Decides"], [
-        `<tr><td><b>Fixed code</b> (same answer every time)</td><td>The benchmark and damage; the current check; the quote check (quotes must match word for word); scoring.</td></tr>`,
-        `<tr><td><b>The model</b></td><td>Which items to explore and procedures to read; each control's decision and reason; the independent second opinion.</td></tr>`,
-        `<tr><td><b>People</b></td><td>Every item the two model calls disagree on; the final call on any impact; any change to lineage or controls (the agent changes nothing).</td></tr>`,
-      ])}</section>
-      <section><h2>Boundaries</h2>${table(["", ""], [
-        `<tr><td>Read-only</td><td>The agent's tools only read. It never writes lineage links or edits controls.</td></tr>`,
-        `<tr><td>Not connected</td><td>No real payment systems, change tools or control repositories. All data is synthetic.</td></tr>`,
-        `<tr><td>Isolation</td><td>Tests check that answer-key labels never appear in a prompt.</td></tr>`,
-      ])}</section>
-      <section><h2>The agent's tools</h2>${table(["Tool", "What it does"], [
-        ["trace_metadata", "Runs the current check on the visible links"],
-        ["explore_node", "Shows a field, rule or system with its visible links"],
-        ["search_controls", "Ranks control procedures by matching words"],
-        ["inspect_control", "Reads up to 15 procedures; required before a finding"],
-        ["submit_findings", "Up to 8 decisions with quotes, reason and counter-evidence"],
-        ["finish", "Stops; refused while controls are undecided"],
-      ].map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`))}</section>`;
+      <section><h2>How one change is investigated</h2><ol class="ra-steps">
+        <li><b>Start from today's answer.</b> The agent first runs the same lineage check the bank uses, so it knows what is already covered.</li>
+        <li><b>Look where the map is thin.</b> It explores the changed item and its neighbours, seeing only the links the damaged map still records.</li>
+        <li><b>Read like a reviewer.</b> It searches the control procedures by wording and reads the candidates; reading is required before any finding.</li>
+        <li><b>Commit with evidence.</b> Each finding quotes the ticket and the procedure, gives a reason and names any counter-evidence. Fixed code rejects quotes that are not verbatim, and the agent must correct them.</li>
+        <li><b>Get a second opinion.</b> A separate model call judges each finding. Disagreements go to a person.</li>
+        <li><b>Record everything.</b> Every step is saved, so the app replays the run exactly; nothing on screen calls a model, except the Ask page.</li>
+      </ol></section>
+      <section><h2>Design choices</h2><ul class="ra-notes">
+        <li><b>Read-only.</b> The agent's tools only read. It never edits lineage or controls.</li>
+        <li><b>People decide.</b> The output is a routed list with evidence; nothing is approved automatically.</li>
+        <li><b>Isolated scoring.</b> Tests check that answer-key labels never appear in a prompt.</li>
+        <li><b>Synthetic inputs.</b> No real payment systems, change tools or control libraries are connected; a pilot would connect them.</li>
+      </ul></section>`;
   },
 
   async limits(pane, app) {
-    pane.innerHTML = `<h1>Limits</h1><p class="lead">What the proof of concept does not show, and what is known to go wrong.</p>
-      ${table(["Issue", "Evidence", "Response"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}
-      <section style="margin-top:24px"><h2>Not measured, not claimed</h2><p>Reviewer time, accuracy on real bank data, cost or savings, and any production outcome. Routing an item to a person is not a completed review.</p></section>
-      <section><h2>Terms</h2>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</section>`;
+    pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">What the proof of concept does not show, where it goes wrong, and what was tried to fix it.</p>
+      <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome. Routing an item to a person is not a completed review.</div>
+      <section><h2>Known weaknesses</h2>${table(["Weakness", "Evidence", "Next step"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}</section>
+      <section><h2>Fixes tried, none adopted</h2><p style="color:var(--ink-2);margin-top:0">Each fix had an adoption rule written before it ran. None met all of its rules, so the original agent (version A) is final.</p>
+        ${table(["Fix", "What happened", "Rule it had to meet"], app.exp.version_tests.map((v) => `<tr><td><b>${esc(v.name)}</b><br><span style="color:var(--ink-3);font-size:12px">${esc(v.test)}</span></td><td>${esc(v.result)}</td><td>${esc(v.rule)}</td></tr>`))}
+        <p style="font-size:13px;color:var(--ink-3)">What was learnt: the tie-break is reliable when it promotes a finding (68 of 70 promotions were right) but not when it dismisses one; voting across runs steadies decisions, but a three-run vote reached 94.4%, just short of 95%. Source: docs/results.md.</p></section>
+      <details class="terms"><summary>Terms used in the evidence room</summary>${table(["Term", "Meaning"], app.exp.glossary.map((g) => `<tr><td><b>${esc(g.term)}</b></td><td>${esc(g.meaning)}</td></tr>`))}</details>`;
   },
 
   async reproduce(pane, app) {

@@ -29,7 +29,7 @@ export async function renderHome(main, app) {
           <h1>See which safety checks a system change could quietly break, before it goes live.</h1>
           <p class="h-sub">Banks protect payments with safety checks, called <b>controls</b>: is the customer on a sanctions list, is the amount right, was the payment recorded. When a system changes, some of those checks can stop working. Control Impact Detective reads the change and the bank's own documents, finds the checks at risk, and shows its evidence for each, so the right people can act before release.</p>
           <div class="h-cta">
-            <a class="btn lg" href="#how">Read how it works <span aria-hidden="true">↓</span></a>
+            <a class="btn lg" href="#problem">Understand the problem <span aria-hidden="true">↓</span></a>
           </div>
           <p class="h-fine">Proof of concept, tested on a realistic made-up bank. No real bank or customer data.</p>
         </div>
@@ -48,7 +48,7 @@ export async function renderHome(main, app) {
       </div>
     </section>
 
-    <section class="h-band">
+    <section class="h-band" id="problem">
       <div class="h-wrap">
         <h2 class="h-h2">The problem, in plain words</h2>
         <div class="h-three">
@@ -100,9 +100,9 @@ export async function renderHome(main, app) {
 
   </div>`);
   main.append(page);
-  page.querySelector('a[href="#how"]').addEventListener("click", (e) => {
+  page.querySelector('a[href="#problem"]').addEventListener("click", (e) => {
     e.preventDefault();
-    page.querySelector("#how").scrollIntoView({ behavior: "smooth" });
+    page.querySelector("#problem").scrollIntoView({ behavior: "smooth" });
   });
 }
 
@@ -173,30 +173,30 @@ export async function renderOverview(main, app) {
       <div class="h-wrap">
         <h2 class="h-h2">Where it fits in a bank</h2>
         <p class="h-intro">It sits between raising a change and approving it, inside the bank's own data platform.</p>
-        <div class="arch">
-          <div class="arch-col">
+        <div class="h-arch">
+          <div class="h-arch-col">
             <div class="fl-label">The bank's systems</div>
-            <div class="arch-box">Change management<span>change requests</span></div>
-            <div class="arch-box">Data lineage catalogue<span>the connection map</span></div>
-            <div class="arch-box">Control library<span>check procedures and owners</span></div>
+            <div class="h-arch-box">Change management<span>change requests</span></div>
+            <div class="h-arch-box">Data lineage catalogue<span>the connection map</span></div>
+            <div class="h-arch-box">Control library<span>check procedures and owners</span></div>
           </div>
           ${arrow}
-          <div class="arch-col arch-core">
+          <div class="h-arch-col arch-core">
             <div class="fl-label">Runs in the bank's Databricks workspace</div>
-            <div class="arch-core-b">
-              <div class="arch-name">Control Impact Detective</div>
-              <div class="arch-part"><b>Jobs</b><span>run one investigation per change</span></div>
-              <div class="arch-part"><b>Model Serving</b><span>the language model that reads and reasons</span></div>
-              <div class="arch-part"><b>Unity Catalog</b><span>inputs, results and the full audit trail</span></div>
-              <div class="arch-part"><b>App</b><span>this experience, for reviewers and leaders</span></div>
+            <div class="h-arch-core-b">
+              <div class="h-arch-name">Control Impact Detective</div>
+              <div class="h-arch-part"><b>Jobs</b><span>run one investigation per change</span></div>
+              <div class="h-arch-part"><b>Model Serving</b><span>the language model that reads and reasons</span></div>
+              <div class="h-arch-part"><b>Unity Catalog</b><span>inputs, results and the full audit trail</span></div>
+              <div class="h-arch-part"><b>App</b><span>this experience, for reviewers and leaders</span></div>
             </div>
           </div>
           ${arrow}
-          <div class="arch-col">
+          <div class="h-arch-col">
             <div class="fl-label">Where results go</div>
-            <div class="arch-box">Control owners<span>findings to assess, with evidence</span></div>
-            <div class="arch-box">Change board<span>a summary for the release decision</span></div>
-            <div class="arch-box">Risk and audit<span>a recorded trail of every step</span></div>
+            <div class="h-arch-box">Control owners<span>findings to assess, with evidence</span></div>
+            <div class="h-arch-box">Change board<span>a summary for the release decision</span></div>
+            <div class="h-arch-box">Risk and audit<span>a recorded trail of every step</span></div>
           </div>
         </div>
         <p class="h-fine center">In this proof of concept the Databricks parts run for real; the bank systems are replaced by synthetic files. Connecting real systems is part of a pilot.</p>
@@ -229,16 +229,6 @@ export async function renderOverview(main, app) {
       </div>
     </section>
 
-    <section class="h-sec alt">
-      <div class="h-wrap h-faq">
-        <h2 class="h-h2">Common questions</h2>
-        <details><summary>Does it replace the people who review changes?</summary><p>No. It prepares the list and the evidence. Control owners and the change board still decide, and anything uncertain is sent to them rather than settled by the system.</p></details>
-        <details><summary>Do we need a perfect connection map first?</summary><p>No. It is designed for the map you already have. It starts from today's map-based check and then looks for what the map is missing.</p></details>
-        <details><summary>How do we know a finding is right?</summary><p>Each finding quotes the change request and the check's procedure, gives its reasoning, and passes an independent second opinion. In the test, ${P.new_right} of ${P.new_total} new recommendations were right. Short or generic quotes are flagged as weak evidence.</p></details>
-        <details><summary>Can it miss something?</summary><p>Yes. In the test it missed ${P.key_silent} affected key check out of ${P.key_affected} without flagging it. That is why a pilot would also have owners examine a sample of the checks it judged not affected.</p></details>
-        <details><summary>What does it cost to run?</summary><p>Running cost and reviewer time were not measured in the proof of concept. In the test it made about ${perCall} model calls per change; a pilot would measure cost and time directly.</p></details>
-      </div>
-    </section>
 
     <section class="h-final">
       <div class="h-wrap">

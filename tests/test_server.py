@@ -64,3 +64,11 @@ def test_assistant_summary_matches_export():
         and "331 genuinely affected" in s
         and "not a completed review" in s
     )
+
+
+def test_assistant_can_list_every_control():
+    text = results_summary()
+    assert "All 101 controls" in text
+    assert "C02 | Payment parties are sanctions screened before release | key" in text
+    assert "S03 | Screening Engine | system" in text
+    assert "CHG-024 |" in text

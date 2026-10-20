@@ -135,6 +135,8 @@ function renderTop() {
   });
   // The step bar and case selector belong to the walkthrough only.
   document.getElementById("subbar").hidden = !inWalk;
+  // The decision covers all 18 changes, so the change selector does not apply there.
+  document.getElementById("case").parentElement.style.visibility = app.route === "decision" ? "hidden" : "";
   document.body.classList.toggle("has-subbar", inWalk);
   const nav = document.getElementById("journey");
   const idx = MOMENTS.findIndex((m) => m.id === app.route);
@@ -173,7 +175,7 @@ function chainHTML(c, cid) {
       const missing = e && (c.removedSet.has(e.id) || !e.exposable);
       parts.push(`<span class="l ${missing ? "missing" : ""}" title="${missing ? "Missing from the lineage map" : "Recorded in the lineage map"}"></span>`);
     }
-    parts.push(`<span class="n" title="${esc(node(id)?.name)}">${esc(id)}</span>`);
+    parts.push(`<span class="n"><b>${esc(id)}</b> ${esc(node(id)?.name || "")}</span>`);
   });
   return `<div class="chain">${parts.join("")}</div>`;
 }
@@ -205,7 +207,7 @@ function controlBody(c, cid) {
         const documented = e && e.exposable && !c.removedSet.has(e.id);
         parts.push(`<span class="lk ${documented ? "doc" : "inf"}">${documented ? "documented link" : "inferred link"}</span>`);
       }
-      parts.push(`<span class="n" title="${esc(node(id)?.name)}">${esc(id)}</span>`);
+      parts.push(`<span class="n"><b>${esc(id)}</b> ${esc(node(id)?.name || "")}</span>`);
     });
     sections.push(`<section><h4>How the agent connects it to the change</h4><div class="evpath">${parts.join("")}</div>
       <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0"><span class="ev doc" style="margin:0">Documented</span> recorded in the lineage map the bank already has. <span class="ev inf" style="margin:0">Inferred</span> not in the map; the agent proposes it from the documents. No confidence score is given; the owner validates.</p></section>`);

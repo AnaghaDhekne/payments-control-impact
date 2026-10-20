@@ -36,7 +36,45 @@ def results_summary() -> str:
         f"({p['added_affected']} genuinely affected, {p['added_unaffected']} unaffected). "
         f"Consistency over 5 runs: {100 * p['consistency']['agreement']:.0f}% of {p['consistency']['pairs']} key decisions (target 95%). "
         "Routing to a person is not a completed review; reviewer time, real-data accuracy and costs were not measured."
+        + "\n\n"
+        + catalogue()
     )
+
+
+def catalogue() -> str:
+    """Every item and control in the synthetic map, and every held-out change, so
+    the assistant can answer 'list all controls' or 'what is S03'."""
+    g = json.loads((WEB / "data" / "graph.json").read_text())
+    e = json.loads((WEB / "data" / "experience.json").read_text())
+    ctrls = [n for n in g["nodes"] if n["type"] == "CONTROL"]
+    counts = {}
+    for n in ctrls:
+        counts[n["criticality"]] = counts.get(n["criticality"], 0) + 1
+    lines = [
+        f"All {len(ctrls)} controls in the synthetic benchmark ("
+        + ", ".join(f"{v} {k.lower()}" for k, v in sorted(counts.items()))
+        + "), as ID | name | criticality:"
+    ]
+    lines += [f"{n['id']} | {n['name']} | {n['criticality'].lower()}" for n in ctrls]
+    lines.append(
+        "\nOther items in the map (ID prefixes: D data element, R rule, I interface, "
+        "S system, P process, RP report, E evidence), as ID | name | type:"
+    )
+    lines += [
+        f"{n['id']} | {n['name']} | {n['type'].lower().replace('_', ' ')}"
+        for n in g["nodes"]
+        if n["type"] != "CONTROL"
+    ]
+    lines.append(
+        "\nThe 18 held-out changes, as ID | title | affected controls | key affected | "
+        "key found by the check | key recommended by the agent | key routed | key not surfaced:"
+    )
+    lines += [
+        f"{c['id']} | {c['title']} | {c['affected']} | {c['key_affected']} | {c['check_found_key']} | "
+        f"{c['key_found_by_agent']} | {c['key_routed']} | {c['key_silent']}"
+        for c in e["cases"]
+    ]
+    return "\n".join(lines)
 
 
 class Handler(SimpleHTTPRequestHandler):

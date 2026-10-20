@@ -15,6 +15,8 @@ export const MOMENTS = [
 
 const kicker = (i, text) => `<div class="kicker"><span class="n">${i}</span>${esc(text)}</div>`;
 const nodeOf = (app, id) => app.graph.nodes.find((n) => n.id === id);
+/** "Screening Engine (S03)": never show a bare ID. */
+const named = (app, id) => `${esc(nodeOf(app, id)?.name || id)} (${esc(id)})`;
 const controls = (app) => app.graph.nodes.filter((n) => n.type === "CONTROL");
 
 function wireGo(root, app) {
@@ -161,7 +163,7 @@ async function blindspot(main, app, c) {
       const e = app.graph.edges.find((x) => x.source === path[i] && x.target === path[i + 1] && x.carries_impact);
       if (e) links.push({ e, missing: gone.has(e.id) });
     }
-    const fmt = (l) => `${esc(l.e.source)} → ${esc(l.e.target)}`;
+    const fmt = (l) => `${named(app, l.e.source)} → ${named(app, l.e.target)}`;
     const known = links.filter((l) => !l.missing);
     const lost = links.filter((l) => l.missing);
     return `<div class="guide-h">Example: tracing one key control</div>
@@ -301,6 +303,7 @@ async function blindspot(main, app, c) {
       stage.querySelector("#gl").innerHTML = complete
         ? `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw line" style="border-color:#8a90a6"></i>Recorded link</span><span><i class="sw dash"></i>Missing from lineage</span><span><i class="sw" style="background:var(--check)"></i>Reached by the check</span><span><i class="sw" style="border:1.6px solid var(--ink)"></i>Hidden from the check</span>`
         : `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw line" style="border-color:#8a90a6"></i>Recorded link</span><span><i class="sw" style="background:var(--check)"></i>Reached by the check</span>`;
+      stage.querySelector("#gl").innerHTML += `<span class="idkey">IDs: D data · R rule · I interface · S system · P process · RP report · E evidence · C control</span>`;
       return;
     }
     graph.update({
@@ -371,7 +374,7 @@ const replayState = {};
 async function investigate(main, app, c) {
   const steps = c.steps;
   const n = steps.length;
-  const st = (replayState[c.id] ||= { i: 0, playing: false, speed: 1 });
+  const st = (replayState[c.id] ||= { i: 0, playing: false });
   const verb = {
     explore_node: "Explore",
     inspect_control: "Read procedures",
@@ -399,7 +402,6 @@ async function investigate(main, app, c) {
           <button class="btn" id="back" type="button" aria-label="Previous step">‹</button>
           <button class="btn" id="fwd" type="button" aria-label="Next step">›</button>
           <button class="btn ghost" id="end" type="button">Show result</button>
-          <div class="seg speed" role="group" aria-label="Speed">${[1, 2, 4].map((s) => `<button type="button" data-speed="${s}" aria-pressed="${s === st.speed}">${s}×</button>`).join("")}</div>
         </div>
         <div class="scrub-wrap"><label for="scrub" id="scrubl"></label><input id="scrub" class="scrub" type="range" min="0" max="${n + 1}" step="1"></div>
         <ol class="steps" id="steps"></ol>
@@ -416,7 +418,7 @@ async function investigate(main, app, c) {
   list.innerHTML =
     steps
       .map((s, k) => {
-        const what = s.action === "explore_node" ? `${s.explored.join(", ")}` : s.action === "inspect_control" ? `${s.read.length} procedures` : s.action === "search_controls" ? `“${esc(s.query || "")}”` : "";
+        const what = s.action === "explore_node" ? s.explored.map((id) => named(app, id)).join(", ") : s.action === "inspect_control" ? `${s.read.length} procedures` : s.action === "search_controls" ? `“${esc(s.query || "")}”` : "";
         const rej = s.rejected?.length ? `<div class="rej">${s.rejected.length} rejected: ${esc(s.rejected[0].why)}</div>` : "";
         return `<li data-k="${k + 1}"><span class="sn">${s.step}</span><div><span class="act">${esc(verb[s.action] || s.action)}</span> ${what}
           <div class="res">${esc(s.summary.replace(/^Rejected: /, "Rejected and corrected: "))}</div>${rej}</div></li>`;
@@ -519,7 +521,7 @@ async function investigate(main, app, c) {
       st.i += 1;
       if (st.i > n) return stop();
       paint();
-    }, (reducedMotion() ? 1400 : 700) / st.speed);
+    }, reducedMotion() ? 2600 : 1800); // slow enough to read each step aloud
     paint();
   };
   stage.querySelector("#play").onclick = () => (st.playing ? stop() : play());
@@ -531,13 +533,6 @@ async function investigate(main, app, c) {
     const li = e.target.closest("li[data-k]");
     if (li) { stop(); st.i = +li.dataset.k; paint(); }
   });
-  stage.querySelectorAll("[data-speed]").forEach((b) =>
-    b.addEventListener("click", () => {
-      st.speed = +b.dataset.speed;
-      stage.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-      if (st.playing) play();
-    })
-  );
   app.listeners.clear();
   app.listeners.add(() => paint());
   // Leaving the screen stops the replay.
@@ -575,6 +570,7 @@ async function consequence(main, app, c) {
         <div class="legend" style="margin-top:12px"><span><i class="sw" style="background:var(--check)"></i>Current check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person</span><span><i class="sw" style="background:var(--ink)"></i>Actually affected (synthetic ground truth)</span></div>
         <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The agent recommended <b>${rec.length}</b> (${recRight} actually affected) and routed <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor routed${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
 
+      <div class="sec-h"><h2>Across all 18 held-out changes</h2><p>Everything below is the whole test, the same whichever change is selected above.</p></div>
       <div class="card"><div class="card-h"><h2>All 162 key-control impacts across the 18 held-out changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Each square is one key control affected by one change. Click to inspect.</span></div></div>
         <div class="card-b"><div class="units" id="units"></div>
         <div class="legend" style="margin-top:14px"><span><i class="sw" style="background:var(--check)"></i>Found by the lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended by the agent · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Routed to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></div></div>
@@ -668,6 +664,7 @@ async function decision(main, app, c) {
       <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the lineage check missed, and showed its evidence for each.</p>
       <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
       <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
+      <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
       <p class="note">This proof of concept did not measure reviewer time, accuracy on real data, or any cost or saving. None is claimed.</p>
     </aside>
     <section class="canvas">

@@ -29,7 +29,9 @@ SYSTEM = (
     "name what would answer it. Lead with the direct answer in one or two sentences, then "
     "add detail if useful. Quote exact figures with their case set (tuned, unseen, "
     "held-out) and never present development results as held-out results. Plain language; "
-    "define any term a non-specialist may not know. Under 220 words."
+    "define any term a non-specialist may not know. Under 220 words, unless the person "
+    "asks for a list (for example every control): then give the full list from the material, "
+    "one item per line, with ID and name."
 )
 
 
@@ -76,7 +78,7 @@ def ask(question: str, history: list[dict], results_summary: str = "") -> str:
             name=ENDPOINT,
             messages=messages,
             temperature=0.0 if attempt == 0 else 0.3,
-            max_tokens=2000,
+            max_tokens=4000,
         )
         text = content_text(resp.choices[0].message.content).strip()
         if text:

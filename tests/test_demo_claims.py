@@ -26,7 +26,12 @@ CLAIMS = [
     ("2 Change", "#/change?case=CHG-027", None, "Screening request interface"),
     ("3 Blind spot", "#/blindspot?case=CHG-027", "reveal", "0 of 20"),
     ("3 Blind spot", "#/blindspot?case=CHG-027", "reveal", "13 of 24"),
-    ("3 Blind spot", "#/blindspot?case=CHG-027", "reveal", "S03 → C02"),
+    (
+        "3 Blind spot",
+        "#/blindspot?case=CHG-027",
+        "reveal",
+        "Screening Engine (S03) → Payment parties are sanctions screened before release (C02)",
+    ),
     (
         "3 Blind spot",
         "#/blindspot?case=CHG-027",

@@ -349,7 +349,8 @@ async function blindspot(main, app, c) {
   const paint = (pulse) => {
     const complete = mode === "complete";
     const hint = stage.querySelector("#pv-hint");
-    if (hint) hint.textContent = complete || graph ? "Click any control to open its evidence" : "Switch to “What is actually connected” to see the controls the map hides";
+    // On the network map the hint sits in the legend, so it never covers the map.
+    if (hint) { hint.hidden = !!graph; hint.textContent = complete ? "Click any control to open its evidence" : "Switch to “What is actually connected” to see the controls the map hides"; }
     fitPaths();
     const sel = selected && c.affectedSet.has(selected) ? new Set(c.pathEdges(selected)) : new Set();
     if (!graph) {
@@ -400,6 +401,7 @@ async function blindspot(main, app, c) {
     stage.querySelector("#gl").innerHTML = complete
       ? `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw" style="background:var(--check-soft);border:1px solid var(--check)"></i>Reached by the check</span><span><i class="sw" style="border:1.6px solid var(--ink)"></i>Actually affected</span><span><i class="sw dash"></i>Missing from lineage</span>`
       : `<span><i class="sw" style="background:var(--navy)"></i>Changed item</span><span><i class="sw" style="background:var(--check-soft);border:1px solid var(--check)"></i>Reached by the check</span><span><i class="sw line" style="border-color:#aeb3c4"></i>Recorded link</span>`;
+    stage.querySelector("#gl").insertAdjacentHTML("beforeend", `<span class="tap-hint" style="margin:0">Click any item on the map to open its evidence</span>`);
   };
 
   stage.querySelectorAll("[data-mode]").forEach((b) =>

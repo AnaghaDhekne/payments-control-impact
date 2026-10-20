@@ -185,13 +185,13 @@ const PAGES = {
           <label class="sr" for="sv-n">Step</label><input id="sv-n" class="scrub" type="range" min="1" max="${c.steps.length}" value="1">
           <button class="btn" type="button" id="sv-next" aria-label="Next step">›</button><span id="sv-l" class="sv-l"></span></div>
         <div class="sv" id="sv"></div></section>
-      <section><h2>What one call contains</h2><div class="pa">
-        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the top of this page: role, tools, method, how to decide, rules. Identical on every step.</span></div>
-        <div class="pa-b"><b>2 · case</b><span>The change ticket; the changed items with descriptions; an index of every non-control item (code, type, name); the catalogue of 101 controls (code, title, criticality). No links that the damaged map does not show.</span></div>
-        <div class="pa-b"><b>3 · notebook</b><span>What has been learnt so far: every procedure read and item explored, with their visible links; decisions already submitted; how many controls are still undecided.</span></div>
-        <div class="pa-b"><b>4 · history</b><span>A short record of each earlier step: the action, its arguments and a summary of the result.</span></div>
+      <section><h2>What one call contains</h2><div class="pa row" style="--n:6">
+        <div class="pa-b fixed"><b>1 · Instructions</b><span>The fixed prompt above: role, tools, method, rules.</span></div>
+        <div class="pa-b"><b>2 · case</b><span>Ticket, changed items, item index and the 101-control catalogue; no hidden links.</span></div>
+        <div class="pa-b"><b>3 · notebook</b><span>Procedures read, items explored, decisions so far.</span></div>
+        <div class="pa-b"><b>4 · history</b><span>Each earlier step: action, arguments, result summary.</span></div>
         <div class="pa-b"><b>5 · steps_remaining</b><span>Out of 60 per change.</span></div>
-        <div class="pa-out"><b>Reply</b><span>Exactly one JSON object: <code>{"action": …, "args": {…}}</code></span></div>
+        <div class="pa-out"><b>→ Reply</b><span>One JSON object: <code>{"action", "args"}</code></span></div>
       </div></section>
       <section><h2>Tools</h2>${table(["Tool", "Arguments", "What it does", "Used"], tools.map(([t, a, d]) => `<tr><td><code>${t}</code></td><td><code>${esc(a)}</code></td><td>${esc(d)}</td><td class="num">${acts[t] || 0}</td></tr>`))}</section>
       <section><h2>What fixed code checks on every reply</h2><div class="vgrid row5">
@@ -263,14 +263,14 @@ const PAGES = {
           <p>The investigator marked it not affected${md?.proposer_reason ? `: “${expandCodes(md.proposer_reason, miss.control)}”` : ""}. The verifier was never asked, so nothing routed it to a person. The answer key shows it was affected: the one silent miss among ${P.key_affected} affected key controls.</p></div>
           <button class="btn" type="button" id="sm-open">Open its evidence and decision</button></div>` : ""}
         <p style="font-size:13px;color:var(--ink-3)">The fix tested on development changes, a second look at not-affected key controls, is in Evidence room → Limits and fixes tried.</p></section>
-      <section><h2>What one call contains</h2><div class="pa">
-        <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt at the top of this page.</span></div>
-        <div class="pa-b"><b>2 · ticket and changed items</b><span>The change ticket and the changed items, with names and descriptions.</span></div>
-        <div class="pa-b"><b>3 · change_neighborhood</b><span>Everything two links downstream of the changed items in the visible map, with names.</span></div>
-        <div class="pa-b"><b>4 · control</b><span>The control's procedure and its own visible links.</span></div>
-        <div class="pa-b"><b>5 · control_family</b><span>Up to 12 controls sharing its title prefix, with their visible links.</span></div>
-        <div class="pa-b"><b>6 · hypothesis</b><span>The investigator's finding and evidence path, marked untrusted.</span></div>
-        <div class="pa-out"><b>Reply</b><span><code>{decision, ticket_quote, control_quote, causal_reason, counter_evidence}</code>; quotes checked verbatim as for the investigator</span></div>
+      <section><h2>What one call contains</h2><div class="pa row" style="--n:7">
+        <div class="pa-b fixed"><b>1 · Instructions</b><span>The fixed prompt above.</span></div>
+        <div class="pa-b"><b>2 · ticket</b><span>The ticket and changed items.</span></div>
+        <div class="pa-b"><b>3 · neighbourhood</b><span>Two links downstream of the change, as mapped.</span></div>
+        <div class="pa-b"><b>4 · control</b><span>Its procedure and visible links.</span></div>
+        <div class="pa-b"><b>5 · family</b><span>Up to 12 sibling controls.</span></div>
+        <div class="pa-b"><b>6 · hypothesis</b><span>The investigator's finding, marked untrusted.</span></div>
+        <div class="pa-out"><b>→ Reply</b><span>Decision, two quotes, reason, counter-evidence; quotes checked verbatim.</span></div>
       </div></section>
       <section><h2>How the two answers become a route</h2>${table(["Investigator", "Verifier", "Result"], [
         `<tr><td>affected</td><td>affected</td><td><span class="badge recommended">Recommended</span></td></tr>`,

@@ -1210,3 +1210,11 @@ html { scrollbar-width: thin; scrollbar-color: #c7cad6 transparent; }
 @media (max-width: 1399px) { .subbar .journey li + li::before { display: none; } }
 .subbar .journey a { padding: 6px 7px; } .subbar .select { max-width: 190px; }
 @media (min-width: 901px) and (max-width: 1279px) { .subbar .journey a:not([aria-current]):not(.up-next) .t { display: none; } }
+.pa.row { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; }
+.pa.row .pa-b, .pa.row .pa-out { padding: 10px 11px; font-size: 12.5px; }
+.pa.row .pa-b b, .pa.row .pa-out b { font-size: 13px; overflow-wrap: anywhere; }
+.pa.row .pa-out { grid-column: auto; border-left: 1px solid var(--line); border-top: 4px solid var(--agent); }
+@media (max-width: 1100px) { .pa.row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .pa.row { grid-template-columns: 1fr; } }
+.tap-hint[hidden] { display: none; }
+.graph-legend { max-width: calc(100% - 84px); }

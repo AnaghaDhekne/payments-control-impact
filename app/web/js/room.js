@@ -140,8 +140,7 @@ const PAGES = {
         <div class="filters"><div class="seg" role="group" aria-label="Filter">
           <button type="button" data-f="issues" aria-pressed="true">Misses and wrong flags</button>
           <button type="button" data-f="affected" aria-pressed="false">All affected</button>
-          <button type="button" data-f="all" aria-pressed="false">Every decision</button></div>
-          <a class="btn" href="#/investigate?case=${k.id}">Replay this investigation</a></div><div id="dt"></div>`;
+          <button type="button" data-f="all" aria-pressed="false">Every decision</button></div></div><div id="dt"></div>`;
       detail.querySelectorAll("[data-f]").forEach((b) =>
         b.addEventListener("click", () => {
           filter = b.dataset.f;

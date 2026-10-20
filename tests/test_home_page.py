@@ -72,12 +72,33 @@ def test_home_sets_up_the_change_but_keeps_the_answer(page, experience):
     assert "can have gaps" in text
 
 
-def test_walkthrough_cta_opens_the_example(page, experience):
-    open_home(page)
-    # The walkthrough is offered only at the end of the landing page.
-    assert page.locator(".h-hero [data-demo]").count() == 0
-    assert not page.locator(".home-only").is_visible()
-    page.locator(".h-final [data-demo]").click()
+def test_one_header_is_the_only_way_between_pages(page, experience):
+    for route in ("#/home", "#/overview", "#/room/results", "#/decision?case=CHG-027"):
+        page.goto(page.base + route)
+        page.wait_for_selector("main > *")
+        page.wait_for_timeout(200)
+        labels = page.locator("#sitenav a").all_inner_texts()
+        assert [x.replace("\n", " ") for x in labels] == [
+            "Home",
+            "Walkthrough",
+            "Product overview",
+            "Evidence room",
+        ]
+        # No page body repeats a link to another page.
+        body_links = page.locator(
+            "main a[href^='#/home'], main a[href^='#/overview'], "
+            "main a[href^='#/room'], main a[href^='#/change'], "
+            "main a[href^='#/investigate'], main [data-demo], main [data-go]"
+        )
+        room_nav = page.locator("main .room nav a")
+        assert body_links.count() == room_nav.count(), route
+    # Walkthrough steps only inside the walkthrough.
+    page.goto(page.base + "#/room/results")
+    page.wait_for_timeout(200)
+    assert not page.locator("#subbar").is_visible()
+    page.goto(page.base + "#/home")
+    page.wait_for_selector(".h-hero")
+    page.locator("#sitenav a[data-nav=walkthrough]").click()
     page.wait_for_selector("h1.title")
     assert "#/change?case=CHG-027" in page.url
     assert "finds nothing to review" in page.locator("h1.title").inner_text()

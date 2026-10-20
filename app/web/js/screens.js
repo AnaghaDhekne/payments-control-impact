@@ -16,7 +16,6 @@ export const MOMENTS = [
 const kicker = (i, text) => `<div class="kicker"><span class="n">${i}</span>${esc(text)}</div>`;
 const nodeOf = (app, id) => app.graph.nodes.find((n) => n.id === id);
 const controls = (app) => app.graph.nodes.filter((n) => n.type === "CONTROL");
-const nextBtn = (route, label) => `<a class="btn primary" href="#" data-go="${route}">${esc(label)} <span aria-hidden="true">→</span></a>`;
 
 function wireGo(root, app) {
   root.querySelectorAll("[data-go]").forEach((a) =>
@@ -78,7 +77,6 @@ async function change(main, app, c) {
       <div class="figure"><span class="big">${c.counts.check_found}</span><span class="of">controls flagged</span></div>
       <div class="figure-label">by the conventional lineage check, out of 101</div>
       <p class="question">Can this change proceed, or is something missing?</p>
-      <div class="next">${nextBtn("blindspot", "Open the dependency map")}</div>
       <p class="note">A synthetic scenario: an invented bank, with a complete map we can check against. No real release was approved or stopped.</p>
     </aside>
     <section class="canvas change-canvas">
@@ -123,7 +121,6 @@ async function blindspot(main, app, c) {
         <div class="counter ink"><div class="v">${unreached}</div><div class="l">affected controls left invisible to a lineage-only assessment</div></div>
       </div>
       <p style="margin-top:20px">Missing links are not an error in the check. It does exactly what it should with the map it is given; the map is incomplete where change happens.</p>
-      <div class="next">${nextBtn("investigate", "Replay the AI investigation")}</div>
       <p class="note">Damage applied for the test: 30% of the map's links removed, nearest the change first (71 of 237 recorded links). The complete map is the synthetic ground truth.</p>
     </aside>
     <section class="canvas">
@@ -285,7 +282,6 @@ async function investigate(main, app, c) {
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
       <p>Nothing on this screen calls a model. Each finding had to quote the ticket and the procedure verbatim; an independent model call then judged whether the evidence holds. Disagreements are routed to a person.</p>
       <p>Click any control on the map to inspect the evidence behind its decision.</p>
-      <div class="next">${nextBtn("consequence", "See the consequence")}</div>
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
     </aside>
     <section class="canvas"><div class="investigate">
@@ -460,9 +456,8 @@ async function consequence(main, app, c) {
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
       <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
       <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were routed to a person and ${P.key_silent} was not surfaced at all.</p>
-      <p>Earlier approaches on the way here recovered ${pct(app.exp.approaches[1].recovery, 1)} (retrieval, development changes) and ${pct(app.exp.approaches[2].recovery, 1)} (edge proposals, five runs combined). <a href="#" data-go="room" data-sub="results">How they compare</a></p>
+      <p>Earlier approaches on the way here recovered ${pct(app.exp.approaches[1].recovery, 1)} (retrieval, development changes) and ${pct(app.exp.approaches[2].recovery, 1)} (edge proposals, five runs combined). The comparison and its caveats are in the evidence room.</p>
       <p>Decisions are not yet stable: across five runs, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions were identical (target 95%).</p>
-      <div class="next">${nextBtn("decision", "What this means")}</div>
       <p class="note">Held-out test: 18 synthetic changes never used while building the agent; version A frozen before the run; one run.</p>
     </aside>
     <section class="canvas">
@@ -564,7 +559,7 @@ async function decision(main, app, c) {
       <h1 class="title">Demonstrated on synthetic evidence. Not yet ready for a pilot.</h1>
       <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the lineage check missed, and showed its evidence for each.</p>
       <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
-      <div class="next"><a class="btn" href="#" data-go="room">Open the evidence room</a><a class="btn" href="#/overview">Product overview</a><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
+      <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="note">This proof of concept did not measure reviewer time, accuracy on real data, or any cost or saving. None is claimed.</p>
     </aside>
     <section class="canvas">

@@ -104,8 +104,6 @@ async function render() {
   const main = document.getElementById("main");
   main.innerHTML = "";
   main.className = "";
-  document.body.classList.toggle("is-home", route === "home" || route === "overview");
-  document.body.classList.toggle("is-landing", route === "home");
   if (route === "home") {
     await renderHome(main, app);
   } else if (route === "overview") {
@@ -126,6 +124,18 @@ async function render() {
 const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "overview" ? "Product overview" : r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
 
 function renderTop() {
+  const inWalk = MOMENTS.some((m) => m.id === app.route);
+  const section = inWalk ? "walkthrough" : app.route === "room" ? "room" : app.route === "overview" ? "overview" : "home";
+  document.querySelectorAll("#sitenav a").forEach((a) => {
+    const n = a.dataset.nav;
+    if (n === "walkthrough") a.href = `#/change?case=${app.caseId}`;
+    if (n === "room") a.href = `#/room?case=${app.caseId}`;
+    if (n === section) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  // The step bar and case selector belong to the walkthrough only.
+  document.getElementById("subbar").hidden = !inWalk;
+  document.body.classList.toggle("has-subbar", inWalk);
   const nav = document.getElementById("journey");
   const idx = MOMENTS.findIndex((m) => m.id === app.route);
   nav.innerHTML = MOMENTS.map(
@@ -141,10 +151,6 @@ function renderTop() {
     sel.addEventListener("change", () => go(app.route, { caseId: sel.value, sub: app.sub }));
   }
   sel.value = app.caseId;
-  const room = document.getElementById("room-link");
-  room.setAttribute("aria-pressed", app.route === "room" ? "true" : "false");
-  room.href = app.route === "room" ? `#/change?case=${app.caseId}` : `#/room?case=${app.caseId}`;
-  room.querySelector("span").textContent = app.route === "room" ? "Back to the story" : "Evidence room";
   const p = app.exp.provenance;
   document.getElementById("provenance").innerHTML =
     `<span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded results, not a live run</span>` +

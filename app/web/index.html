@@ -15,14 +15,20 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1b2150"/><circle cx="14" cy="14" r="6.5" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M19 19l6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M10.5 14h7M14 10.5v7" stroke="#5e95d9" stroke-width="1.6"/></svg>
       <div><b>Control Impact Detective</b><span>Change-impact review · payments</span></div>
     </a>
-    <nav aria-label="Journey"><ol class="journey" id="journey"></ol></nav>
+    <nav aria-label="Site"><ul class="sitenav" id="sitenav">
+      <li><a href="#/home" data-nav="home">Home</a></li>
+      <li><a href="#/change" data-nav="walkthrough">Walkthrough</a></li>
+      <li><a href="#/overview" data-nav="overview"><span class="long">Product overview</span><span class="short">Overview</span></a></li>
+      <li><a href="#/room" data-nav="room"><span class="long">Evidence room</span><span class="short">Evidence</span></a></li>
+    </ul></nav>
+  </header>
+  <div class="subbar" id="subbar" hidden>
+    <nav aria-label="Walkthrough steps"><ol class="journey" id="journey"></ol></nav>
     <div class="tools">
-      <a class="btn primary home-only" href="#/change?case=CHG-027">See the walkthrough</a>
       <label class="sr" for="case">Payment change</label>
       <select class="select" id="case" title="Payment change under review"></select>
-      <a class="btn" id="room-link" href="#/room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Evidence room</span></a>
     </div>
-  </header>
+  </div>
   <main id="main" tabindex="-1"></main>
   <footer class="provenance" id="provenance" aria-label="Where these results come from"></footer>
   <aside class="inspector" id="inspector" aria-label="Evidence inspector" aria-hidden="true" inert></aside>

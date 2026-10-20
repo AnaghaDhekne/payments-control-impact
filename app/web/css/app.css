@@ -474,13 +474,6 @@ pre.code { background: var(--ink); color: #e7e9f3; padding: 14px 16px; border-ra
 
 /* ------------------------------------------------------------------ landing page */
 
-.home-only { display: none; }
-body.is-home .home-only { display: inline-flex; }
-body.is-landing .home-only { display: none; } /* the landing page offers the walkthrough only at its end */
-body.is-home .topbar > nav { visibility: hidden; }
-body.is-home #case { display: none; }
-@media (max-width: 900px) { body.is-home .topbar > nav { display: none; } }
-@media (max-width: 560px) { body.is-home #room-link, body.is-home .mark > div { display: none; } }
 .btn.lg { padding: 12px 20px; font-size: 15px; border-radius: 10px; }
 .btn.light { background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
 .btn.light:hover { border-color: #fff; }
@@ -634,4 +627,38 @@ body.is-home #case { display: none; }
   .h-sec, .h-band, .h-final { padding: 48px 0; }
   .h-sample-b { grid-template-columns: 1fr; }
   .h-h2 { font-size: 24px; }
+}
+
+/* ------------------------------------------------------------------ site header and walkthrough bar
+   One header on every page; the step bar and case selector only in the walkthrough. */
+
+.topbar { grid-template-columns: auto 1fr; }
+.topbar > nav { justify-self: end; min-width: 0; }
+.sitenav { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.sitenav a { display: block; padding: 8px 14px; border-radius: 999px; color: var(--ink-2); text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; }
+.sitenav a:hover { background: var(--sunk); color: var(--ink); }
+.sitenav a[aria-current="page"] { background: var(--navy); color: #fff; }
+.sitenav .short { display: none; }
+
+.subbar { position: sticky; top: 60px; z-index: 29; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  height: 52px; padding: 0 24px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.subbar[hidden] { display: none; }
+.subbar .journey { justify-content: flex-start; }
+body.has-subbar main { min-height: calc(100vh - 60px - 52px - 41px); }
+body.has-subbar .stage { min-height: calc(100vh - 153px); }
+body.has-subbar .inspector { top: 112px; }
+
+@media (max-width: 900px) {
+  .topbar { grid-template-columns: auto 1fr; height: 56px; padding: 0 12px; }
+  .topbar > nav { grid-column: auto; order: 0; overflow-x: auto; }
+  .sitenav a { padding: 7px 10px; font-size: 13.5px; }
+  .subbar { position: static; height: auto; padding: 8px 12px; flex-wrap: wrap; }
+  .subbar > nav { min-width: 0; max-width: 100%; overflow-x: auto; }
+  body.has-subbar .inspector { top: 0; }
+}
+@media (max-width: 560px) {
+  .mark > div { display: none; }
+  .sitenav .long { display: none; }
+  .sitenav .short { display: inline; }
+  .sitenav a { padding: 7px 9px; font-size: 13px; }
 }

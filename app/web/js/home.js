@@ -5,7 +5,7 @@
 // recorded run as the rest of the experience; nothing here is a projection.
 
 import { esc, pct, el, highlight } from "./util.js";
-import { go, getCase } from "./main.js";
+import { getCase } from "./main.js";
 
 const EXAMPLE = { case: "CHG-027", control: "C02" };
 
@@ -43,7 +43,7 @@ export async function renderHome(main, app) {
             <dt>The request says</dt><dd class="h-case-ticket">“${esc(ex.ticket.text)}”</dd>
           </dl>
           <div class="h-case-check"><span class="h-case-dot" aria-hidden="true"></span>${checkLine}</div>
-          <p class="h-case-q">What might the existing check have missed? Read on, then find out for yourself in the walkthrough at the end of this page.</p>
+          <p class="h-case-q">What might the existing check have missed? Read on, then find out for yourself in the Walkthrough.</p>
         </aside>
       </div>
     </section>
@@ -98,40 +98,11 @@ export async function renderHome(main, app) {
       </div>
     </section>
 
-    <section class="h-final">
-      <div class="h-wrap">
-        <h2>Investigate the change yourself</h2>
-        <p>Five short steps: the change, the gap in the map, the investigation, the results, and the decision.</p>
-        <div class="h-cta center">
-          <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
-          <a class="btn lg light" href="#/overview">Product overview</a>
-        </div>
-        <p class="h-final-note">The overview covers results, architecture, limits and common questions. It shows the walkthrough's answers.</p>
-      </div>
-    </section>
   </div>`);
   main.append(page);
-  wire(page);
   page.querySelector('a[href="#how"]').addEventListener("click", (e) => {
     e.preventDefault();
     page.querySelector("#how").scrollIntoView({ behavior: "smooth" });
-  });
-}
-
-function wire(page) {
-  page.querySelectorAll("[data-demo]").forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      go("change", { caseId: EXAMPLE.case });
-    })
-  );
-  page.querySelector("[data-demo-control]")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    go("investigate", { caseId: EXAMPLE.case, control: EXAMPLE.control });
-  });
-  page.querySelector("[data-room]")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    go("room", { caseId: EXAMPLE.case });
   });
 }
 
@@ -171,7 +142,6 @@ export async function renderOverview(main, app) {
             <div><h4>Second opinion</h4><p>Agreed. ${esc(d.checker_reason || "")}</p></div>
             <div><h4>Suggested next step</h4><p>The control owner assesses the impact and decides whether to re-test before release.</p></div>
           </div>
-          <div class="h-sample-f"><a class="btn" href="#" data-demo-control>Open this finding in the demo <span aria-hidden="true">→</span></a></div>
         </article>
       </div>
     </section>
@@ -272,16 +242,11 @@ export async function renderOverview(main, app) {
 
     <section class="h-final">
       <div class="h-wrap">
-        <h2>See the evidence behind every number</h2>
-        <p>The walkthrough, the one-page summary and the full method are one click away.</p>
-        <div class="h-cta center">
-          <a class="btn primary lg" href="#" data-demo>Start the walkthrough <span aria-hidden="true">→</span></a>
-          <a class="btn lg light" href="summary.pdf" download>One-page summary (PDF)</a>
-          <a class="btn lg light" href="#" data-room>Evidence and method</a>
-        </div>
+        <h2>Take it with you</h2>
+        <p>The one-page summary carries the results, the limits and the options in one place.</p>
+        <div class="h-cta center"><a class="btn lg light" href="summary.pdf" download>Download the one-page summary (PDF)</a></div>
       </div>
     </section>
   </div>`);
   main.append(page);
-  wire(page);
 }

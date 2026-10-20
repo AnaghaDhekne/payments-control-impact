@@ -204,8 +204,7 @@ export async function renderOverview(main, app) {
           <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>
         </div>
         <p class="ov-note">These measure different populations and must not be added together.</p>
-        <div class="ov-comp"><h3>What the additional review contains</h3>
-          <div class="sbar"><span class="agent" style="flex:${P.added_affected}">${P.added_affected} affected · ${share(P.added_affected)}</span><span class="idle" style="flex:${P.added_unaffected}">${P.added_unaffected} · ${share(P.added_unaffected)}</span></div>
+        <div class="ov-comp">
           <p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
       </div>
     </section>

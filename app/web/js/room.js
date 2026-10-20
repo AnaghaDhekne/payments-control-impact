@@ -312,12 +312,6 @@ const PAGES = {
     const showBtn = (key, n) => `<button class="btn sm" type="button" data-rec="${key}">Show ${n}${LBL[key] ? " " + LBL[key] : ` record${n === 1 ? "" : "s"}`}</button>`;
     pane.innerHTML = `<h1>Evaluation evidence</h1>
       <p class="lead">What the held-out evaluation established, and the records behind each claim. Every list below opens the control's evidence in place.</p>
-      <div class="conds">
-        <div><b>${P.changes}</b>held-out changes, never used while building the detective</div>
-        <div><b>30%</b>lineage damage, nearest the change first</div>
-        <div><b>${B.controls}</b>controls in the benchmark, ${B.key_controls} key</div>
-        <div><b>A</b>frozen version, one recorded run</div>
-      </div>
       <section><h2>Evidence index</h2>${table(["Claim", "Records behind it", ""], [
         `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the existing lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
         `<tr><td><b>Recommendation precision</b></td><td>The ${P.new_total} new recommendations compared with the answer key; the ${rec.newWrong.length} that were wrong</td><td>${showBtn("newWrong", rec.newWrong.length)}</td></tr>`,

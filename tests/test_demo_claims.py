@@ -115,7 +115,7 @@ CLAIMS = [
         "6 Weaker case",
         "#/consequence?case=CHG-015",
         None,
-        "The detective recommended 3 (3 actually affected) and routed 10 to a person",
+        "The detective recommended 3 (3 actually affected) and sent 10 to a person",
     ),
     (
         "7 Decision",

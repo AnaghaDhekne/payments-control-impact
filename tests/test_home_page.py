@@ -240,7 +240,7 @@ def test_evidence_room_counts_reconcile_on_screen(page, experience):
 
 def test_case_persists_and_back_works(page):
     page.goto(page.base + "#/consequence?case=CHG-027")
-    page.wait_for_selector("#units .u")
+    page.wait_for_selector("#estates .cell")
     page.select_option("#case", "CHG-015")
     page.wait_for_timeout(400)
     assert "#/consequence?case=CHG-015" in page.url
@@ -248,7 +248,7 @@ def test_case_persists_and_back_works(page):
     page.wait_for_selector(".room")
     assert "case=CHG-015" in page.url
     page.go_back()
-    page.wait_for_selector("#units .u")
+    page.wait_for_selector("#estates .cell")
     assert "#/consequence?case=CHG-015" in page.url
     assert page.locator("#case").input_value() == "CHG-015"
     assert "case=CHG-015" in page.locator(

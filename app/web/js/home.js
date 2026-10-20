@@ -78,7 +78,7 @@ export async function renderHome(main, app) {
               <li><b>Runs the existing lineage check</b><span>Follows the map, exactly as the bank does now</span></li>
               <li><b>Investigates the gaps</b><span>Reads the change and the procedures, and traces likely missing connections</span></li>
               <li><b>Quotes its evidence</b><span>Every finding must quote the change and the procedure exactly</span></li>
-              <li><b>Gets a independent verifier's view</b><span>An independent check agrees or disagrees; disagreements go to a person</span></li>
+              <li><b>Gets an independent verifier's view</b><span>An independent check agrees or disagrees; disagreements go to a person</span></li>
             </ol>
           </div>
           ${arrow}
@@ -202,7 +202,7 @@ export async function renderOverview(main, app) {
     <section class="h-sec alt">
       <div class="h-wrap">
         <h2 class="h-h2">What it delivers for each change</h2>
-        <p class="h-intro">A list of controls at risk, each with its evidence and a independent verifier's view. A recorded example:</p>
+        <p class="h-intro">A list of controls at risk, each with its evidence and an independent verifier's view. A recorded example:</p>
         <article class="card ov-ex" aria-label="Example output">
           <div class="ov-ex-h"><div><div class="h-sample-id">Example output · change ${esc(EXAMPLE.case)} · control ${esc(EXAMPLE.control)}</div><h3>${esc(ctrl.name)}</h3></div></div>
           <div class="ov-status">

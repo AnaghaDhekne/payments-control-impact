@@ -639,7 +639,6 @@ async function investigate(main, app, c) {
 // ------------------------------------------------------------------ 4. the consequence
 
 async function consequence(main, app, c) {
-  const all = await Promise.all(app.exp.cases.map((x) => getCase(x.id)));
   const P = app.exp.portfolio;
   let keyOnly = false;
   const rec = c.decisions.filter((d) => d.route === "recommended");
@@ -661,25 +660,17 @@ async function consequence(main, app, c) {
         <div class="aside"><div class="seg" role="group" aria-label="Controls shown"><button type="button" data-k="0" aria-pressed="true">All controls</button><button type="button" data-k="1" aria-pressed="false">Key only</button></div></div></div>
         <div class="card-b"><div class="estates" id="estates"></div>
         <div class="legend" style="margin-top:12px"><span><i class="sw" style="background:var(--check)"></i>Existing lineage check</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person</span><span><i class="sw" style="background:var(--ink)"></i>Actually affected (synthetic ground truth)</span></div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The detective recommended <b>${rec.length}</b> (${recRight} actually affected) and routed <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor routed${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The detective recommended <b>${rec.length}</b> (${recRight} actually affected) and sent <b>${rev.length}</b> to a person (${revRight} affected). The answer key has <b>${c.counts.affected}</b> affected; <b>${silent.length}</b> were neither recommended nor sent to a person${silent.length ? ` (${silent.filter((id) => c.keySet.has(id)).length} key)` : ""}.</p></div></div>
 
-      <div class="sec-h"><h2>Across all 18 held-out changes</h2><p>Everything below is the whole test, the same whichever change is selected above.</p></div>
-      <div class="card"><div class="card-h"><h2>All 162 key-control impacts across the 18 held-out changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Each square is one key control affected by one change. Click to inspect.</span></div></div>
-        <div class="card-b"><div class="units" id="units"></div>
-        <div class="legend" style="margin-top:14px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div></div></div>
+      <div class="card"><div class="card-h"><h2>Across all ${P.changes} held-out changes, in brief</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change is selected</span></div></div>
+        <div class="card-b">
+          <div class="sbar">${[["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]].filter(([, n]) => n).map(([k, n]) => `<span class="${k}" style="flex:${n}">${n / P.key_affected > 0.05 ? n : ""}</span>`).join("")}</div>
+          <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">The ${P.key_affected} affected key controls across the test. The cost is review: about ${Math.round(P.per_change.total)} items per change instead of about ${Math.round(P.per_change.check)}, and <b>${P.added_affected} of the ${P.added_items}</b> added items are genuinely affected. Actual reviewer time, operational cost and time savings were not measured. Every record is in the evidence room.</p></div></div>
 
       <div class="risk" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
-        <div><b>Remaining coverage risk: one affected key control was neither recommended nor routed for review.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The detective judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} routed items are only safe if a control owner works them.</div></div>
-
-      <div class="card"><div class="card-h"><h2>What a reviewer would receive per change</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Average over the 18 changes</span></div></div>
-        <div class="card-b"><div class="compare">
-          <span>Lineage check</span><div><div class="stack" style="width:${(100 * P.per_change.check) / P.per_change.total}%"><div style="width:100%;background:var(--check)">${P.per_change.check}</div></div></div>
-          <span>With the detective</span><div><div class="stack">
-            <div style="width:${(100 * P.per_change.check) / P.per_change.total}%;background:var(--check)">${P.per_change.check}</div>
-            <div style="width:${(100 * P.per_change.real) / P.per_change.total}%;background:var(--agent)">${P.per_change.real}</div>
-            <div style="width:${(100 * P.per_change.unaffected) / P.per_change.total}%;background:var(--idle);color:var(--ink)">${P.per_change.unaffected}</div></div></div></div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the detective adds are genuinely affected controls the existing lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Actual reviewer time, operational cost and time savings were not measured.</p></div></div>
+        <div><b>Remaining coverage risk: one affected key control was neither recommended nor sent to a person.</b>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The detective judged it not affected, and this version does not double-check not-affected decisions. Closing that gap, with an independent check of not-affected decisions on key controls, is a condition for any pilot. The ${P.key_routed} items sent to a person are only safe if a control owner works them.</div></div>
 
     </section></div>`);
   main.append(stage);
@@ -706,35 +697,6 @@ async function consequence(main, app, c) {
   );
   drawEstates();
 
-  // Unit rows grouped by change type.
-  const groups = {};
-  for (const k of all) {
-    const name = k.title.split(" — ")[0];
-    (groups[name] ||= []).push(k);
-  }
-  stage.querySelector("#units").innerHTML = Object.entries(groups)
-    .map(([name, cs]) => {
-      const cells = cs
-        .flatMap((k) =>
-          k.key.map((id) => {
-            const r = k.baselineSet.has(id) ? "check" : k.decision(id)?.route;
-            const s = r === "check" ? "check" : r === "recommended" ? "recommended" : r === "review" ? "review" : "silent";
-            return `<button type="button" class="u ${s}" data-case="${k.id}" data-id="${id}" aria-label="${k.id} ${id}: ${s}"></button>`;
-          })
-        )
-        .join("");
-      const t = cs.reduce((a, k) => a + k.key.length, 0);
-      return `<div class="row"><div class="nm"><b>${esc(name)}</b>${cs.length} changes · ${t} key impacts</div><div class="cells">${cells || '<span style="font-size:12.5px;color:var(--ink-3)">No key controls affected</span>'}</div></div>`;
-    })
-    .join("");
-  stage.querySelectorAll(".u").forEach((b) => {
-    b.addEventListener("click", () => openInspector(b.dataset.id, b.dataset.case));
-    b.addEventListener("mousemove", (e) => {
-      const n = nodeOf(app, b.dataset.id);
-      tip(e, `<b>${esc(b.dataset.case)} · ${esc(n.id)}</b><span>${esc(n.name)}</span>`);
-    });
-    b.addEventListener("mouseleave", (e) => tip(e, null));
-  });
   stage.querySelectorAll("[data-silent]").forEach((a) =>
     a.addEventListener("click", (e) => {
       e.preventDefault();
@@ -761,7 +723,7 @@ async function decision(main, app, c) {
       <div class="quad q3">
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--agent)"></span><h2>Demonstrated</h2></div><div class="card-b"><ul>
           <li>Most key controls the existing lineage check missed were recommended, on changes never seen.</li>
-          <li>Each recommendation carries quoted evidence and a independent verifier's view.</li>
+          <li>Each recommendation carries quoted evidence and an independent verifier's view.</li>
           <li>Every step is recorded and can be replayed.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still uncertain</h2></div><div class="card-b"><ul>
           <li>Accuracy on real changes, tickets and control documents.</li>

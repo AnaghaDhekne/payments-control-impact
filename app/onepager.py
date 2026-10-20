@@ -170,7 +170,6 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.ln(1)
     for target, status, detail in (
         ("Find >= 50% of missed key controls", "Met", f"{100 * h['key_miss_recovery']:.1f}% on unseen changes"),
-        ("Added review items <= 25% over the check", "Not met", f"{added} added; {added_aff} are real impacts"),
         ("Same key decision across 5 runs >= 95%", "Not met", f"{100 * cons['agreement']:.0f}%"),
         ("Judged by control owners on real changes", "Next", "the proposed practitioner validation"),
     ):

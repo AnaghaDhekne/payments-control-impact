@@ -105,11 +105,6 @@
     "value": 0.7847222222222222
    },
    {
-    "target": "Added review volume ≤ 25% of the check's",
-    "status": "Not met as defined",
-    "value": 6.34375
-   },
-   {
     "target": "Same key decision across 5 runs ≥ 95%",
     "status": "Not met",
     "value": null

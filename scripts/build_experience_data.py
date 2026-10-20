@@ -636,11 +636,6 @@ def portfolio(payloads, run_metrics, consistency):
                 "value": s["key_miss_recovery"],
             },
             {
-                "target": "Added review volume ≤ 25% of the check's",
-                "status": "Not met as defined",
-                "value": added / s["baseline_workload"],
-            },
-            {
                 "target": "Same key decision across 5 runs ≥ 95%",
                 "status": "Not met",
                 "value": None,

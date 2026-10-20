@@ -231,10 +231,13 @@ def test_evidence_room_counts_reconcile_on_screen(page, experience):
     assert page.locator("tr.total .num").inner_text().strip() == str(p["key_affected"])
     page.locator("[data-rec=addAff]").click()
     page.wait_for_timeout(200)
-    assert page.locator("#rec-out button.rec").count() == p["added_affected"]
+    row = page.locator("tr.rec-row")
+    assert row.count() == 1 and row.locator("button.rec").count() == p["added_affected"]
+    # it opens directly below the row of the button that was clicked
+    assert page.locator("[data-rec=addAff]").locator("xpath=ancestor::tr/following-sibling::tr[1]").get_attribute("class") == "rec-row"
     page.locator("#rep-btn").click()
     page.wait_for_timeout(200)
-    out = page.locator("#rec-out").inner_text()
+    out = page.locator("tr.rec-row").inner_text()
     assert "8 of 10 affected key controls" in out
 
 

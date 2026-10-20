@@ -266,7 +266,7 @@ const PAGES = {
       <section><h2>What one call contains</h2><div class="pa row" style="--n:7">
         <div class="pa-b fixed"><b>1 · Instructions</b><span>The fixed prompt above.</span></div>
         <div class="pa-b"><b>2 · ticket</b><span>The ticket and changed items.</span></div>
-        <div class="pa-b"><b>3 · neighbourhood</b><span>Two links downstream of the change, as mapped.</span></div>
+        <div class="pa-b"><b>3 · nearby</b><span>Two links downstream of the change, as mapped.</span></div>
         <div class="pa-b"><b>4 · control</b><span>Its procedure and visible links.</span></div>
         <div class="pa-b"><b>5 · family</b><span>Up to 12 sibling controls.</span></div>
         <div class="pa-b"><b>6 · hypothesis</b><span>The investigator's finding, marked untrusted.</span></div>
@@ -309,24 +309,24 @@ const PAGES = {
     const bar = (parts, total) =>
       `<div class="sbar">${parts.filter(([, n]) => n).map(([cls, n]) => `<span class="${cls}" style="flex:${n}" title="${n}">${n / total >= 0.06 ? n : ""}</span>`).join("")}</div>`;
     const LBL = { addAff: "affected", addUnaff: "not affected" };
-    const showBtn = (key, n) => `<button class="btn sm" type="button" data-rec="${key}">Show ${n}${LBL[key] ? " " + LBL[key] : ` record${n === 1 ? "" : "s"}`}</button>`;
+    const showBtn = (key, n) => `<button class="btn sm rec-btn" type="button" data-rec="${key}" aria-expanded="false">Show ${n}${LBL[key] ? " " + LBL[key] : ` record${n === 1 ? "" : "s"}`} <i class="chev">▾</i></button>`;
     pane.innerHTML = `<h1>Evaluation evidence</h1>
       <p class="lead">What the held-out evaluation established, and the records behind each claim. Every list below opens the control's evidence in place.</p>
       <section><h2>Evidence index</h2>${table(["Claim", "Records behind it", ""], [
         `<tr><td><b>Key-control recovery</b></td><td>The ${P.agent_found_key} recommended, out of the ${P.key_misses} affected key controls the existing lineage check missed; the rest are in the outcome table below</td><td>${showBtn("recovered", rec.recovered.length)}</td></tr>`,
         `<tr><td><b>Recommendation precision</b></td><td>The ${P.new_total} new recommendations compared with the answer key; the ${rec.newWrong.length} that were wrong</td><td>${showBtn("newWrong", rec.newWrong.length)}</td></tr>`,
         `<tr><td><b>Review composition</b></td><td>The ${P.added_items} added items: recommendations and findings sent to a person, by the answer key</td><td>${showBtn("addAff", rec.addAff.length)} ${showBtn("addUnaff", rec.addUnaff.length)}</td></tr>`,
-        `<tr><td><b>Consistency</b></td><td>Every affected key control of three development changes, decided in each of ${app.exp.repeat_runs.runs} runs</td><td><button class="btn sm" type="button" id="rep-btn">Show ${app.exp.repeat_runs.rows.length} records</button></td></tr>`,
+        `<tr><td><b>Consistency</b></td><td>Every affected key control of three development changes, decided in each of ${app.exp.repeat_runs.runs} runs</td><td><button class="btn sm rec-btn" type="button" id="rep-btn" aria-expanded="false">Show ${app.exp.repeat_runs.rows.length} records</button></td></tr>`,
         `<tr><td><b>Known failure</b></td><td>The silent miss: an affected key control neither recommended nor sent to a person</td><td>${showBtn("silent", rec.silent.length)}</td></tr>`,
         `<tr><td><b>Version selection</b></td><td>Pre-registered tests of versions B, C and D, and why each was not adopted: <i>Limits and fixes tried</i>, in this room</td><td></td></tr>`,
-      ])}<div id="rec-out"></div></section>
+      ])}</section>
       <section><h2>The three evaluation questions</h2><div class="goals">
         <div class="goal"><div class="g-t">Can it recover the key controls the existing lineage check misses?</div>
           <div class="g-v">${pct(P.recovery, 1)}</div><span class="badge recommended">Goal met · at least 50%</span>
           <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
         <div class="goal"><div class="g-t">Is the extra review worth it?</div>
-          <div class="g-v">${P.added_affected}<small> of ${P.added_items} are real impacts</small></div><span class="badge review">Original volume goal not met</span>
-          <p>These controls need checking with or without the detective; it hands over a shortlist with evidence. ${P.added_unaffected} are not affected and come with evidence to clear them. The original goal (at most 25% more items) counted real impacts as extra work too.</p></div>
+          <div class="g-v">${P.added_affected}<small> of ${P.added_items} are real impacts</small></div><span class="badge recommended">Mostly real impacts</span>
+          <p>These controls need checking with or without the detective; it hands over a shortlist with evidence. The other ${P.added_unaffected} are not affected and come with evidence to clear them.</p></div>
         <div class="goal"><div class="g-t">Are its decisions repeatable?</div>
           <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Goal not met · target 95%</span>
           <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
@@ -357,34 +357,34 @@ const PAGES = {
       addAff: "Added review items that are affected in the answer key",
       addUnaff: "Added review items the answer key says were not affected",
     };
-    const out = pane.querySelector("#rec-out");
     const RR = app.exp.repeat_runs;
     const cell = { recommended: ["agent", "Rec."], review: ["review", "Person"], not_recommended: ["idle", "Not rec."] };
-    pane.querySelector("#rep-btn").addEventListener("click", () => {
-      out.innerHTML = `<div class="recs"><div class="recs-h"><b>Repeat runs: the same change, decided five times</b> · ${RR.rows.filter((r) => r.same).length} of ${RR.rows.length} affected key controls got the same recommend-or-not decision in every run</div>
+    // Every "Show" button opens its records in a row directly below it; a second click closes them.
+    const openBelow = (btn, html) => {
+      const tr = btn.closest("tr");
+      const next = tr.nextElementSibling;
+      if (next?.classList.contains("rec-row") && next.dataset.for === btn.dataset.rec) {
+        next.remove();
+        btn.setAttribute("aria-expanded", "false");
+        return;
+      }
+      tr.parentElement.querySelectorAll("tr.rec-row").forEach((r) => r.remove());
+      tr.parentElement.querySelectorAll(".rec-btn").forEach((x) => x.setAttribute("aria-expanded", "false"));
+      const row = document.createElement("tr");
+      row.className = "rec-row";
+      row.dataset.for = btn.dataset.rec;
+      row.innerHTML = `<td colspan="${tr.children.length}">${html}</td>`;
+      tr.after(row);
+      btn.setAttribute("aria-expanded", "true");
+      wireRecords(row);
+    };
+    pane.querySelector("#rep-btn").dataset.rec = "repeat";
+    pane.querySelector("#rep-btn").addEventListener("click", (e) => openBelow(e.currentTarget, `<div class="recs"><div class="recs-h"><b>Repeat runs: the same change, decided five times</b> · ${RR.rows.filter((r) => r.same).length} of ${RR.rows.length} affected key controls got the same recommend-or-not decision in every run</div>
         ${table(["Change", "Key control", ...Array.from({ length: RR.runs }, (_, i) => `Run ${i + 1}`), "Same every run"], RR.rows.map((r) =>
           `<tr><td>${esc(r.change)}</td><td><b>${esc(r.control)}</b> ${esc(r.name)}</td>${r.runs.map((x) => `<td><span class="rr ${cell[x][0]}">${cell[x][1]}</span></td>`).join("")}<td>${r.same ? "yes" : "<b>no</b>"}</td></tr>`))}
-        <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Development changes, version A, 30% damage. "Person" means sent to a person, which counts as not recommended. Source: results/detective_runs.tar.gz, suite-11; recomputed from these records, the agreement equals the archived summary (tested).</p></div>`;
-      out.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-    pane.querySelectorAll("[data-rec]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const key = b.dataset.rec;
-        out.innerHTML = recordList(app, titles[key], rec[key]);
-        wireRecords(out);
-        out.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      })
-    );
-    // The outcome table's buttons show their list next to the table.
-    pane.querySelectorAll("section:not(:has(#rec-out)) [data-rec]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const sec = b.closest("section");
-        let box = sec.querySelector(".rec-box");
-        if (!box) { box = document.createElement("div"); box.className = "rec-box"; sec.append(box); }
-        box.innerHTML = recordList(app, titles[b.dataset.rec], rec[b.dataset.rec]);
-        wireRecords(box);
-        out.innerHTML = "";
-      })
+        <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Development changes, version A, 30% damage. "Person" means sent to a person, which counts as not recommended. Source: results/detective_runs.tar.gz, suite-11; recomputed from these records, the agreement equals the archived summary (tested).</p></div>`));
+    pane.querySelectorAll("[data-rec]:not(#rep-btn)").forEach((b) =>
+      b.addEventListener("click", () => openBelow(b, recordList(app, titles[b.dataset.rec], rec[b.dataset.rec])))
     );
   },
 

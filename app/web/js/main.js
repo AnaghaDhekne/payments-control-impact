@@ -160,7 +160,9 @@ function renderTop() {
   nx.hidden = !nextM;
   if (nextM) {
     nx.href = `#/${nextM.id}?case=${app.caseId}`;
-    nx.innerHTML = `Next: ${esc(nextM.label)} <span aria-hidden="true">→</span>`;
+    nx.innerHTML = `Next<span class="nx-l">: ${esc(nextM.label)}</span> <span aria-hidden="true">→</span>`;
+    nx.setAttribute("aria-label", `Next: ${nextM.label}`);
+    nx.title = `Next: ${nextM.label}`;
   }
   const sel = document.getElementById("case");
   if (!sel.options.length) {

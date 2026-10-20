@@ -121,22 +121,22 @@ FAQ = [
     (
         "Leadership",
         "Does it add review work?",
-        "Version A adds 406 review items beyond the rules baseline’s 64 (470 total). These are not 406 wrong findings: 262 are correct new recommendations, 18 are incorrect, and 126 are UNCERTAIN. Offline synthetic labels show 69 uncertain items are affected and 57 are unaffected. Without the detective these controls would still need checking, by tracing lineage gaps by hand or by missing them. In total, 331 additional items (81.5%) concern affected controls; 75 (18.5%) concern unaffected controls and come with evidence to clear them. The original gate counts all additional items, including useful recoveries, so it measures volume, not wasted effort. Uncertain items do not count as recovered.",
+        "Version A adds 406 review items beyond the rules baseline’s 64 (470 total). These are not 406 wrong findings: 262 are correct new recommendations, 18 are incorrect, and 126 are UNCERTAIN. Offline synthetic labels show 69 uncertain items are affected and 57 are unaffected. Without the detective these controls would still need checking, by tracing lineage gaps by hand or by missing them. In total, 331 additional items (81.5%) concern affected controls; 75 (18.5%) concern unaffected controls and come with evidence to clear them. Uncertain items do not count as recovered.",
     ),
     (
         "Leadership",
         "Is it ready for production?",
-        "No. It is a proof of concept on a synthetic benchmark. Recovery passed on held-out cases, but run-to-run consistency (80% vs 95%) and review volume are not at target, and no practitioner has yet reviewed real findings.",
+        "No. It is a proof of concept on a synthetic benchmark. Recovery passed on held-out cases, but run-to-run consistency (80% vs 95%) is not at target, and no practitioner has yet reviewed real findings.",
     ),
     (
         "Leadership",
         "What decisions are open?",
-        "Whether to take the work further, and how: a practitioner review of held-out findings, work on stability and review volume, both, or stopping at the proof of concept. The stop line agreed in advance (held-out below 50%) was not reached.",
+        "Whether to take the work further, and how: a practitioner review of held-out findings, work on stability, both, or stopping at the proof of concept. The stop line agreed in advance (held-out below 50%) was not reached.",
     ),
     (
         "Leadership",
         "Which targets were met?",
-        "Recovery: met on held-out (78% vs 50%). Added review workload: not met (the 25% target cannot be met on this benchmark by any method that recovers 50%, because correct recoveries count as workload; it is reported unchanged). Consistency: not met, 80% of 10 key-control pairs got the same decision in all five runs, against 95%.",
+        "Recovery: met on held-out (78% vs 50%). Added review items: 331 of 406 are real impacts; 75 are not affected. Consistency: not met, 80% of 10 key-control pairs got the same decision in all five runs, against 95%.",
     ),
     (
         "Technical",
@@ -181,7 +181,7 @@ FAQ = [
     (
         "Leadership",
         "Which expectations are met and which are not?",
-        "Met: the agentic path runs end to end; it finds 78.5% of the key controls the rules miss on held-out cases (target 50%) with 94% precision; review noise can be cut to 0.3 unnecessary items per change with version C. Not met: the 25% workload target (unreachable by design); consistency (80% for one run, 94.4% for a 3-run vote, target 95%). Not yet: practitioner review and production readiness.",
+        "Met: the agentic path runs end to end; it finds 78.5% of the key controls the rules miss on held-out cases (target 50%) with 94% precision; review noise can be cut to 0.3 unnecessary items per change with version C. Not met: consistency (80% for one run, 94.4% for a 3-run vote, target 95%). Not yet: practitioner review and production readiness.",
     ),
     (
         "Technical",

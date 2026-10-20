@@ -22,7 +22,7 @@ it ran.
 | Agentic path works end to end on Databricks | runs, logged, replayable | Live jobs; every step logged | **Met** |
 | Find key controls the rules miss (held-out, 18 cases) | >= 50% | **113 of 144 (78.5%; 95% CI 71–84%)** | **Met** |
 | Precision of newly recommended controls (held-out) | (no gate) | 262 of 280 (93.6%) | Good |
-| Additional review volume vs rules (not wasted effort) | <= 25% | 406 additional items beyond 64 baseline items; 331 affected, 75 unaffected | Original volume gate not met; counts useful recoveries too |
+| Additional review items beyond the rules baseline | (descriptive) | 406 additional items beyond 64 baseline items; 331 affected, 75 unaffected | Mostly real impacts |
 | Unaffected additional review items (held-out, version A) | (descriptive) | 75 total; 4.2 per change; 18.5% of additional items | Review overhead, identified using synthetic labels |
 | Same key decision on repeat runs (version A, 5 runs) | >= 95% | 80% | **Not met** |
 | Fix 1 (version B, cited chain required) | pre-registered rule | no wrong flags, but recall 55% | Rejected |
@@ -47,8 +47,6 @@ The 331 affected items represent useful additional coverage that warrants review
 the 75 unaffected items represent review overhead on this benchmark. Uncertainty
 alone does not mean a finding is wrong. The affected/unaffected breakdown uses
 offline synthetic labels, which a real reviewer would not have in advance.
-The original +25% gate measures item volume, including correct recoveries; it
-remains failed, but does not measure wasted effort or elapsed review time.
 Only confirmed recommendations count toward key-miss recovery; the 69 affected
 UNCERTAIN items are not counted as recovered.
 

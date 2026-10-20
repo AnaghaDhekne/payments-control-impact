@@ -1360,3 +1360,17 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 .rg-t p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
 .rg-arrow { font-size: 30px; color: var(--ink-3); text-align: center; }
 @media (max-width: 760px) { .rg-row { grid-template-columns: 1fr; } .rg-arrow { transform: rotate(90deg); } }
+/* Overview proof band: three outcomes in large type, right after the hero */
+.h-proof { background: radial-gradient(900px 400px at 15% 0%, rgba(94, 149, 217, .18), transparent 60%), var(--navy); color: #fff; padding: 56px 0 44px; }
+.h-proof .h-eyebrow { color: #a9b8f0; }
+.pf-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 18px 0 26px; }
+.pf { padding: 4px 28px; border-left: 1px solid rgba(255, 255, 255, .14); }
+.pf:first-child { padding-left: 0; border-left: 0; }
+.pf b { display: block; font: 800 64px/1 var(--display); letter-spacing: -.035em; color: #fff; white-space: nowrap; }
+.pf p { margin: 12px 0 0; font-size: 16px; line-height: 1.45; color: #c9cce0; max-width: 32ch; }
+.pf-verdict { display: flex; gap: 12px; align-items: center; font: 600 18px/1.4 var(--display); color: #fff; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.pf-verdict span { font: 700 11px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; background: rgba(255, 255, 255, .15); padding: 6px 9px; border-radius: 999px; }
+.pf-nums { background: transparent; border: 0; box-shadow: none; padding: 0; margin-top: 10px; }
+.pf-nums .nums > summary { color: #a9b8f0; }
+.pf-nums .nums-b { background: var(--surface); color: var(--ink); border-radius: 14px; padding: 16px; border: 0; }
+@media (max-width: 900px) { .pf-stats { grid-template-columns: 1fr; gap: 22px; } .pf { padding: 0; border-left: 0; } .pf b { font-size: 52px; } .pf-verdict { flex-direction: column; align-items: flex-start; } }

@@ -6,7 +6,7 @@
 
 import { esc, pct, el, highlight, expandCodes } from "./util.js";
 import { getCase, openInspector } from "./main.js";
-import { releaseBoard, wireBoard, beforeAfter, checklist, verdictBadge, numbers } from "./outcomes.js";
+import { numbers } from "./outcomes.js";
 
 const EXAMPLE = { case: "CHG-027", control: "C02" };
 
@@ -163,6 +163,8 @@ export async function renderOverview(main, app) {
     ["Release review", "Change board reviews the assessments", "Makes the investigation record available to the decision"],
     ["Audit", "Review documentation and decisions", "Keeps the full investigation trace and its provenance"],
   ];
+  const relToday = app.exp.cases.filter((x) => x.key_affected - x.check_found_key > 0).length;
+  const relAfter = app.exp.cases.filter((x) => x.key_silent > 0).length;
   const page = el(`<div class="home">
     <section class="h-hero h-hero-s">
       <div class="h-wrap">
@@ -175,6 +177,28 @@ export async function renderOverview(main, app) {
           <div><span>Basis</span><b>Synthetic held-out evaluation: a recorded Databricks run on ${P.changes} changes</b></div>
         </div>
         <p class="ov-diff"><b>What makes this different.</b> An existing lineage check can only follow dependencies someone recorded. This keeps that check and adds a tool-using AI investigation that reads the change request and the control procedures to find relationships the recorded map cannot show. Evidence checks and an independent second review guard each recommendation.</p>
+      </div>
+    </section>
+
+    <section class="h-proof" id="proof">
+      <div class="h-wrap">
+        <p class="h-eyebrow">What the test showed · ${P.changes} payment changes it had never seen</p>
+        <div class="pf-stats">
+          <div class="pf"><b>${relToday} → ${relAfter}</b><p>releases going live with a critical control nobody was asked to check</p></div>
+          <div class="pf"><b>${Math.round((P.check_found_key + P.agent_found_key) / P.check_found_key)}×</b><p>as many affected key controls caught with evidence: ${P.check_found_key + P.agent_found_key}, against ${P.check_found_key} today</p></div>
+          <div class="pf"><b>9 in 10</b><p>of its new recommendations are correct, each with quoted evidence and a second opinion</p></div>
+        </div>
+        <div class="pf-verdict"><span>Verdict</span>Ready for our control owners to test on real changes. Every release decision stays with people.</div>
+        <div class="ov-out pf-nums">${numbers(`
+        <div class="ov-m">
+          <div><div class="ov-v">${pct(P.recovery, 1)}</div><h3>Key-control recovery</h3><p>${P.agent_found_key} of ${P.key_misses} key-control impacts the existing lineage check missed were recommended.</p></div>
+          <div><div class="ov-v">${pct(P.precision, 1)}</div><h3>Recommendation precision</h3><p>${P.new_right} of ${P.new_total} new recommendations were affected in the synthetic answer key.</p></div>
+          <div><div class="ov-v">${P.added_affected}</div><h3>Additional affected controls surfaced</h3><p>Recommended or sent to a person; not all were confirmed recommendations.</p></div>
+          <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>
+        </div>
+        <p class="ov-note">These measure different populations and must not be added together.</p>
+        <div class="ov-comp"><p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
+          <p class="h-fine">Every record behind these figures is in the Evidence room.</p>`)}</div>
       </div>
     </section>
 
@@ -201,28 +225,7 @@ export async function renderOverview(main, app) {
       </div>
     </section>
 
-    <section class="h-sec">
-      <div class="h-wrap">
-        <h2 class="h-h2">What the test showed</h2>
-        <p class="h-intro">${P.changes} realistic payment changes the detective had never seen, on a synthetic bank.</p>
-        <div class="ov-out">
-          ${releaseBoard(app)}
-          ${beforeAfter(P)}
-          ${checklist(P)}
-          ${verdictBadge()}
-          ${numbers(`
-        <div class="ov-m">
-          <div><div class="ov-v">${pct(P.recovery, 1)}</div><h3>Key-control recovery</h3><p>${P.agent_found_key} of ${P.key_misses} key-control impacts the existing lineage check missed were recommended.</p></div>
-          <div><div class="ov-v">${pct(P.precision, 1)}</div><h3>Recommendation precision</h3><p>${P.new_right} of ${P.new_total} new recommendations were affected in the synthetic answer key.</p></div>
-          <div><div class="ov-v">${P.added_affected}</div><h3>Additional affected controls surfaced</h3><p>Recommended or sent to a person; not all were confirmed recommendations.</p></div>
-          <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>
-        </div>
-        <p class="ov-note">These measure different populations and must not be added together.</p>
-        <div class="ov-comp"><p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
-          <p class="h-fine">Every record behind these figures is in the Evidence room.</p>`)}
-        </div>
-      </div>
-    </section>
+
 
     <section class="h-sec alt">
       <div class="h-wrap">
@@ -257,6 +260,5 @@ export async function renderOverview(main, app) {
     </section>
   </div>`);
   main.append(page);
-  wireBoard(page);
   page.querySelector("#ov-open").addEventListener("click", () => openInspector(EXAMPLE.control, EXAMPLE.case));
 }

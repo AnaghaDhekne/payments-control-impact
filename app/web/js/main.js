@@ -1,5 +1,6 @@
 // Control Impact Detective — application shell, state, routing and the evidence inspector.
 
+import { enhance } from "./polish.js";
 import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness, setNames, expandCodes } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
 import { renderRoom, ROOM_PAGES, BOOK_PAGES } from "./room.js";
@@ -118,6 +119,7 @@ async function render() {
     await screen(main, app, c);
   }
   main.firstElementChild?.classList.add("fade-in");
+  enhance(main);
   document.title = `${titleFor(route)} · Control Impact Detective`;
   if (control) openInspector(control);
   else closeInspector(false);

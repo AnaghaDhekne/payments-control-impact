@@ -37,14 +37,22 @@ def _p(text: str) -> str:
     return text.encode("latin-1", "replace").decode("latin-1")
 
 
+OUTCOMES = [
+    ("Hidden impacts now surface before release", "Most of the safeguards a change would quietly break, invisible to today's check, are found before go-live."),
+    ("Every finding can be checked", "Each comes with the exact lines from the change request and the control procedure, and a second, independent opinion."),
+    ("People stay in charge", "Doubtful cases go straight to the control owner, and every release decision stays with people."),
+    ("Next: our own changes", "Control owners put it to work on real changes from our pipeline, then leadership decides on a supervised pilot."),
+]
+VERDICT = "Ready for our control owners to test on real changes."
+
+
 def build(h: dict, cons: dict, run_label: str) -> bytes:
-    """One A4 page. run_label names the recorded run (date, job, version)."""
+    """One A4 page for executives: outcomes in words and a picture, no scores.
+    run_label names the recorded run (date, job, version)."""
     total = h.get("key_affected", 162)
     rules_found = total - h["key_misses"]
     routed = h.get("key_routed", 30)
     silent = h["key_misses"] - h["key_recovered"] - routed
-    added, added_aff = h.get("added_items", 406), h.get("added_affected", 331)
-    new_right, new_total = h.get("new_right", 262), h.get("new_total", 280)
     pdf = FPDF(format="A4")
     pdf.set_auto_page_break(False)
     pdf.add_page()
@@ -59,159 +67,91 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.set_xy(18, 16)
     text(9, f"Control Impact Detective  |  Synthetic proof of concept  |  {run_label}", MUTED)
     pdf.ln(2)
-    text(19, "Finds nearly four in five of the key controls the existing lineage check misses", INK, "B", 8.5)
+    text(20, "Most of what a change could quietly break is now found before release", INK, "B", 9)
     pdf.ln(1)
     text(
         10.5,
-        "Measured on 18 synthetic payment changes the detective had never seen, with 30% of the lineage map "
-        "removed nearest each change. Compared with today's automated check, not with a person.",
+        "Tested on realistic payment changes the detective had never seen, in a synthetic bank whose dependency map "
+        "is missing links near each change.",
         MUTED,
     )
-    pdf.ln(4)
+    pdf.ln(6)
 
-    # KPI row
-    y = pdf.get_y()
-    kpis = [
-        (f"{100 * h['key_miss_recovery']:.1f}%", "key misses recommended", f"{h['key_recovered']} of {h['key_misses']}; target 50%"),
-        (f"{100 * h['new_control_precision']:.1f}%", "recommendations right", f"{new_right} of {new_total}"),
-        (f"{added_aff} of {added}", "added items are real", f"{added - added_aff} not affected"),
-        (f"{100 * cons['agreement']:.0f}%", "same key decision, 5 runs", "target 95%"),
-    ]
-    cw = w / 4
-    pdf.set_draw_color(*LINE)
-    pdf.line(18, y, 18 + w, y)
-    for i, (v, l, n) in enumerate(kpis):
-        x = 18 + i * cw
-        pdf.set_xy(x, y + 3)
-        pdf.set_font("Helvetica", "B", 20)
+    # The picture: two bars on one scale, no figures
+    def bar(y, label, segs):
+        pdf.set_xy(18, y)
+        pdf.set_font("Helvetica", "B", 10)
         pdf.set_text_color(*INK)
-        pdf.cell(cw, 9, _p(v))
-        pdf.set_xy(x, y + 13)
-        pdf.set_font("Helvetica", "", 9)
-        pdf.cell(cw, 4.5, _p(l))
-        pdf.set_xy(x, y + 17.5)
-        pdf.set_text_color(*MUTED)
-        pdf.cell(cw, 4.5, _p(n))
-    pdf.line(18, y + 24, 18 + w, y + 24)
-    pdf.set_y(y + 30)
+        pdf.cell(42, 9, _p(label))
+        x, bw_all = 60, w - 42
+        for n, col in segs:
+            if not n:
+                continue
+            bw = bw_all * n / total
+            pdf.set_fill_color(*col)
+            pdf.rect(x, y, max(bw - 0.6, 0.8), 9, "F")
+            x += bw
 
-    # Stacked bar, in the dashboard's colours and words
-    text(11, f"Where the {total} affected key controls went", INK, "B")
-    pdf.ln(1.5)
     y = pdf.get_y()
-    x = 18
-    segs = (
-        (rules_found, CHECK, "Existing lineage check"),
-        (h["key_recovered"], AGENT, "Recommended by the detective"),
-        (routed, REVIEW, "Sent to a person"),
-        (silent, RISK, "Not surfaced"),
-    )
-    for n, col, _label in segs:
-        if not n:
-            continue
-        bw = w * n / total
-        pdf.set_fill_color(*col)
-        pdf.rect(x, y, max(bw - 0.6, 0.8), 9, "F")
-        if bw > 8:
-            pdf.set_xy(x, y)
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(255, 255, 255)
-            pdf.cell(bw, 9, str(n), align="C")
-        x += bw
-    pdf.set_y(y + 11.5)
+    bar(y, "Today's check", [(rules_found, CHECK), (total - rules_found, GREY)])
+    bar(y + 13, "With the detective", [(rules_found, CHECK), (h["key_recovered"], AGENT), (routed, REVIEW), (silent, RISK)])
+    pdf.set_y(y + 26)
     lx = 18
     pdf.set_font("Helvetica", "", 8.5)
-    for n, col, label in segs:
+    for col, label in ((CHECK, "Caught by today's check"), (AGENT, "Also caught by the detective"), (REVIEW, "Flagged to a person"), (RISK, "Missed"), (GREY, "Not seen")):
         pdf.set_fill_color(*col)
         pdf.rect(lx, pdf.get_y() + 1.2, 2.6, 2.6, "F")
         pdf.set_xy(lx + 3.6, pdf.get_y())
         pdf.set_text_color(*MUTED)
-        t = _p(f"{label} - {n}")
+        t = _p(label)
         pdf.cell(pdf.get_string_width(t) + 2, 5, t)
-        lx += 3.6 + pdf.get_string_width(t) + 7
-    pdf.ln(7)
-    text(
-        9,
-        f"The one not surfaced is C03 (unresolved sanctions alerts) on CHG-024, marked not affected; the planned fix is "
-        f"a second check on key controls marked not affected, before any pilot.",
-        (61, 71, 82),
-    )
-    pdf.ln(3)
+        lx += 3.6 + pdf.get_string_width(t) + 6
+    pdf.ln(6)
+    pdf.set_x(18)
+    pdf.set_font("Helvetica", "", 8.5)
+    pdf.set_text_color(*MUTED)
+    pdf.cell(w - 42, 5, _p("Each bar is the same set of critical safeguards that the test changes actually affected."))
+    pdf.ln(5)
+    pdf.ln(5)
 
-    lines = [
-        (
-            "What a bank gains",
-            "A shortlist of the controls a change may break, each with quoted evidence and an independent verifier's view; "
-            "nothing the existing lineage check finds is lost, and doubtful cases go to a person instead of being decided silently.",
-        ),
-        (
-            "The extra items are mostly real impacts",
-            f"These controls need checking with or without the detective: by tracing lineage gaps by hand, or by missing them. "
-            f"Of the {added} items it adds, {added_aff} are real impacts the lineage check missed; the other {added - added_aff} come with evidence to clear them.",
-        ),
-        (
-            "Running cost",
-            "71 model calls per change on average (1,280 across 18). Estimated about 450k tokens per change, roughly "
-            "$0.07-$0.11 at Databricks' list rate for GPT-OSS-120B (token counts estimated by replaying the recorded prompts).",
-        ),
-        (
-            "Next: steadier decisions run to run",
-            f"Across five runs, {100 * cons['agreement']:.0f}% of key decisions were identical, against a 95% target; a multi-run vote reached 94.4%.",
-        ),
-    ]
-    for head, body in lines:
-        text(10.5, head, INK, "B")
-        text(9.5, body, (61, 71, 82))
-        pdf.ln(1.5)
-    pdf.ln(1)
+    for head, body in OUTCOMES:
+        text(11, head, INK, "B")
+        text(10, body, (61, 71, 82))
+        pdf.ln(2.5)
+    pdf.ln(2)
 
-    # Scorecard
-    text(11, "Scorecard against the targets set at the start", INK, "B")
-    pdf.ln(1)
-    for target, status, detail in (
-        ("Find >= 50% of missed key controls", "Met", f"{100 * h['key_miss_recovery']:.1f}% on unseen changes"),
-        ("Same key decision across 5 runs >= 95%", "Not met", f"{100 * cons['agreement']:.0f}%"),
-        ("Judged by control owners on real changes", "Next", "the proposed practitioner validation"),
-    ):
-        yy = pdf.get_y()
-        pdf.set_font("Helvetica", "", 9.5)
-        pdf.set_text_color(*INK)
-        pdf.set_xy(18, yy)
-        pdf.cell(w * 0.44, 6, _p(target))
-        pdf.set_font("Helvetica", "B", 9.5)
-        pdf.set_text_color(*{"Met": (30, 107, 73), "Next": AGENT}.get(status, REVIEW))
-        pdf.cell(w * 0.12, 6, status)
-        pdf.set_font("Helvetica", "", 9.5)
-        pdf.set_text_color(*MUTED)
-        pdf.cell(w * 0.44, 6, _p(detail))
-        pdf.set_draw_color(*LINE)
-        pdf.line(18, yy + 6.5, 18 + w, yy + 6.5)
-        pdf.set_y(yy + 7.5)
-    pdf.ln(3)
+    # Verdict
+    y = pdf.get_y()
+    pdf.set_fill_color(*AGENT)
+    pdf.rect(18, y, w, 14, "F")
+    pdf.set_xy(23, y + 4)
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(w - 10, 6, _p("Verdict: " + VERDICT))
+    pdf.set_y(y + 20)
 
     # Next step
     pdf.set_fill_color(244, 246, 249)
     y = pdf.get_y()
-    pdf.rect(18, y, w, 22, "F")
-    pdf.set_fill_color(*AGENT)
-    pdf.rect(18, y, 1.2, 22, "F")
-    pdf.set_xy(22, y + 2.5)
+    pdf.rect(18, y, w, 24, "F")
+    pdf.set_xy(22, y + 3)
     pdf.set_font("Helvetica", "B", 10.5)
     pdf.set_text_color(*INK)
     pdf.multi_cell(w - 6, 5.2, "Suggested next step", new_x="LMARGIN", new_y="NEXT")
     pdf.set_x(22)
-    pdf.set_font("Helvetica", "", 9.5)
+    pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(61, 71, 82)
     pdf.multi_cell(
-        w - 6,
+        w - 8,
         5,
         _p(
-            "Two or three control owners and a risk lead judge a sample of the recorded output: all 30 key controls sent "
-            "to a person, plus samples of those recommended and those marked not affected. The choice rests with leadership."
+            "Two or three control owners and a risk lead judge a sample of what it found, what it flagged and what it "
+            "set aside, on the recorded output. Then leadership decides whether a supervised pilot is justified."
         ),
         new_x="LMARGIN",
         new_y="NEXT",
     )
-    pdf.set_y(282)
-    text(8, "Synthetic data only: no real bank, customer or control data. Proof of concept, not in production.", MUTED)
+    pdf.set_y(276)
+    text(8, "The detailed figures, and every record behind them, are in the app's Evidence room.", MUTED)
+    text(8, "Synthetic data only: no real bank, customer or control data.", MUTED)
     return bytes(pdf.output())

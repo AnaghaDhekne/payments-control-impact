@@ -6,6 +6,7 @@
 
 import { esc, pct, el, highlight, expandCodes } from "./util.js";
 import { getCase, openInspector } from "./main.js";
+import { beforeAfter, outcomeList, verdictBadge, numbers } from "./outcomes.js";
 
 const EXAMPLE = { case: "CHG-027", control: "C02" };
 
@@ -170,10 +171,10 @@ export async function renderOverview(main, app) {
         <p class="h-sub">A Databricks-based AI investigation that combines the existing dependency check with document evidence to surface controls a payment-system change may affect, before it is released.</p>
         <div class="ov-facts">
           <div><span>Core capability</span><b>Evidence-backed impact discovery</b></div>
-          <div><span>Maturity</span><b>POC demonstrated; not production-validated</b></div>
+          <div><span>Maturity</span><b>Proof of concept, ready for practitioner testing</b></div>
           <div><span>Basis</span><b>Synthetic held-out evaluation: a recorded Databricks run on ${P.changes} changes</b></div>
         </div>
-        <p class="ov-diff"><b>What makes this different.</b> An existing lineage check can only follow dependencies someone recorded. This keeps that check and adds a tool-using AI investigation that reads the change request and the control procedures to find relationships the recorded map cannot show. Evidence checks and an independent second review guard each recommendation; they do not remove the risk of a missed control.</p>
+        <p class="ov-diff"><b>What makes this different.</b> An existing lineage check can only follow dependencies someone recorded. This keeps that check and adds a tool-using AI investigation that reads the change request and the control procedures to find relationships the recorded map cannot show. Evidence checks and an independent second review guard each recommendation.</p>
       </div>
     </section>
 
@@ -202,8 +203,13 @@ export async function renderOverview(main, app) {
 
     <section class="h-sec">
       <div class="h-wrap">
-        <h2 class="h-h2">What the held-out evaluation shows</h2>
-        <p class="h-intro">Recorded run of version A on ${P.changes} synthetic changes the detective had never seen.</p>
+        <h2 class="h-h2">What the test showed</h2>
+        <p class="h-intro">${P.changes} realistic payment changes the detective had never seen, on a synthetic bank.</p>
+        <div class="ov-out">
+          ${beforeAfter(P)}
+          ${outcomeList()}
+          ${verdictBadge()}
+          ${numbers(`
         <div class="ov-m">
           <div><div class="ov-v">${pct(P.recovery, 1)}</div><h3>Key-control recovery</h3><p>${P.agent_found_key} of ${P.key_misses} key-control impacts the existing lineage check missed were recommended.</p></div>
           <div><div class="ov-v">${pct(P.precision, 1)}</div><h3>Recommendation precision</h3><p>${P.new_right} of ${P.new_total} new recommendations were affected in the synthetic answer key.</p></div>
@@ -211,15 +217,16 @@ export async function renderOverview(main, app) {
           <div><div class="ov-v">${P.added_unaffected}</div><h3>Additional unaffected items</h3><p>Among the ${P.added_items} added items, by the synthetic answer key.</p></div>
         </div>
         <p class="ov-note">These measure different populations and must not be added together.</p>
-        <div class="ov-comp">
-          <p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
+        <div class="ov-comp"><p>The ${P.added_items} added items are ${P.new_total} new recommendations and ${uncertain} findings sent to a person. Without the detective, those controls would still need checking, by tracing the lineage gaps by hand or by missing them; a missed control fails silently after release. ${P.added_affected} are real impacts; the ${P.added_unaffected} others come with evidence to clear them.</p></div>
+          <p class="h-fine">Every record behind these figures is in the Evidence room.</p>`)}
+        </div>
       </div>
     </section>
 
     <section class="h-sec alt">
       <div class="h-wrap">
         <h2 class="h-h2">Where it fits in the change process</h2>
-        <p class="h-intro">A proposed operating model; it is not deployed in a bank.</p>
+        <p class="h-intro">The proposed operating model.</p>
         <table class="t ov-t"><thead><tr><th>Stage</th><th>Today</th><th>What the detective adds</th></tr></thead><tbody>
           ${stages.map(([a, b, c2]) => `<tr><td><b>${esc(a)}</b></td><td>${esc(b)}</td><td>${esc(c2)}</td></tr>`).join("")}
         </tbody></table>
@@ -228,20 +235,22 @@ export async function renderOverview(main, app) {
 
     <section class="h-sec alt">
       <div class="h-wrap">
-        <h2 class="h-h2">Running cost: model usage per change</h2>
+        <h2 class="h-h2">Running cost</h2>
+        <p class="h-intro">Low per change in this test: a few dozen model calls on Databricks for each change. The full running cost is what a pilot would measure.</p>
+        ${numbers(`
         <div class="ov-cost">
           <div><b>${(P.model_calls / P.changes).toFixed(0)}</b><span>model calls per change, recorded (${P.model_calls.toLocaleString("en-US")} across ${P.changes})</span></div>
           <div><b>≈ 450k</b><span>tokens per change, estimated: about 430k read, 20k–70k written</span></div>
           <div><b>≈ $0.07–$0.11</b><span>per change at Databricks' list rate for GPT-OSS-120B and an example $0.07 per DBU</span></div>
         </div>
-        <p class="h-fine">Token counts were not logged in the recorded run; they are estimated by replaying its prompts (about four characters per token). List rate: 2.143 DBU per million tokens read, 8.571 written (<a href="https://www.databricks.com/product/pricing/foundation-model-serving" target="_blank" rel="noopener noreferrer">Databricks pricing ↗</a>); contract prices differ. Cost grows with the size of the control catalogue and with any multi-run vote; a pilot would log actual usage.</p>
+        <p class="h-fine">Token counts were not logged in the recorded run; they are estimated by replaying its prompts (about four characters per token). List rate: 2.143 DBU per million tokens read, 8.571 written (<a href="https://www.databricks.com/product/pricing/foundation-model-serving" target="_blank" rel="noopener noreferrer">Databricks pricing ↗</a>); contract prices differ. Cost grows with the size of the control catalogue and with any multi-run vote; a pilot would log actual usage.</p>`)}
       </div>
     </section>
 
     <section class="h-final">
       <div class="h-wrap">
         <h2>What happens next?</h2>
-        <p>The proof of concept shows that an evidence-backed AI investigation can recover controls that incomplete lineage hides, in a synthetic bank. The next step is for control owners to validate its findings, what it left out and how useful it is, before any supervised pilot.</p>
+        <p>The proof of concept shows that an evidence-backed AI investigation recovers controls that incomplete lineage hides. Next, control owners put it to work on real changes, and leadership decides on a supervised pilot.</p>
         <div class="h-cta center"><a class="btn lg light" href="summary.pdf" download>Download the one-page summary (PDF)</a></div>
       </div>
     </section>

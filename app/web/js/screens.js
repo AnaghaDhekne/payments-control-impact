@@ -4,6 +4,7 @@
 import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY, quoteWeakness } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
+import { beforeAfter, outcomeList, verdictBadge, numbers } from "./outcomes.js";
 
 export const MOMENTS = [
   { id: "bank", label: "The test bank", intro: true },
@@ -692,6 +693,19 @@ async function investigate(main, app, c) {
 
 // ------------------------------------------------------------------ 4. the consequence
 
+/** One plain sentence about this change's outcome, in words rather than figures. */
+function outcomeLine(missed, rec, rev, silent, affected) {
+  const q = (x, n) => (x === n ? "all" : x >= 0.75 * n ? "most" : x >= 0.4 * n ? "about half" : x > 0 ? "some" : "none");
+  if (!affected) return "Nothing here was affected, and the detective flagged nothing that mattered.";
+  if (!missed) return "Today's check already caught every affected safeguard here; the detective had nothing to add.";
+  const today = missed === affected ? "Today's check saw none of the safeguards this change affects." : `Today's check missed ${q(missed, affected)} of the safeguards this change affects.`;
+  const flag = rev ? `flagged ${!rec ? "them" : rec + rev === missed ? "the rest" : "others"} to a person` : "";
+  const slip = silent ? (silent === 1 ? "one slipped through" : "a few slipped through") : "";
+  const tail = [flag, slip].filter(Boolean);
+  const caught = `The detective caught ${q(rec, missed)} of those`;
+  return `${today} ${caught}${tail.length ? (tail.length === 1 ? ` and ${tail[0]}` : `, ${tail[0]} and ${tail[1]}`) : ", with evidence for each"}.`;
+}
+
 async function consequence(main, app, c) {
   const P = app.exp.portfolio;
   let keyOnly = false;
@@ -702,13 +716,13 @@ async function consequence(main, app, c) {
   const silent = c.affected.filter((id) => !c.baselineSet.has(id) && !["recommended", "review"].includes(c.decision(id)?.route));
   const missed = c.affected.filter((id) => !c.baselineSet.has(id));
   const missedRec = missed.filter((id) => c.decision(id)?.route === "recommended").length;
+  const missedRev = missed.filter((id) => c.decision(id)?.route === "review").length;
   const stage = el(`<div class="stage">
     <aside class="story">
       ${kicker(4, "The consequence")}
       <h1 class="title">Far more of the real impact reaches a reviewer, with the evidence attached.</h1>
       <p class="lead">For this change, ${esc(c.id)}.</p>
-      <div class="figure"><span class="big">${missedRec}</span><span class="of">of ${missed.length}</span></div>
-      <div class="figure-label">affected controls the existing lineage check missed were recommended by the detective.</div>
+      <p class="outcome-l">${outcomeLine(missed.length, missedRec, missedRev, silent.length, c.counts.affected)}</p>
       <p class="scope-note">The figures across all ${P.changes} test changes are on the decision step.</p>
     </aside>
     <section class="canvas">
@@ -755,39 +769,39 @@ async function decision(main, app, c) {
       ${kicker(5, "The decision")}
       <h1 class="title">Demonstrated on synthetic evidence. Ready for control owners to judge.</h1>
       <p class="lead">Where lineage is incomplete, an agent that reads what a reviewer reads found most of the controls the existing lineage check missed, and showed its evidence for each.</p>
-      <p>The next question is one only control owners can answer: is the output right and useful on their changes?</p>
+      <p>Next, control owners put it to work on their own changes.</p>
       <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
     </aside>
     <section class="canvas">
-      <div class="card"><div class="card-h"><h2>Across all ${P.changes} held-out changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change you looked at</span></div></div>
+      <div class="card"><div class="card-h"><h2>What changes, across all ${P.changes} unseen test changes</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The same whichever change you looked at</span></div></div>
         <div class="card-b">
+          ${beforeAfter(P)}
+          ${outcomeList()}
+          ${verdictBadge()}
+          ${numbers(`
           <div class="dec-hl"><div><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div><p>key-control impacts the existing lineage check missed were recommended by the detective (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%. ${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were sent to a person and ${P.key_silent} was not surfaced.</p></div>
           <div class="sbar">${[["check", P.check_found_key], ["agent", P.agent_found_key], ["review", P.key_routed], ["silent", P.key_silent]].filter(([, n]) => n).map(([k, n]) => `<span class="${k}" style="flex:${n}">${n / P.key_affected > 0.05 ? n : ""}</span>`).join("")}</div>
           <div class="legend" style="margin-top:10px"><span><i class="sw" style="background:var(--check)"></i>Found by the existing lineage check · ${P.check_found_key}</span><span><i class="sw" style="background:var(--agent)"></i>Recommended for owner assessment · ${P.agent_found_key}</span><span><i class="sw" style="background:var(--review)"></i>Sent to a person · ${P.key_routed}</span><span><i class="sw" style="background:var(--risk)"></i>Not surfaced · ${P.key_silent}</span></div>
-          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">Without the detective, these controls still have to be checked by hand, or are missed, which is the costly outcome. <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them.</p></div></div>
-
-      <div class="risk soft" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>
-        <div><b>One of ${P.key_affected} affected key controls was not surfaced.</b>
-        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The planned fix is a second check on key controls marked not affected, before any pilot.</div></div>
-      <div class="quad q2">
-        <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain</h2></div><div class="card-b"><ul>
+          <p style="font-size:13.5px;color:var(--ink-2);margin:12px 0 0">Without the detective, these controls still have to be checked by hand, or are missed, which is the costly outcome. <b>${P.added_affected} of the ${P.added_items}</b> items it adds are real impacts; the other ${P.added_unaffected} come with evidence to clear them.</p>
+            <p class="nums-risk"><div><b>One of ${P.key_affected} affected key controls was not surfaced.</b>
+        ${P.silent.map((s) => `<a href="#" data-silent="${s.change}|${s.control}">${esc(s.control)} ${esc(nodeOf(app, s.control).name)}, on ${esc(s.change)}</a>`).join(", ")}. The planned fix is a second check on key controls marked not affected, before any pilot.</div></p>`)}
+        </div></div>
+      <div class="quad q1">
+        <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank gains</h2></div><div class="card-b"><ul>
           <li>Earlier sight of control impacts that incomplete lineage hides, before release rather than at audit.</li>
           <li>An evidence trail for each impact, ready for control owners and audit.</li>
           <li>A shortlist to start from instead of tracing lineage gaps by hand.</li>
           <li>Doubtful cases flagged to a person rather than decided silently.</li></ul></div></div>
-        <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still to confirm</h2></div><div class="card-b"><ul>
-          <li>Results on a real bank's changes, judged by control owners.</li>
-          <li>Steadier decisions from run to run.</li></ul></div></div>
       </div>
       <div class="card"><div class="card-h"><h2>A practitioner validation, if leadership chooses one</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Uses the recorded output; no new model runs</span></div></div>
         <div class="card-b"><div class="fit3">
           <div><h3 class="vh">Who</h3><ul class="vl">
             <li><b>Two or three control owners</b>, signing their own items, and <b>one risk lead</b> for the sample and thresholds.</li></ul></div>
           <div><h3 class="vh">What</h3><ul class="vl">
-            <li>From the ${P.changes} held-out changes: all ${P.key_routed} key controls sent to a person, plus samples of those recommended and those marked not affected.</li></ul></div>
+            <li>From the unseen test changes: every key control sent to a person, plus samples of those recommended and those marked not affected.</li></ul></div>
           <div><h3 class="vh">Measured</h3><ul class="vl">
-            <li><b>Correctness</b> beside the ${pct(P.precision, 1)} measured here; <b>coverage</b> in the not-affected sample (expected: none); <b>usefulness</b> to owners.</li></ul></div>
+            <li><b>Correctness</b> against the synthetic result; <b>coverage</b> in the not-affected sample (expected: none); <b>usefulness</b> to owners.</li></ul></div>
         </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">

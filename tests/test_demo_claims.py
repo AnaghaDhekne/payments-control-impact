@@ -97,7 +97,7 @@ CLAIMS = [
         "7 Decision",
         "#/decision?case=CHG-027",
         None,
-        "Steadier decisions from run to run.",
+        "Ready for our control owners to test on real changes.",
     ),
     (
         "7 Decision",
@@ -127,9 +127,9 @@ CLAIMS = [
         "7 Decision",
         "#/decision?case=CHG-027",
         None,
-        "all 30 key controls sent to a person",
+        "every key control sent to a person",
     ),
-    ("7 Decision", "#/decision?case=CHG-027", None, "93.6%"),
+    ("8 Overview", "#/overview", None, "93.6%"),
     ("7 Decision", "#/decision?case=CHG-027", None, "expected: none"),
     ("7 Decision", "#/decision?case=CHG-027", None, "The choice rests with leadership"),
 ]

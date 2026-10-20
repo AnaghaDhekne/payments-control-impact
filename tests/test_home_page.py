@@ -120,7 +120,11 @@ def test_one_header_is_the_only_way_between_pages(page, experience):
 def test_overview_figures_match_the_recorded_run(page, experience):
     p = experience["portfolio"]
     page.goto(page.base + "#/overview")
-    page.wait_for_selector(".ov-m")
+    page.wait_for_selector(".ov-out")
+    # Executives see outcomes; the figures sit one click away.
+    shown = page.locator("main").inner_text()
+    assert "Ready for our control owners to test" in shown and "%" not in page.locator(".ov-out > .oc").inner_text()
+    page.locator(".ov-out .nums > summary").click()
     text = page.locator("main").inner_text()
     assert f"{p['agent_found_key']} of {p['key_misses']}" in text
     assert f"{p['new_right']} of {p['new_total']}" in text
@@ -153,7 +157,7 @@ def test_next_button_walks_every_step(page):
     # The walkthrough's last step hands over to the product overview.
     assert "Product overview" in page.locator("#next-step").inner_text()
     page.locator("#next-step").click()
-    page.wait_for_selector(".ov-m")
+    page.wait_for_selector(".ov-out")
     assert "#/overview" in page.url
 
 

@@ -174,21 +174,24 @@ def test_replay_hover_gives_the_basis_of_each_decision(page):
     t = page.locator("#tip").inner_text()
     for part in (
         "Recommended by the agent",
-        "Second opinion",
-        "affected (agreed)",
-        "inferred link",
+        "Both AI reviews say",
+        "Evidence strength",
+        "Strong",
+        "worked out by the AI",
     ):
         assert part in t
-    assert "No confidence score" in t  # none was recorded, so none is invented
+    assert "not an AI confidence percentage" in t  # no model probability exists
 
 
 def test_handbook_shows_the_prompts_of_the_recorded_run(page, experience):
     page.goto(page.base + "#/handbook/investigator")
-    page.wait_for_selector("pre.prompt")
+    page.wait_for_selector(".prompt-d summary")
+    page.locator(".prompt-d summary").click()
     shown = page.locator("pre.prompt").inner_text()
     assert shown.strip() == experience["prompts"]["investigator"].strip()
     page.goto(page.base + "#/handbook/verifier")
-    page.wait_for_selector("pre.prompt")
+    page.wait_for_selector(".prompt-d summary")
+    page.locator(".prompt-d summary").click()
     assert page.locator("pre.prompt").inner_text().strip() == (
         experience["prompts"]["verifier"].strip()
     )

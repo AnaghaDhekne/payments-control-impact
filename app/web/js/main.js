@@ -101,6 +101,7 @@ async function render() {
   app.caseId = caseId && app.exp.cases.some((c) => c.id === caseId) ? caseId : app.caseId || app.exp.flagship;
   const c = await getCase(app.caseId);
   renderTop();
+  document.getElementById("tip").classList.remove("on"); // no hover left over from the last page
   const main = document.getElementById("main");
   main.innerHTML = "";
   main.className = "";

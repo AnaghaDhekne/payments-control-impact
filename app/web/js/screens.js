@@ -418,38 +418,43 @@ async function blindspot(main, app, c) {
 
 const wrapRows = (rows) => rows.map((r) => (r.startsWith("<em") || r.startsWith('<span class="tb-why') || r.startsWith('<span class="tb-n') ? r : `<div class="tb-row">${r}</div>`)).join("");
 
-/** Hover summary of why a control landed where it did, from the recorded run only.
- * There is no confidence score: the model was not asked for one, so none is shown. */
+/** Hover summary of why a control landed where it did, in plain words, from the
+ * recorded run only. The strength label is a rule over three recorded checks,
+ * not a model probability: none was recorded. */
 function decisionBasis(app, c, id, d) {
   const route = c.baselineSet.has(id) ? "check" : d.route;
   const rows = [`<em class="tb-r ${route}">${esc(ROUTE_LABEL[route])}</em>`];
   if (route === "check") {
-    rows.push("Reached through links the lineage map records. No model judgement needed.");
+    rows.push(`<span class="tb-plain">The bank's existing check already finds this control through links on record. No AI judgement was needed.</span>`);
     return wrapRows(rows);
   }
-  const verdict = (v) => (v ? v.toLowerCase() : "not asked");
-  rows.push(`<span class="tb-l">Agent</span> ${esc(verdict(d.proposer))}`);
-  if (d.proposer === "AFFECTED") {
-    const agreed = d.checker === "AFFECTED";
-    rows.push(`<span class="tb-l">Second opinion</span> ${esc(verdict(d.checker))}${agreed ? " (agreed)" : d.checker ? " (disagreed)" : ""}`);
+  const plain = {
+    recommended: "Both AI reviews say this control is affected, so it goes to its owner to check before release.",
+    review: d.proposer === "UNCERTAIN" && d.checker === "UNCERTAIN" ? "Neither AI review could decide, so a person decides." : "The two AI reviews disagreed, so a person decides.",
+    not_affected: "The AI judged this control not affected. That judgement was not double-checked.",
+    undecided: "The AI did not reach a decision on this control.",
+  }[route];
+  rows.push(`<span class="tb-plain">${plain}</span>`);
+  if (route === "not_affected" || route === "undecided") {
+    rows.push(`<span class="tb-l">Evidence strength</span><span class="tb-strength na">Not checked</span>`);
   } else {
-    rows.push(`<span class="tb-l">Second opinion</span> not asked; not-affected decisions are not double-checked`);
-  }
-  const ep = d.evidence_path?.length ? [...d.evidence_path, id].filter((x, i, a) => a.indexOf(x) === i) : [];
-  if (ep.length > 1) {
+    const agreed = d.proposer === "AFFECTED" && d.checker === "AFFECTED";
+    const ep = d.evidence_path?.length ? [...d.evidence_path, id].filter((x, i, a) => a.indexOf(x) === i) : [];
     let doc = 0, inf = 0;
     for (let i = 1; i < ep.length; i++) {
       const e = app.graph.edges.find((x) => x.source === ep[i - 1] && x.target === ep[i] && x.carries_impact);
       e && e.exposable && !c.removedSet.has(e.id) ? doc++ : inf++;
     }
-    rows.push(`<span class="tb-l">Chain</span> ${doc} documented, ${inf} inferred link${inf === 1 ? "" : "s"}`);
-  }
-  if (d.ticket_quote || d.control_quote) {
     const weak = quoteWeakness(d.ticket_quote) || quoteWeakness(d.control_quote);
-    rows.push(`<span class="tb-l">Quotes</span> ${weak ? `weak (${esc(weak)})` : "full phrases from both documents"}`);
+    const clear = (d.ticket_quote || d.control_quote) && !weak;
+    const level = agreed && clear ? "strong" : agreed || clear ? "moderate" : "thin";
+    rows.push(`<span class="tb-l">Evidence strength</span><span class="tb-strength ${level}">${level[0].toUpperCase() + level.slice(1)}</span>`);
+    rows.push(`<span class="tb-l">Second AI review</span> ${agreed ? "agreed" : d.checker ? "did not agree" : "not done"}`);
+    if (ep.length > 1) rows.push(`<span class="tb-l">Link to the change</span> ${inf ? `${inf} of ${doc + inf} link${doc + inf > 1 ? "s" : ""} worked out by the AI, not on record` : "all on record"}`);
+    rows.push(`<span class="tb-l">Quoted wording</span> ${clear ? "clear phrases from both documents" : weak ? "very short, so weak" : "none"}`);
   }
-  if (d.proposer_reason) rows.push(`<span class="tb-why">${expandCodes(d.proposer_reason.length > 140 ? d.proposer_reason.slice(0, 139) + "…" : d.proposer_reason, id)}</span>`);
-  rows.push(`<span class="tb-n">No confidence score: the model was not asked for one. Click for the full evidence.</span>`);
+  if (d.proposer_reason) rows.push(`<span class="tb-why">“${expandCodes(d.proposer_reason.length > 140 ? d.proposer_reason.slice(0, 139) + "…" : d.proposer_reason, id)}”</span>`);
+  rows.push(`<span class="tb-n">Strength is a summary of the checks above, not an AI confidence percentage. Strong: the second review agreed and the quotes are clear. Click for the full evidence.</span>`);
   return wrapRows(rows);
 }
 

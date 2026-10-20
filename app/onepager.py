@@ -90,47 +90,43 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     )
     pdf.ln(6)
 
-    # The release board: one tile per test change, today and with the detective
+    # The headline rings: releases at risk, today and with the detective
     cases = h.get("cases") or []
     if cases:
         y = pdf.get_y()
         pdf.set_fill_color(246, 247, 251)
-        pdf.rect(18, y, w, 46, "F")
+        pdf.rect(18, y, w, 44, "F")
         today = sum(1 for c in cases if c["key_affected"] - c["check_found_key"] > 0)
         after = sum(1 for c in cases if c["key_silent"] > 0)
-        for row, (label, n, risky, col) in enumerate((
-            ("TODAY'S CHECK", today, lambda c: c["key_affected"] - c["check_found_key"] > 0, (201, 138, 31)),
-            ("WITH THE DETECTIVE", after, lambda c: c["key_silent"] > 0, AGENT),
-        )):
-            yy = y + 5 + row * 20
-            pdf.set_xy(24, yy)
-            pdf.set_font("Helvetica", "B", 7.5)
-            pdf.set_text_color(*MUTED)
-            pdf.cell(40, 4, label)
-            pdf.set_xy(24, yy + 4)
-            pdf.set_font("Helvetica", "B", 22)
+        clean = sum(1 for c in cases if c["key_affected"] > 0 and c["check_found_key"] == 0)
+        for x0, n, col, label, sub in (
+            (24, today, (201, 138, 31), "TODAY'S CHECK", f"releases at risk; {clean} looked completely clean"),
+            (112, after, AGENT, "WITH THE DETECTIVE", "release at risk"),
+        ):
+            d, cx, cy = 34, x0, y + 5
+            pdf.set_fill_color(226, 229, 238)
+            pdf.ellipse(cx, cy, d, d, "F")
+            if n:
+                pdf.set_fill_color(*col)
+                pdf.solid_arc(cx, cy, d, 0, 360 * n / len(cases), clockwise=False, style="F")
+            pdf.set_fill_color(246, 247, 251)
+            pdf.ellipse(cx + 4.5, cy + 4.5, d - 9, d - 9, "F")
+            pdf.set_xy(cx, cy + 9)
+            pdf.set_font("Helvetica", "B", 20)
             pdf.set_text_color(*col)
-            pdf.cell(14, 10, str(n))
-            pdf.set_font("Helvetica", "", 8.5)
+            pdf.cell(d, 9, str(n), align="C")
+            pdf.set_xy(cx, cy + 18)
+            pdf.set_font("Helvetica", "", 7.5)
             pdf.set_text_color(*MUTED)
-            pdf.cell(26, 10, _p(f"of {len(cases)} releases"))
-            tx, gap = 72, 0.9
-            tw = (18 + w - 5 - tx - gap * (len(cases) - 1)) / len(cases)
-            for k, c in enumerate(cases):
-                pdf.set_fill_color(*((201, 138, 31) if risky(c) else AGENT))
-                pdf.rect(tx + k * (tw + gap), yy + 3, tw, 9, "F")
+            pdf.cell(d, 4, _p(f"of {len(cases)}"), align="C")
+            pdf.set_xy(cx + d + 4, cy + 10)
+            pdf.set_font("Helvetica", "B", 7.5)
+            pdf.cell(44, 4, label)
+            pdf.set_xy(cx + d + 4, cy + 15)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(61, 71, 82)
+            pdf.multi_cell(44, 4.4, _p(sub), align="L")
         pdf.set_y(y + 50)
-        pdf.set_font("Helvetica", "", 8.5)
-        lx = 18
-        for col, label in (((201, 138, 31), "Goes live with an unflagged critical control"), (AGENT, "Every affected critical control caught or flagged")):
-            pdf.set_fill_color(*col)
-            pdf.rect(lx, pdf.get_y() + 1.2, 3.4, 2.6, "F")
-            pdf.set_xy(lx + 4.6, pdf.get_y())
-            pdf.set_text_color(*MUTED)
-            t = _p(label)
-            pdf.cell(pdf.get_string_width(t) + 2, 5, t)
-            lx += 4.6 + pdf.get_string_width(t) + 8
-        pdf.ln(9)
 
     # The picture: two bars on one scale, no figures
     def bar(y, label, segs):

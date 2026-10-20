@@ -17,58 +17,45 @@ export function beforeAfter(P) {
 /** Per release: would it go live with an affected key control nobody was asked to look at? */
 const atRisk = (x, withDetective) => (withDetective ? x.key_silent > 0 : x.key_affected - x.check_found_key > 0);
 
-/**
- * The headline as a release board: one tile per test change. Red means the release
- * would go live with at least one affected key control left unflagged.
- */
+/** A ring showing n of total, with the count in the middle. */
+const ring = (n, total, cls, label, sub) => {
+  const r = 52, C = 2 * Math.PI * r, f = n / total;
+  return `<div class="rg ${cls}"><svg viewBox="0 0 128 128" aria-hidden="true">
+      <circle cx="64" cy="64" r="${r}" class="rg-bg"/>
+      <circle cx="64" cy="64" r="${r}" class="rg-fg" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}" style="--c:${C.toFixed(1)}" transform="rotate(-90 64 64)"/>
+    </svg><div class="rg-c"><b>${n}</b><span>of ${total}</span></div>
+    <div class="rg-t"><span class="hb-k">${label}</span><p>${sub}</p></div></div>`;
+};
+
+/** The headline: releases that would go live with an affected key control nobody was flagged to check. */
 export function releaseBoard(app) {
   const cases = app.exp.cases;
   const P = app.exp.portfolio;
   const today = cases.filter((x) => atRisk(x, false)).length;
   const after = cases.filter((x) => atRisk(x, true)).length;
   const clean = cases.filter((x) => x.key_affected > 0 && x.check_found_key === 0).length;
-  const tile = (x) => {
-    const t = atRisk(x, false), a = atRisk(x, true);
-    const why = (r, w) => (r ? (w ? `${x.key_silent} affected key control left unflagged` : `${x.key_affected - x.check_found_key} affected key controls left unflagged`) : x.key_affected ? "every affected key control caught or flagged" : "no key control affected");
-    return `<span class="rt ${t ? "r0" : "g0"} ${a ? "r1" : "g1"}" data-tip-today="${x.id} · ${why(t, false)}" data-tip-after="${x.id} · ${why(a, true)}"></span>`;
-  };
-  return `<div class="rboard" data-state="after">
-    <div class="rb-head">
-      <p class="hx-q">Releases that would go live with a critical control nobody was asked to check</p>
-      <div class="seg rb-seg" role="group" aria-label="Show"><button type="button" data-rb="today" aria-pressed="false">Today's check</button><button type="button" data-rb="after" aria-pressed="true">With the detective</button></div>
-    </div>
-    <div class="rb-main">
-      <div class="rb-count"><b class="rb-n" data-today="${today}" data-after="${after}">${after}</b><span>of ${cases.length} releases</span></div>
-      <div class="rb-tiles" aria-hidden="true">${cases.map(tile).join("")}</div>
-    </div>
-    <div class="rb-foot">
-      <span><i class="rt-k r"></i>Goes live with an unflagged critical control</span><span><i class="rt-k g"></i>Every affected critical control caught or flagged</span>
-      <span class="rb-note">Today: <b>${today} of ${cases.length}</b>, and ${clean} of them looked completely clean to the check. With the detective: <b>${after}</b>. Unflagged affected key controls fall from ${P.key_affected - P.check_found_key} to ${P.key_silent}.</span>
+  return `<div class="rboard">
+    <p class="hx-q">Releases that would go live with a critical control nobody was asked to check</p>
+    <div class="rg-row">
+      ${ring(today, cases.length, "today", "Today's check", `releases at risk; ${clean} of them looked completely clean to the check.`)}
+      <div class="rg-arrow" aria-hidden="true">→</div>
+      ${ring(after, cases.length, "after", "With the detective", `release at risk. Unflagged affected key controls fall from ${P.key_affected - P.check_found_key} to ${P.key_silent}.`)}
     </div>
   </div>`;
 }
 
-/** Toggle and, where motion is welcome, play the board from today to with-the-detective once. */
+/** Draw the rings once when they come into view (not under reduced motion or automated browsers). */
 export function wireBoard(root) {
   const b = root.querySelector(".rboard");
   if (!b) return;
-  const n = b.querySelector(".rb-n");
-  const set = (state) => {
-    b.dataset.state = state;
-    n.textContent = n.dataset[state];
-    b.querySelectorAll("[data-rb]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.rb === state)));
-    b.querySelectorAll(".rt").forEach((t) => (t.title = state === "today" ? t.dataset.tipToday : t.dataset.tipAfter));
-  };
-  set(b.dataset.state);
-  b.querySelectorAll("[data-rb]").forEach((x) => x.addEventListener("click", () => set(x.dataset.rb)));
   const quiet = navigator.webdriver || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window);
   if (quiet) return;
-  set("today");
+  b.classList.add("draw");
   const io = new IntersectionObserver((es) => {
     if (!es.some((e) => e.isIntersecting)) return;
     io.disconnect();
-    setTimeout(() => set("after"), 1100);
-  }, { threshold: 0.5 });
+    requestAnimationFrame(() => b.classList.add("in"));
+  }, { threshold: 0.4 });
   io.observe(b);
 }
 

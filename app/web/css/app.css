@@ -1344,3 +1344,19 @@ tr.rec-row .recs { margin-top: 0; box-shadow: none; }
 .rboard[data-state="today"] .rt.g0, .rboard[data-state="after"] .rt.g1 { background: var(--agent); }
 .rt-k.r { background: var(--missing); } .rt-k.g { background: var(--agent); }
 .rb-foot { color: var(--ink-3); } .rb-note { color: var(--ink-2); } .rb-note b { color: var(--ink); }
+/* Headline rings: releases at risk, today and with the detective */
+.rg-row { display: grid; grid-template-columns: 1fr 50px 1fr; align-items: center; gap: 12px; margin-top: 10px; }
+.rg { display: grid; grid-template-columns: 128px 1fr; gap: 18px; align-items: center; position: relative; }
+.rg svg { width: 128px; height: 128px; grid-row: 1; grid-column: 1; }
+.rg-bg { fill: none; stroke: #eceef4; stroke-width: 12; }
+.rg-fg { fill: none; stroke-width: 12; stroke-linecap: round; }
+.rg.today .rg-fg { stroke: var(--missing); } .rg.after .rg-fg { stroke: var(--agent); }
+.rboard.draw .rg-fg { stroke-dashoffset: var(--c); transition: stroke-dashoffset 1.3s var(--ease); }
+.rboard.draw .rg.after .rg-fg { transition-delay: .5s; }
+.rboard.draw.in .rg-fg { stroke-dashoffset: 0; }
+.rg-c { grid-row: 1; grid-column: 1; display: grid; place-items: center; align-content: center; text-align: center; }
+.rg-c b { font: 800 40px/1 var(--display); letter-spacing: -.03em; } .rg.today .rg-c b { color: var(--missing); } .rg.after .rg-c b { color: var(--agent); }
+.rg-c span { font-size: 12px; color: var(--ink-3); }
+.rg-t p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+.rg-arrow { font-size: 30px; color: var(--ink-3); text-align: center; }
+@media (max-width: 760px) { .rg-row { grid-template-columns: 1fr; } .rg-arrow { transform: rotate(90deg); } }

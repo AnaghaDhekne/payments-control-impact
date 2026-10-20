@@ -761,3 +761,15 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
   .cl-row { grid-template-columns: 1fr; gap: 6px; }
   .cl-k { text-align: left; }
 }
+
+/* Next step: highlighted in the step bar and offered as a button. */
+.journey a.up-next { color: var(--ink); }
+.journey a.up-next .n { border-color: var(--agent); color: var(--agent); box-shadow: 0 0 0 3px var(--agent-soft); }
+#next-step[hidden] { display: none; }
+.subbar .tools { gap: 10px; }
+.codekey { font-size: 13px; color: var(--ink-3) !important; }
+
+/* Evidence room: the page list stays in view while the page scrolls. */
+@media (min-width: 901px) {
+  .room > nav { position: sticky; top: 60px; align-self: start; max-height: calc(100vh - 60px); overflow-y: auto; }
+}

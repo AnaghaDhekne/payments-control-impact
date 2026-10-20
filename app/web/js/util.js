@@ -86,3 +86,16 @@ export function quoteWeakness(q) {
   if (n <= 2) return n === 1 ? "a one-word quote" : "a two-word quote";
   return "";
 }
+
+// ---------------------------------------------------------------- reference codes
+// Every item in the map has a short code (C02, S03...). Recorded text from the
+// agent uses bare codes; on screen each code always carries its name.
+let NAMES = {};
+export const setNames = (map) => (NAMES = map);
+const CODE = /\b(RP\d{2}|[CDRISPE]\d{2,3})\b(?!\s*\()/g;
+/** Escape text and put the name in front of every known code: "Screening Engine (S03)". */
+export function expandCodes(text) {
+  return esc(text).replace(CODE, (m) => (NAMES[m] ? `${esc(NAMES[m])} (${m})` : m));
+}
+export const CODE_KEY =
+  "Every item in the bank's map has a short code. The letter gives its type: C control, S system, I interface, D data element, R rule, P process, RP report, E evidence.";

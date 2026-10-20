@@ -1,6 +1,6 @@
 // Control Impact Detective — application shell, state, routing and the evidence inspector.
 
-import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness } from "./util.js";
+import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness, setNames, expandCodes } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
 import { renderRoom, ROOM_PAGES } from "./room.js";
 import { renderHome, renderOverview } from "./home.js";
@@ -136,7 +136,8 @@ function renderTop() {
   // The step bar and case selector belong to the walkthrough only.
   document.getElementById("subbar").hidden = !inWalk;
   // The decision covers all 18 changes, so the change selector does not apply there.
-  document.getElementById("case").parentElement.style.visibility = app.route === "decision" ? "hidden" : "";
+  const selector = document.getElementById("case");
+  selector.style.display = app.route === "decision" ? "none" : "";
   document.body.classList.toggle("has-subbar", inWalk);
   const nav = document.getElementById("journey");
   const idx = MOMENTS.findIndex((m) => m.id === app.route);
@@ -145,6 +146,15 @@ function renderTop() {
       `<li><a href="#/${m.id}?case=${app.caseId}" ${i === idx ? 'aria-current="step"' : ""} class="${idx > i ? "done" : ""}">` +
       `<span class="n">${i + 1}</span><span class="t">${esc(m.label)}</span></a></li>`
   ).join("");
+  // Point to the next step, both in the step bar and with a Next button.
+  nav.querySelectorAll("a")[idx + 1]?.classList.add("up-next");
+  const nx = document.getElementById("next-step");
+  const nextM = inWalk ? MOMENTS[idx + 1] : null;
+  nx.hidden = !nextM;
+  if (nextM) {
+    nx.href = `#/${nextM.id}?case=${app.caseId}`;
+    nx.innerHTML = `Next: ${esc(nextM.label)} <span aria-hidden="true">→</span>`;
+  }
   const sel = document.getElementById("case");
   if (!sel.options.length) {
     sel.innerHTML = app.exp.cases
@@ -231,9 +241,9 @@ function controlBody(c, cid) {
   }
   if (d?.proposer) {
     sections.push(`<section><h4>Reasoning, as recorded</h4>
-      <div class="verdict"><span class="who a">AI</span><div><b>Agent: ${esc(d.proposer.toLowerCase())}</b>${esc(d.proposer_reason || "")}
-      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${esc(d.proposer_counter)}</span>` : ""}</div></div>
-      ${d.checker ? `<div class="verdict"><span class="who c">2nd</span><div><b>Independent checker: ${esc(d.checker.toLowerCase())}</b>${esc(d.checker_reason || "Agreed with the agent.")}</div></div>` : ""}
+      <div class="verdict"><span class="who a">AI</span><div><b>Agent: ${esc(d.proposer.toLowerCase())}</b>${expandCodes(d.proposer_reason || "")}
+      ${d.proposer_counter && d.proposer_counter !== "none" ? `<br><span style="color:var(--ink-3)">Counter-evidence considered: ${expandCodes(d.proposer_counter)}</span>` : ""}</div></div>
+      ${d.checker ? `<div class="verdict"><span class="who c">2nd</span><div><b>Independent checker: ${esc(d.checker.toLowerCase())}</b>${expandCodes(d.checker_reason || "Agreed with the agent.")}</div></div>` : ""}
       </section>`);
   }
   sections.push(`<section><h4>Proposed reviewer action</h4><p style="margin:0;font-size:13.5px">${esc(action)}</p>
@@ -315,6 +325,7 @@ document.addEventListener("keydown", (e) => {
   try {
     [app.exp, app.graph] = await Promise.all([loadJSON("data/experience.json"), loadJSON("data/graph.json")]);
     app.caseId = app.exp.flagship;
+    setNames(Object.fromEntries(app.graph.nodes.map((n) => [n.id, n.name])));
     window.addEventListener("hashchange", render);
     await render();
   } catch (err) {

@@ -1,7 +1,7 @@
 // The five moments of the client journey. Each screen = a story column (the
 // question and the answer) and a canvas where the evidence can be explored.
 
-import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip } from "./util.js";
+import { esc, pct, el, ROUTE_LABEL, reducedMotion, tip, expandCodes, CODE_KEY } from "./util.js";
 import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
 
@@ -86,6 +86,7 @@ async function change(main, app, c) {
         <div class="rh"><div><div class="rid">CHANGE RECORD · ${esc(c.id)}</div><div class="rt">${esc(c.title)}</div></div>
           <span class="chip">${esc((c.change_type || "").replace("_", " ").toLowerCase())}</span></div>
         <dl>
+          <dt>Reference codes</dt><dd class="codekey">${esc(CODE_KEY)} Names are shown beside codes throughout.</dd>
           <dt>What changes</dt><dd>${changed.map((n) => `<b>${esc(n.name)}</b> (${esc(n.id)}) — ${esc(n.description)}`).join("<br>")}</dd>
           ${isAddress ? `<dt>Context</dt><dd>Structured postal addresses are part of ISO 20022 (CBPR+) payment messages; their fields feed validation, screening and message mapping.</dd>` : ""}
           <dt>Planned release</dt><dd>${esc(c.implementation_date || "")} · release group ${esc(c.release_group || "")}</dd>
@@ -94,7 +95,7 @@ async function change(main, app, c) {
         </dl>
         <div class="assessment"><div class="zero">${c.counts.check_found}</div>
           <div><b>Conventional impact assessment: ${c.counts.check_found ? `${c.counts.check_found} affected control${c.counts.check_found > 1 ? "s" : ""} found` : "no affected controls found"}</b>
-          <span>Lineage traversal from ${esc(c.changed.join(", "))} through recorded links. ${found ? "The list looks complete." : "The result looks reassuring."}</span></div></div>
+          <span>Lineage traversal from ${c.changed.map((id) => named(app, id)).join(", ")} through recorded links. ${found ? "The list looks complete." : "The result looks reassuring."}</span></div></div>
       </article>
       ${estate(app, "The bank's 101 controls, as the check sees them", `${c.counts.check_found} flagged`, (id) => (c.baselineSet.has(id) ? "check" : ""))}
       <div class="legend"><span><i class="sw" style="background:var(--check)"></i>Flagged by the lineage check</span><span><i class="sw" style="background:var(--idle)"></i>Not flagged</span><span>White inner border: key control</span></div>
@@ -414,14 +415,21 @@ async function investigate(main, app, c) {
   main.append(stage);
   wireGo(stage, app);
 
+  const stepSummary = (s) => {
+    if (s.action === "inspect_control" && s.read?.length) {
+      const shown = s.read.slice(0, 3).map((id) => named(app, id)).join("; ");
+      return `Read ${s.read.length} control procedure${s.read.length > 1 ? "s" : ""}: ${shown}${s.read.length > 3 ? `; and ${s.read.length - 3} more` : ""}`;
+    }
+    return expandCodes(s.summary.replace(/^Rejected: /, "Rejected and corrected: "));
+  };
   const list = stage.querySelector("#steps");
   list.innerHTML =
     steps
       .map((s, k) => {
         const what = s.action === "explore_node" ? s.explored.map((id) => named(app, id)).join(", ") : s.action === "inspect_control" ? `${s.read.length} procedures` : s.action === "search_controls" ? `“${esc(s.query || "")}”` : "";
-        const rej = s.rejected?.length ? `<div class="rej">${s.rejected.length} rejected: ${esc(s.rejected[0].why)}</div>` : "";
+        const rej = s.rejected?.length ? `<div class="rej">${s.rejected.length} rejected: ${expandCodes(s.rejected[0].why)}</div>` : "";
         return `<li data-k="${k + 1}"><span class="sn">${s.step}</span><div><span class="act">${esc(verb[s.action] || s.action)}</span> ${what}
-          <div class="res">${esc(s.summary.replace(/^Rejected: /, "Rejected and corrected: "))}</div>${rej}</div></li>`;
+          <div class="res">${stepSummary(s)}</div>${rej}</div></li>`;
       })
       .join("") + `<li class="phase" data-k="${n + 1}">Independent check of ${c.counts.verify_calls} findings, then routing</li>`;
 

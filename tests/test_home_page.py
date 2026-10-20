@@ -124,3 +124,25 @@ def test_home_fits_a_phone(page):
     overflow = page.evaluate("document.documentElement.scrollWidth - innerWidth")
     page.set_viewport_size({"width": 1440, "height": 900})
     assert overflow <= 0
+
+
+def test_next_button_walks_all_five_steps(page):
+    page.goto(page.base + "#/change?case=CHG-027")
+    page.wait_for_selector("h1.title")
+    for step in ("blindspot", "investigate", "consequence", "decision"):
+        assert page.locator("#journey a.up-next").count() == 1
+        page.locator("#next-step").click()
+        page.wait_for_timeout(400)
+        assert f"#/{step}?case=CHG-027" in page.url
+    assert not page.locator("#next-step").is_visible()
+
+
+def test_reference_codes_are_explained(page):
+    page.goto(page.base + "#/change?case=CHG-027")
+    page.wait_for_selector(".codekey")
+    assert "C control, S system, I interface" in page.locator(".codekey").inner_text()
+    page.goto(page.base + "#/investigate?case=CHG-027&control=C02")
+    page.wait_for_selector("#inspector.open")
+    reasons = page.locator("#inspector .verdict").first.inner_text()
+    assert "Screening request interface (I02)" in reasons
+    assert "Screening Engine (S03)" in reasons

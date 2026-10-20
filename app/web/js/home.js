@@ -4,7 +4,7 @@
 // product overview. Every figure comes from the same
 // recorded run as the rest of the experience; nothing here is a projection.
 
-import { esc, pct, el, highlight } from "./util.js";
+import { esc, pct, el, highlight, expandCodes } from "./util.js";
 import { getCase } from "./main.js";
 
 const EXAMPLE = { case: "CHG-027", control: "C02" };
@@ -131,15 +131,15 @@ export async function renderOverview(main, app) {
         <p class="h-intro">A list of safety checks at risk. Each one comes with the reason, the exact words it relied on, and the second opinion. This is a real finding from the test.</p>
         <article class="card h-sample" aria-label="Example finding">
           <div class="h-sample-h">
-            <div><div class="h-sample-id">${esc(EXAMPLE.control)} · key control · change ${esc(EXAMPLE.case)}</div><h3>${esc(ctrl.name)}</h3></div>
+            <div><div class="h-sample-id">Control ${esc(EXAMPLE.control)} · key control · change ${esc(EXAMPLE.case)}</div><h3>${esc(ctrl.name)}</h3></div>
             <span class="badge recommended">At risk: recommended for re-test</span>
           </div>
           <div class="h-sample-b">
-            <div><h4>Why</h4><p>${esc(d.proposer_reason)}</p></div>
+            <div><h4>Why</h4><p>${expandCodes(d.proposer_reason)}</p></div>
             <div><h4>Evidence, quoted</h4>
               <div class="doc"><span class="src">From the change request</span>${highlight(ex.ticket.text, d.ticket_quote)}</div>
               <div class="doc" style="margin-top:8px"><span class="src">From the check's procedure</span>${highlight(doc, d.control_quote)}</div></div>
-            <div><h4>Second opinion</h4><p>Agreed. ${esc(d.checker_reason || "")}</p></div>
+            <div><h4>Second opinion</h4><p>Agreed. ${expandCodes(d.checker_reason || "")}</p></div>
             <div><h4>Suggested next step</h4><p>The control owner assesses the impact and decides whether to re-test before release.</p></div>
           </div>
         </article>

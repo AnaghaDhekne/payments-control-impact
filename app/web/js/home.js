@@ -44,7 +44,7 @@ export async function renderHome(main, app) {
             <dt>The request says</dt><dd class="h-case-ticket">“${esc(ex.ticket.text)}”</dd>
           </dl>
           <div class="h-case-check"><span class="h-case-dot" aria-hidden="true"></span>${checkLine}</div>
-          <p class="h-case-q">Is it safe to release? The walkthrough lets you find out for yourself.</p>
+          <p class="h-case-q">What might the existing check have missed? The walkthrough lets you find out for yourself.</p>
         </aside>
       </div>
     </section>
@@ -53,7 +53,7 @@ export async function renderHome(main, app) {
       <div class="h-wrap">
         <h2 class="h-h2">The problem, in plain words</h2>
         <div class="h-three">
-          <div><span class="h-num">1</span><h3>Every change touches safety checks</h3><p>A new field in a payment message or a new screening interface can stop a check from seeing what it needs. It can go unnoticed until something slips through.</p></div>
+          <div><span class="h-num">1</span><h3>A change can affect critical controls</h3><p>A new field in a payment message or a new screening interface can stop a check from seeing what it needs. It can go unnoticed until something slips through.</p></div>
           <div><span class="h-num">2</span><h3>Teams rely on a map of connections</h3><p>Before release, the bank follows a map of which systems feed which checks. It is like finding which rooms lose power by reading the wiring diagram.</p></div>
           <div><span class="h-num">3</span><h3>Dependency maps can have gaps</h3><p>Systems change faster than their documentation, so some connections go unrecorded. When a wire is missing from the diagram, a room that will lose power looks fine.</p></div>
         </div>
@@ -147,7 +147,6 @@ export async function renderOverview(main, app) {
   const doc = ex.document_overrides?.[EXAMPLE.control] || app.graph.documents[EXAMPLE.control]?.text || "";
   const surfaced = P.check_found_key + P.agent_found_key;
   const perCall = Math.round(P.model_calls / P.changes);
-  const added = Math.round(P.per_change.total) - Math.round(P.per_change.check);
   const page = el(`<div class="home">
     <section class="h-hero h-hero-s">
       <div class="h-wrap">
@@ -189,8 +188,15 @@ export async function renderOverview(main, app) {
           <div class="h-ben"><div class="h-big">${P.new_right}<small> of ${P.new_total}</small></div><h3>Findings you can verify</h3><p>New recommendations that were right. Each one shows its quotes and reasoning, and every step is recorded.</p></div>
         </div>
         <div class="h-trade">
-          <b>The trade-off:</b> reviewers receive about ${Math.round(P.per_change.total)} items per change instead of about ${Math.round(P.per_change.check)}. Of the ${added} extra, about ${Math.round(P.per_change.real)} are real impacts today's check missed and about ${Math.round(P.per_change.unaffected)} turn out not to be affected.
+          <b>The trade-off is review workload.</b> Across the ${P.changes} changes the detective added ${P.added_items} review items: ${P.added_affected} genuinely affected controls the existing check missed, and ${P.added_unaffected} that were not affected. That is about ${Math.round(P.per_change.total)} items per change instead of about ${Math.round(P.per_change.check)}. Actual reviewer time, operational cost and time savings were not measured.
           <span class="h-trade-r">${P.key_silent} affected key check, out of ${P.key_affected}, was missed entirely.</span>
+        </div>
+        <div class="h-cmp">
+          <h3>Compared with simpler approaches tried on the way</h3>
+          <table><thead><tr><th>Approach</th><th>Result</th><th>Measured on</th></tr></thead><tbody>
+          ${app.exp.approaches.map((a) => `<tr><td>${esc(a.approach)}</td><td class="num"><b>${pct(a.recovery, 1)}</b> <span>${esc(a.measure)}</span></td><td>${esc(a.set)}</td></tr>`).join("")}
+          </tbody></table>
+          <p>Each step added information the connection map lacks. The sets, models and scoring differ, so read this as a progression, not a like-for-like comparison; a plain keyword search on the same changes has not been tested. Details are in the evidence room.</p>
         </div>
       </div>
     </section>

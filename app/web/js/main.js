@@ -187,8 +187,23 @@ function controlBody(c, cid) {
   }[route];
   const sections = [];
   sections.push(`<section><h4>Where the decision landed</h4><span class="badge ${route}">${esc(ROUTE_LABEL[route])}</span>
+    ${route === "check" ? `<span class="ev doc">Documented</span>` : ["recommended", "review"].includes(route) ? `<span class="ev val">Needs human validation</span>` : ""}
     ${routingReason(d?.routing_reason) ? `<p style="font-size:13px;color:var(--ink-2);margin:8px 0 0">${esc(routingReason(d.routing_reason))}</p>` : ""}</section>`);
-  if (truth) sections.push(`<section><h4>How the change reaches it in the complete map</h4>${chainHTML(c, cid)}
+  const ep = d?.evidence_path?.length ? [...d.evidence_path, cid].filter((x, i, a) => a.indexOf(x) === i) : null;
+  if (ep && ep.length > 1 && route !== "check") {
+    const parts = [];
+    ep.forEach((id, i) => {
+      if (i) {
+        const e = app.graph.edges.find((x) => x.source === ep[i - 1] && x.target === id && x.carries_impact);
+        const documented = e && e.exposable && !c.removedSet.has(e.id);
+        parts.push(`<span class="lk ${documented ? "doc" : "inf"}">${documented ? "documented link" : "inferred link"}</span>`);
+      }
+      parts.push(`<span class="n" title="${esc(node(id)?.name)}">${esc(id)}</span>`);
+    });
+    sections.push(`<section><h4>How the agent connects it to the change</h4><div class="evpath">${parts.join("")}</div>
+      <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0"><span class="ev doc" style="margin:0">Documented</span> recorded in the lineage map the bank already has. <span class="ev inf" style="margin:0">Inferred</span> not in the map; the agent proposes it from the documents. No confidence score is given; the owner validates.</p></section>`);
+  }
+  if (truth && app.revealTruth) sections.push(`<section><h4>In the complete synthetic map (the answer key)</h4>${chainHTML(c, cid)}
     <p style="font-size:12.5px;color:var(--ink-3);margin:8px 0 0">Dashed: link missing from the lineage map the current check uses.</p></section>`);
   if (d?.ticket_quote || d?.control_quote) {
     const weak = (q) => {
@@ -196,7 +211,7 @@ function controlBody(c, cid) {
       return w ? `<span class="weak">Weak evidence: ${esc(w)}</span>` : "";
     };
     const anyWeak = quoteWeakness(d.ticket_quote) || quoteWeakness(d.control_quote);
-    sections.push(`<section><h4>Evidence the agent cited</h4>
+    sections.push(`<section><h4>Evidence the agent cited <span class="ev doc">Documented: quoted from the documents</span></h4>
       <div class="doc"><span class="src">Change ticket ${esc(c.ticket.document_id || "")}${weak(d.ticket_quote)}</span>${highlight(c.ticket.text, d.ticket_quote)}</div>
       <div class="doc" style="margin-top:8px"><span class="src">Control procedure ${esc(cid)}${weak(d.control_quote)}</span>${highlight(text, d.control_quote)}</div>
       ${n.family ? `<p style="font-size:12px;color:var(--ink-3);margin:6px 0 0">This procedure is a synthetic template generated for its control family, not a written procedure.</p>` : ""}
@@ -261,6 +276,7 @@ export async function openInspector(id, caseId) {
     <div class="body">${html}</div>`;
   ins.classList.add("open");
   ins.setAttribute("aria-hidden", "false");
+  ins.inert = false;
   ins.querySelector("#close").onclick = () => closeInspector();
   const rv = ins.querySelector("#reveal");
   if (rv) rv.onclick = () => {
@@ -275,6 +291,7 @@ export function closeInspector(notify = true) {
   const ins = document.getElementById("inspector");
   ins.classList.remove("open");
   ins.setAttribute("aria-hidden", "true");
+  ins.inert = true; // a closed drawer must not take keyboard focus
   app.selected = null;
   if (notify) app.listeners.forEach((f) => f(null));
 }

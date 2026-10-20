@@ -1,0 +1,36 @@
+# Executive demo script (6–7 minutes)
+
+Frozen with the tag `demo-2026-10-19`. Every figure below is checked against
+the running app by `tests/test_demo_claims.py`; if a sentence here changes,
+change that test too.
+
+Before the meeting: open the app, check the footer shows job 862812162377923
+(2026-10-16), and keep the evidence room in a second tab for questions.
+
+| Time | Screen | Do | Say |
+|---|---|---|---|
+| 0:00–0:40 | Landing page | Point to the change record on the right | "Banks protect payments with safety checks, called controls. Here is one change from our test bank, a screening-interface change. The existing check flags no controls for review. What might it have missed?" Say once that the bank and data are synthetic. |
+| 0:40–1:10 | 1 The change | Start the walkthrough | "The impact check finds nothing to review. It follows the lineage map from the changed item, the screening request interface, to the controls that depend on it." |
+| 1:10–2:10 | 2 The blind spot | Switch to *What is actually connected* | "0 of 20 affected controls are reachable, because 13 of the 24 links on the way are missing from the map. Take C02, sanctions screening: the map records I02 → S03, but S03 → C02 is missing, so the check never puts C02 in front of its owner." Read the "Why it matters to the bank" line. |
+| 2:10–3:20 | 3 The investigation | Press ›  a few times, then *Show result*; click C02 | "This is a recording of the agent's own steps. For C02 it quotes the request, 'Screening request interface', and the procedure, 'screened before payment release'. An independent checker agreed. The link it relies on is marked inferred, not documented, and the item needs human validation." Optionally *Reveal the answer key*. |
+| 3:20–4:40 | 4 The consequence | Read the headline; click the silent miss | "Across 18 changes the agent had never seen, it recommended 113 of the 144 key-control impacts the check missed: 78.5%, with a 95% range of 71.1–84.4%. 262 of its 280 new recommendations were right. 30 more went to a person and 1 was not surfaced: C03 on CHG-024, because this version does not double-check not-affected decisions. The cost is review workload: 331 of the 406 added items were genuinely affected, 75 were not. Reviewer time, cost and time savings were not measured, and repeatability was 8 of 10, against a 95% target." If asked about simpler tools: earlier approaches reached 49.5% and 57.6%, on different sets. |
+| 4:40–5:10 | Case selector | Switch to CHG-015 (screening field-set) | "Here the existing check already flags 7 controls; the agent recommends 3 more and routes 10 to owners. It adds less where lineage is better, and it says when it is unsure." |
+| 5:10–6:30 | 5 The decision | Walk the four boxes, then the validation card | "Demonstrated on synthetic evidence; not yet ready for a pilot. If leadership chooses a practitioner validation, it uses the recorded output: all 30 key controls routed to a person plus samples of the recommended and not-affected ones, judged by named control owners and signed off by a risk lead. Correctness is compared with the 93.6% measured here; the number of affected key controls found among the not-affected sample is expected to be none." End on: "The choice rests with leadership." Offer the one-page PDF. |
+
+## Three likely questions
+
+**Why not keyword search or better rules?** The rules are the lineage check:
+it found 11.1% of affected key controls at this damage level (42.6% if the gaps
+were random). Earlier language approaches reached 49.5% (retrieval,
+development set) and 57.6% (edge proposals, five runs combined); the agent
+reached 78.5%. Sets and scoring differ, so it is a progression, not a league
+table. A plain keyword baseline has not been run.
+
+**The data is synthetic. Why would this transfer?** It may not, and we do not
+claim it does. That is what the practitioner validation is for: real owners
+judging real output, with criteria agreed in advance.
+
+**What about the routed items and the miss?** Routed means sent to an owner
+with evidence; nobody reviewed them in the proof of concept. The miss came
+from an unchecked not-affected decision; checking those on key controls is a
+condition before any pilot.

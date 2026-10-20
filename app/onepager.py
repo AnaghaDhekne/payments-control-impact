@@ -55,7 +55,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.ln(2)
     text(
         19,
-        "The agent finds four in five of the controls the current check misses",
+        "The agent finds nearly four in five of the controls the current check misses",
         INK,
         "B",
         8.5,
@@ -83,9 +83,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
             "262 of 280",
         ),
         (
-            "4 of 26",
-            "items per change wasted",
-            "unaffected: wasted effort",
+            "331 of 406",
+            "added items truly affected",
+            "75 not affected",
         ),
         (
             f"{100 * cons['agreement']:.0f}%",
@@ -181,7 +181,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         ),
         (
             "Cost and speed",
-            "About 70 model calls and a median of 11 minutes per change on a shared Free Edition endpoint.",
+            "About 70 model calls and a median of 11 minutes per change on a shared Free Edition endpoint. Reviewer time, running cost and time saved were not measured.",
         ),
     ]
     for head, body in lines:
@@ -196,14 +196,14 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     for target, status, detail in (
         ("Find >= 50% of missed key controls", "Met", "78.5% on unseen changes"),
         (
-            "Added review volume <= 25% (as defined)",
-            "Not met",
-            "counts real finds as burden; 81% of added items are real",
+            "Review items added",
+            "Reported",
+            "406: 331 affected, 75 not affected (about 4 per change)",
         ),
         (
-            "Unaffected items (overhead)",
-            "Reported",
-            "75 of 406 added (18.5%); about 4 of 26 per change",
+            "Reviewer time, cost, time saved",
+            "Not measured",
+            "a practitioner pilot would measure them",
         ),
         ("Same key decision across 5 runs >= 95%", "Not met", "80%"),
     ):
@@ -214,7 +214,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         pdf.cell(w * 0.42, 6, _p(target))
         pdf.set_font("Helvetica", "B", 9.5)
         pdf.set_text_color(
-            *{"Met": (30, 107, 73), "Reported": MUTED}.get(status, (156, 34, 25))
+            *{"Met": (30, 107, 73), "Reported": MUTED, "Not measured": MUTED}.get(
+                status, (156, 34, 25)
+            )
         )
         pdf.cell(w * 0.14, 6, status)
         pdf.set_font("Helvetica", "", 9.5)

@@ -266,8 +266,33 @@ h3 { font: 600 15px/1.3 var(--display); margin: 0 0 6px; }
 .doc { background: var(--sunk); border-radius: var(--r-s); padding: 10px 12px; font-size: 13.5px; line-height: 1.6; }
 .doc .src { display: block; font-size: 11.5px; color: var(--ink-3); margin-bottom: 4px; font-weight: 600; }
 .doc .src .weak { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #f9eeda; color: #7a4f0e; font-weight: 600; }
-.guide { margin-top: 18px; padding: 12px 14px; border-left: 3px solid var(--missing); background: var(--sunk); border-radius: 0 var(--r-s) var(--r-s) 0; font-size: 14px; line-height: 1.55; }
+.guide { margin: 0 0 18px; padding: 12px 14px; border-left: 3px solid var(--missing); background: var(--sunk); border-radius: 0 var(--r-s) var(--r-s) 0; font-size: 14px; line-height: 1.55; }
 .guide[hidden] { display: none; }
+.guide-h { font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.guide-dl { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 0 0 10px; font-size: 13.5px; }
+.guide-dl dd + dt { margin-top: 6px; }
+.guide-dl dt { color: var(--ink-3); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.guide-dl dd { margin: 0; color: var(--ink); }
+.guide-dl .sw { display: inline-block; width: 16px; height: 0; border-top: 2px solid #aeb3c4; }
+.guide-dl .sw.dash { border-top: 2px dashed var(--missing); }
+.guide-dl .sw.ctl { width: 10px; height: 10px; border: 1.6px solid var(--ink); border-radius: 2px; }
+.guide-risk { margin: 0 0 6px; font-size: 13.5px; color: var(--ink-2); }
+.guide-risk b { color: var(--risk); }
+.guide-more { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.vh { margin: 0 0 8px; font-size: 14px; }
+.vl { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.vl li { margin: 5px 0; }
+.vl b { color: var(--ink); }
+.vnote { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-3); }
+.ev { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+.ev.doc { background: var(--check-soft); color: #234d82; }
+.ev.inf { background: var(--missing-soft); color: #7a4f0e; }
+.ev.val { background: var(--review-soft); color: #7d2f52; }
+.evpath { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
+.evpath .n { font-weight: 600; padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface); }
+.evpath .lk { font-size: 11.5px; padding: 1px 7px; border-radius: 999px; }
+.evpath .lk.doc { background: var(--check-soft); color: #234d82; }
+.evpath .lk.inf { background: var(--missing-soft); color: #7a4f0e; }
 mark.q { background: #ffe9a8; color: var(--ink); padding: 0 2px; border-radius: 2px; box-shadow: inset 0 -2px 0 var(--missing); }
 .verdict { display: grid; grid-template-columns: 26px 1fr; gap: 10px; margin: 8px 0; font-size: 13.5px; }
 .verdict .who { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
@@ -547,6 +572,15 @@ body.is-home #case { display: none; }
 .h-ben p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
 .h-trade { margin-top: 16px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--missing); border-radius: var(--r-m); font-size: 15px; color: var(--ink-2); }
 .h-trade b { color: var(--ink); }
+.h-cmp { margin-top: 28px; }
+.h-cmp h3 { font: 600 17px/1.3 var(--display); margin: 0 0 10px; }
+.h-cmp table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); overflow: hidden; font-size: 14px; }
+.h-cmp th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); background: var(--sunk); padding: 10px 14px; }
+.h-cmp td { padding: 10px 14px; border-top: 1px solid var(--line); color: var(--ink-2); vertical-align: top; }
+.h-cmp td b { color: var(--ink); font-size: 15px; }
+.h-cmp td span { display: block; font-size: 12px; color: var(--ink-3); }
+.h-cmp p { font-size: 13.5px; color: var(--ink-3); margin: 10px 0 0; max-width: 80ch; }
+@media (max-width: 640px) { .h-cmp th:nth-child(3), .h-cmp td:nth-child(3) { display: none; } }
 .h-trade-r { display: block; margin-top: 6px; color: var(--risk); font-weight: 500; }
 
 .arch { display: grid; grid-template-columns: minmax(0,1fr) 40px minmax(0,1.4fr) 40px minmax(0,1fr); align-items: stretch; }

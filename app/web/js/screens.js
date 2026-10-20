@@ -116,12 +116,12 @@ async function blindspot(main, app, c) {
       ${kicker(2, "The blind spot")}
       <h1 class="title">The map the check relies on is missing links, exactly around this change.</h1>
       <p class="lead">Switch between what the lineage records and what is actually connected. Then click a control to trace why the check cannot reach it.</p>
+      <div class="guide" id="guide" hidden></div>
       <div class="counters" style="grid-template-columns:1fr">
         <div class="counter blue"><div class="v">${c.counts.check_found} of ${c.counts.affected}</div><div class="l">affected controls the check can reach (${c.counts.check_found_key} of ${c.counts.key_affected} key)</div></div>
         <div class="counter amber"><div class="v">${missing} of ${c.linksOnPaths}</div><div class="l">links on the paths to them are missing from the lineage map</div></div>
         <div class="counter ink"><div class="v">${unreached}</div><div class="l">affected controls left invisible to a lineage-only assessment</div></div>
       </div>
-      <p class="guide" id="guide" hidden></p>
       <p style="margin-top:20px">Missing links are not an error in the check. It does exactly what it should with the map it is given; the map is incomplete where change happens.</p>
       <div class="next">${nextBtn("investigate", "Replay the AI investigation")}</div>
       <p class="note">Damage applied for the test: 30% of the map's links removed, nearest the change first (71 of 237 recorded links). The complete map is the synthetic ground truth.</p>
@@ -156,12 +156,23 @@ async function blindspot(main, app, c) {
     if (!guideId) return "";
     const n = nodeOf(app, guideId);
     const path = (c.paths[guideId] || [])[0] || [];
-    const gone = missingOn(guideId).map((id) => c.edgeMap[id]);
-    const first = gone[0];
-    const more = gone.length > 1 ? ` (and ${gone.length - 1} more on the way)` : "";
-    return `<b>Example: ${esc(guideId)}, ${esc(n.name)}.</b> It depends on this change through ${path.map(esc).join(" → ")}. ` +
-      `The link ${esc(first.source)} → ${esc(first.target)} is missing from the lineage map${more}, so the check stops before it reaches the control. ` +
-      `Click any other control to trace it.`;
+    const gone = new Set(missingOn(guideId));
+    const links = [];
+    for (let i = 0; i < path.length - 1; i++) {
+      const e = app.graph.edges.find((x) => x.source === path[i] && x.target === path[i + 1] && x.carries_impact);
+      if (e) links.push({ e, missing: gone.has(e.id) });
+    }
+    const fmt = (l) => `${esc(l.e.source)} → ${esc(l.e.target)}`;
+    const known = links.filter((l) => !l.missing);
+    const lost = links.filter((l) => l.missing);
+    return `<div class="guide-h">Example: tracing one key control</div>
+      <dl class="guide-dl">
+        <dt><i class="sw line"></i>The map records</dt><dd>${known.length ? known.map(fmt).join(", ") : "No link on this route"}</dd>
+        <dt><i class="sw dash"></i>Missing from the map</dt><dd>${lost.map(fmt).join(", ")}</dd>
+        <dt><i class="sw ctl"></i>Control that may be affected</dt><dd><b>${esc(guideId)}</b> ${esc(n.name)} · key control</dd>
+      </dl>
+      <p class="guide-risk"><b>Why it matters to the bank:</b> the existing check stops at the missing link, so this control is never put in front of its owner. If the change breaks it, “${esc(n.name.charAt(0).toLowerCase() + n.name.slice(1))}” could stop holding true without anyone being told.</p>
+      <p class="guide-more">Click any other control on the map to trace it.</p>`;
   };
 
   const build = () => {
@@ -447,7 +458,7 @@ async function consequence(main, app, c) {
       <h1 class="title">Far more of the real impact reaches a reviewer, at the cost of more review.</h1>
       <p class="lead">For this change, and across all 18 changes the agent had never seen.</p>
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
-      <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery)}; 95% range ${pct(P.recovery_interval[0])}–${pct(P.recovery_interval[1])}). Target: 50%.</div>
+      <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
       <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were routed to a person and ${P.key_silent} was not surfaced at all.</p>
       <p>Earlier approaches on the way here recovered ${pct(app.exp.approaches[1].recovery, 1)} (retrieval, development changes) and ${pct(app.exp.approaches[2].recovery, 1)} (edge proposals, five runs combined). <a href="#" data-go="room" data-sub="results">How they compare</a></p>
       <p>Decisions are not yet stable: across five runs, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions were identical (target 95%).</p>
@@ -476,7 +487,7 @@ async function consequence(main, app, c) {
             <div style="width:${(100 * P.per_change.check) / P.per_change.total}%;background:var(--check)">${P.per_change.check}</div>
             <div style="width:${(100 * P.per_change.real) / P.per_change.total}%;background:var(--agent)">${P.per_change.real}</div>
             <div style="width:${(100 * P.per_change.unaffected) / P.per_change.total}%;background:var(--idle);color:var(--ink)">${P.per_change.unaffected}</div></div></div></div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the agent adds are genuinely affected controls the lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Reviewer time was not measured.</p></div></div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the agent adds are genuinely affected controls the lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Actual reviewer time, operational cost and time savings were not measured.</p></div></div>
 
       <div class="card"><div class="card-h"><h2>Consistency: the same change, run five times</h2><div class="aside"><span class="badge review">${Math.round(P.consistency.agreement * 100)}% · target 95% · not met</span></div></div>
         <div class="card-b"><p style="margin:0;font-size:13.5px;color:var(--ink-2)">On three development changes run five times each, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of the ${P.consistency.pairs} affected key controls got the same recommend-or-not decision every time. How much it found was stable; which items went to review varied. A three-run vote reached 94.4% in a later test; the target is still unmet.</p></div></div>
@@ -579,17 +590,22 @@ async function decision(main, app, c) {
           <li>An evidence trail for each impact: the quotes and the reasoning behind it.</li>
           <li>Explicit routing of uncertain impacts to the control owners who should decide.</li></ul></div></div>
       </div>
-      <div class="card"><div class="card-h"><h2>Where it would sit, and how a practitioner validation would be judged</h2></div>
+      <div class="card"><div class="card-h"><h2>A practitioner validation, if leadership chooses one</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Uses the recorded output; no new model runs</span></div></div>
         <div class="card-b"><div class="fit3">
-          <div><h3 style="margin:0 0 6px;font-size:14px">Where it would sit</h3><p style="margin:0;font-size:13.5px;color:var(--ink-2)">Between raising a change and approving it. The lineage check runs as today; the agent adds further controls, each with its evidence, for the named control owners to assess before the change board. Owners decide; nothing is re-tested or released on the agent's word.</p></div>
-          <div><h3 style="margin:0 0 6px;font-size:14px">What it would measure</h3><ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)">
-            <li>Recovery on real changes, against an answer key built by control owners.</li>
-            <li>A sample of the controls the agent excluded, checked by owners.</li>
-            <li>Reviewer effort and model cost per change.</li></ul></div>
-          <div><h3 style="margin:0 0 6px;font-size:14px">Results that would argue against a pilot</h3><ul style="margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)">
-            <li>A key control missed silently among the excluded sample.</li>
+          <div><h3 class="vh">Who and what</h3><ul class="vl">
+            <li><b>Two or three control owners</b> for screening and payment validation, each deciding and signing their own items.</li>
+            <li><b>One risk lead</b>, accountable for the sample design, the thresholds and the sign-off.</li>
+            <li><b>The sample</b>, from the ${P.changes} held-out changes: all ${P.key_routed} key controls routed to a person, plus random samples of those recommended and those marked not affected.</li></ul></div>
+          <div><h3 class="vh">Measured against</h3><ul class="vl">
+            <li><b>Correctness:</b> the share of recommendations owners judge right, beside the ${pct(P.precision, 1)} measured against the synthetic answer key.</li>
+            <li><b>Coverage:</b> affected key controls owners find among those marked not affected. Expected: none.</li>
+            <li><b>Usefulness and effort:</b> the share owners would act on, and minutes per item, both recorded.</li>
+            <li>Thresholds are agreed with the risk lead before the review starts.</li></ul></div>
+          <div><h3 class="vh">Results that would argue against a pilot</h3><ul class="vl">
+            <li>A key control missed silently among the not-affected sample.</li>
             <li>Owners judging most recommendations not useful.</li>
-            <li>Repeatability not moving towards 95% with a five-run vote.</li></ul></div>
+            <li>Repeatability not moving towards 95% with a five-run vote.</li></ul>
+            <p class="vnote">Where it would sit: between raising a change and approving it. Owners decide; nothing is re-tested or released on the agent's word.</p></div>
         </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">

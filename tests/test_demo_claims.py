@@ -79,8 +79,8 @@ CLAIMS = [
         None,
         "30 were routed to a person and 1 was not surfaced",
     ),
-    ("5 Consequence", "#/consequence?case=CHG-027", None, "49.5%"),
-    ("5 Consequence", "#/consequence?case=CHG-027", None, "57.6%"),
+    ("5 Consequence", "#/room/results", None, "49.5%"),
+    ("5 Consequence", "#/room/results", None, "57.6%"),
     ("5 Consequence", "#/consequence?case=CHG-027", None, "331 of the 406"),
     (
         "5 Consequence",
@@ -88,7 +88,7 @@ CLAIMS = [
         None,
         "operational cost and time savings were not measured",
     ),
-    ("5 Consequence", "#/consequence?case=CHG-027", None, "8 of 10"),
+    ("5 Consequence", "#/consequence?case=CHG-027", None, "8 of the 10"),
     (
         "5 Consequence",
         "#/consequence?case=CHG-027",

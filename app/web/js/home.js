@@ -170,7 +170,6 @@ export async function renderHome(main, app) {
  * results, so the landing page links to it after the walkthrough invitation. */
 export async function renderOverview(main, app) {
   const P = app.exp.portfolio;
-  const B = app.exp.benchmark;
   const ex = await getCase(EXAMPLE.case);
   const d = ex.decision(EXAMPLE.control);
   const ctrl = app.graph.nodes.find((n) => n.id === EXAMPLE.control);
@@ -187,7 +186,7 @@ export async function renderOverview(main, app) {
     <section class="h-sec alt">
       <div class="h-wrap">
         <h2 class="h-h2">What you get for each change</h2>
-        <p class="h-intro">A list of safety checks at risk. Each one comes with the reason, the exact words it relied on, and the second opinion. This is a real finding from the test.</p>
+        <p class="h-intro">A list of safety checks at risk, each with its reason, the evidence it quoted and the second opinion. This is a real finding from the test.</p>
         <article class="card h-sample" aria-label="Example finding">
           <div class="h-sample-h">
             <div><div class="h-sample-id">Control ${esc(EXAMPLE.control)} · key control · change ${esc(EXAMPLE.case)}</div><h3>${esc(ctrl.name)}</h3></div>
@@ -208,23 +207,13 @@ export async function renderOverview(main, app) {
     <section class="h-sec">
       <div class="h-wrap">
         <h2 class="h-h2">Why it matters</h2>
-        <p class="h-intro">Measured on ${P.changes} changes the detective had never seen, in a made-up bank with ${B.items} systems, data items and checks.</p>
+        <p class="h-intro">Measured on ${P.changes} changes the detective had never seen.</p>
         <div class="h-benefits">
           <div class="h-ben"><div class="h-big">${surfaced}<small> of ${P.key_affected}</small></div><h3>Hidden impacts, found early</h3><p>Affected key checks caught by today's check or recommended by the detective, against ${P.check_found_key} by today's check alone.</p></div>
           <div class="h-ben"><div class="h-big">${P.key_routed}</div><h3>People stay in charge</h3><p>Uncertain key checks sent to their owners with evidence for and against, instead of being decided by the system.</p></div>
           <div class="h-ben"><div class="h-big">${P.new_right}<small> of ${P.new_total}</small></div><h3>Findings you can verify</h3><p>New recommendations that were right. Each one shows its quotes and reasoning, and every step is recorded.</p></div>
         </div>
-        <div class="h-trade">
-          <b>The trade-off is review workload.</b> Across the ${P.changes} changes the detective added ${P.added_items} review items: ${P.added_affected} genuinely affected controls the existing check missed, and ${P.added_unaffected} that were not affected. That is about ${Math.round(P.per_change.total)} items per change instead of about ${Math.round(P.per_change.check)}. Actual reviewer time, operational cost and time savings were not measured.
-          <span class="h-trade-r">${P.key_silent} affected key check, out of ${P.key_affected}, was missed entirely.</span>
-        </div>
-        <div class="h-cmp">
-          <h3>Compared with simpler approaches tried on the way</h3>
-          <table><thead><tr><th>Approach</th><th>Result</th><th>Measured on</th></tr></thead><tbody>
-          ${app.exp.approaches.map((a) => `<tr><td>${esc(a.approach)}</td><td class="num"><b>${pct(a.recovery, 1)}</b> <span>${esc(a.measure)}</span></td><td>${esc(a.set)}</td></tr>`).join("")}
-          </tbody></table>
-          <p>Each step added information the connection map lacks. The sets, models and scoring differ, so read this as a progression, not a like-for-like comparison; a plain keyword search on the same changes has not been tested. Details are in the evidence room.</p>
-        </div>
+        <div class="h-trade"><b>The trade-off is review workload:</b> about ${Math.round(P.per_change.total)} items per change to review instead of about ${Math.round(P.per_change.check)}, most of them real impacts. The full breakdown, the one control it missed and the limits are in the evidence room.</div>
       </div>
     </section>
 

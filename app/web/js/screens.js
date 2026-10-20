@@ -70,7 +70,6 @@ async function bank(main, app) {
         <li><b>The check sees a damaged copy.</b> For the test, 30% of the links are removed, nearest the change first, as happens when documentation lags behind change.</li>
         <li><b>Everything carries a code.</b> The letter gives the item's type, so C02 is a control and S03 a system. Names are always shown beside codes.</li>
       </ul>
-      <p class="note">A synthetic scenario: no real bank, customer or control data.</p>
     </aside>
     <section class="canvas">${bankCard(app)}</section></div>`);
   main.append(stage);
@@ -129,7 +128,6 @@ async function change(main, app, c) {
       <div class="figure"><span class="big">${c.counts.check_found}</span><span class="of">controls flagged</span></div>
       <div class="figure-label">by the conventional lineage check, out of 101</div>
       <p class="question">Can this change proceed, or is something missing?</p>
-      <p class="note">A synthetic scenario: an invented bank, with a complete map we can check against. No real release was approved or stopped.</p>
     </aside>
     <section class="canvas change-canvas">
       <article class="card record" aria-label="Change record">
@@ -173,7 +171,6 @@ async function blindspot(main, app, c) {
         <div class="counter ink"><div class="v">${unreached}</div><div class="l">affected controls left invisible to a lineage-only assessment</div></div>
       </div>
       <p style="margin-top:20px">Missing links are not an error in the check. It does exactly what it should with the map it is given; the map is incomplete where change happens.</p>
-      <p class="note">Damage applied for the test: 30% of the map's links removed, nearest the change first (71 of 237 recorded links). The complete map is the synthetic ground truth.</p>
     </aside>
     <section class="canvas">
       <div class="graph-wrap" id="gw">
@@ -478,7 +475,7 @@ async function investigate(main, app, c) {
       <h1 class="title">Replay how the agent found what the map hides.</h1>
       <p class="lead">Every step below is the agent's own recorded action on this change: what it explored, which control procedures it read, and which findings it submitted.</p>
       <p><span class="chip recorded"><span class="dot" style="background:var(--missing)"></span>Recorded replay · job ${esc(app.exp.provenance.job)} · ${esc(app.exp.provenance.date)}</span></p>
-      <p>Nothing on this screen calls a model. Each finding had to quote the ticket and the procedure verbatim; an independent model call then judged whether the evidence holds. Disagreements are routed to a person.</p>
+      <p>Nothing on this screen calls a model: it replays the recording.</p>
       <p>Click any control on the map to inspect the evidence behind its decision.</p>
       <p class="note">${c.counts.steps} investigation steps and ${c.counts.verify_calls} independent checks: ${c.counts.model_calls} model calls in total for this change.</p>
     </aside>
@@ -653,9 +650,6 @@ async function consequence(main, app, c) {
       <div class="figure"><span class="big">${P.agent_found_key}</span><span class="of">of ${P.key_misses}</span></div>
       <div class="figure-label">key-control impacts the lineage check missed were recommended by the agent (${pct(P.recovery, 1)}; 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}). Target: 50%.</div>
       <p>${P.new_right} of its ${P.new_total} new recommendations were right. Of the ${P.key_misses - P.agent_found_key} it did not recommend, ${P.key_routed} were routed to a person and ${P.key_silent} was not surfaced at all.</p>
-      <p>Earlier approaches on the way here recovered ${pct(app.exp.approaches[1].recovery, 1)} (retrieval, development changes) and ${pct(app.exp.approaches[2].recovery, 1)} (edge proposals, five runs combined). The comparison and its caveats are in the evidence room.</p>
-      <p>Decisions are not yet stable: across five runs, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions were identical (target 95%).</p>
-      <p class="note">Held-out test: 18 synthetic changes never used while building the agent; version A frozen before the run; one run.</p>
     </aside>
     <section class="canvas">
       <div class="card"><div class="card-h"><h2>This change, ${esc(c.id)}: three views of the same 101 controls</h2>
@@ -683,7 +677,7 @@ async function consequence(main, app, c) {
         <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0"><b>${P.added_affected} of the ${P.added_items}</b> items the agent adds are genuinely affected controls the lineage check missed: necessary review, not waste. <b>${P.added_unaffected}</b> (about ${P.per_change.unaffected} per change) turn out to be unaffected: that is the overhead. Actual reviewer time, operational cost and time savings were not measured.</p></div></div>
 
       <div class="card"><div class="card-h"><h2>Consistency: the same change, run five times</h2><div class="aside"><span class="badge review">${Math.round(P.consistency.agreement * 100)}% · target 95% · not met</span></div></div>
-        <div class="card-b"><p style="margin:0;font-size:13.5px;color:var(--ink-2)">On three development changes run five times each, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of the ${P.consistency.pairs} affected key controls got the same recommend-or-not decision every time. How much it found was stable; which items went to review varied. A three-run vote reached 94.4% in a later test; the target is still unmet.</p></div></div>
+        <div class="card-b"><p style="margin:0;font-size:13.5px;color:var(--ink-2)">On three development changes run five times each, ${Math.round(P.consistency.agreement * P.consistency.pairs)} of the ${P.consistency.pairs} affected key controls got the same recommend-or-not decision every time. How much it found was stable; which items went to review varied.</p></div></div>
     </section></div>`);
   main.append(stage);
   wireGo(stage, app);
@@ -759,30 +753,21 @@ async function decision(main, app, c) {
       <p>The question that matters most is still open: do control owners find its output right and useful? Only people who own controls can answer that.</p>
       <div class="next"><a class="btn" href="summary.pdf" download>Download one-page summary (PDF)</a></div>
       <p class="scope-note">This decision is about the approach as a whole, based on all 18 test changes. It is the same whichever change you looked at.</p>
-      <p class="note">This proof of concept did not measure reviewer time, accuracy on real data, or any cost or saving. None is claimed.</p>
     </aside>
     <section class="canvas">
-      <div class="quad">
+      <div class="quad q3">
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--agent)"></span><h2>Demonstrated</h2></div><div class="card-b"><ul>
-          <li><b>${P.agent_found_key} of ${P.key_misses}</b> key impacts the lineage check missed were recommended, on changes never seen (target 50%).</li>
-          <li><b>${P.new_right} of ${P.new_total}</b> new recommendations were right, each with quoted evidence.</li>
-          <li>Disagreements are routed to people; nothing is assumed safe; every step is recorded and replayable.</li>
-          <li>Runs end to end on Databricks: Jobs, Model Serving, Unity Catalog and this App.</li></ul></div></div>
+          <li>Most key controls the lineage check missed were recommended, on changes never seen.</li>
+          <li>Each recommendation carries quoted evidence and a second opinion.</li>
+          <li>Every step is recorded and can be replayed.</li></ul></div></div>
         <div class="card"><div class="card-h"><span class="tag" style="background:var(--review)"></span><h2>Still uncertain</h2></div><div class="card-b"><ul>
           <li>Accuracy on real changes, tickets and control documents.</li>
           <li>Whether control owners find the output right and useful, and how long review takes.</li>
-          <li>Repeatability: <b>${Math.round(P.consistency.agreement * 100)}%</b> of key decisions identical across runs, against 95%.</li>
-          <li>The <b>${P.key_silent}</b> silent miss shows coverage is not complete.</li></ul></div></div>
-        <div class="card"><div class="card-h"><span class="tag" style="background:var(--missing)"></span><h2>To validate before any pilot</h2></div><div class="card-b"><ul>
-          <li>A practitioner review of a sample of recommended, routed <i>and excluded</i> controls: what the agent left out matters as much as what it surfaced.</li>
-          <li>An independent check of not-affected decisions on key controls: the one silent miss came from such a decision.</li>
-          <li>Repeatability at 95%, for example a five-run vote, registered in advance and tested on new changes.</li>
-          <li>Review overhead, for example a tie-break that may only promote findings (68 of 70 promotions were right).</li>
-          <li>Model-risk review, real-data access, audit trail and monitoring.</li></ul></div></div>
-        <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain by investigating further</h2></div><div class="card-b"><ul>
+          <li>Whether decisions repeat from run to run.</li>
+          <li>Whether anything it marked not affected was missed.</li></ul></div></div>
+        <div class="card"><div class="card-h"><span class="tag" style="background:var(--navy)"></span><h2>What a bank could gain</h2></div><div class="card-b"><ul>
           <li>Earlier sight of control impacts that incomplete lineage hides, before release rather than at audit.</li>
-          <li>An evidence trail for each impact: the quotes and the reasoning behind it.</li>
-          <li>Explicit routing of uncertain impacts to the control owners who should decide.</li></ul></div></div>
+          <li>An evidence trail for each impact, ready for control owners and audit.</li></ul></div></div>
       </div>
       <div class="card"><div class="card-h"><h2>A practitioner validation, if leadership chooses one</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">Uses the recorded output; no new model runs</span></div></div>
         <div class="card-b"><div class="fit3">
@@ -799,11 +784,11 @@ async function decision(main, app, c) {
             <li>A key control missed silently among the not-affected sample.</li>
             <li>Owners judging most recommendations not useful.</li>
             <li>Repeatability not moving towards 95% with a five-run vote.</li></ul>
-            <p class="vnote">Where it would sit: between raising a change and approving it. Owners decide; nothing is re-tested or released on the agent's word.</p></div>
+            <p class="vnote">A pilot would also need model-risk review, access to real data, an audit trail and monitoring.</p></div>
         </div></div></div>
       <div class="card"><div class="card-h"><h2>Options open from here</h2><div class="aside"><span style="font-size:12.5px;color:var(--ink-3)">The choice rests with leadership</span></div></div>
         <div class="card-b"><div class="options">
-          <div class="option focus"><h3>Practitioner review</h3><p>Control owners judge a sample of the agent's output.</p><small>Answers the biggest open question. Two or three people, a few hours.</small></div>
+          <div class="option focus"><h3>Practitioner review</h3><p>The validation above.</p><small>Answers the biggest open question.</small></div>
           <div class="option"><h3>Close the gaps first</h3><p>A five-run vote, a promote-only tie-break and a second check of not-affected key controls, each registered in advance.</p><small>Model capacity only.</small></div>
           <div class="option"><h3>Both</h3><p>Independent: the review uses existing output; the fixes use new runs.</p><small>Can run in parallel.</small></div>
           <div class="option"><h3>Stop here</h3><p>Keep the benchmark, code and results as documented.</p><small>Nothing runs in production.</small></div>

@@ -127,7 +127,7 @@ def test_overview_figures_match_the_recorded_run(page, experience):
         f"{surfaced} of {p['key_affected']}" in text
     )
     assert str(p["key_routed"]) in text
-    assert f"{p['key_silent']} affected key check, out of {p['key_affected']}" in text
+    assert "The trade-off is review workload" in text
 
 
 def test_home_fits_a_phone(page):

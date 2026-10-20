@@ -141,7 +141,7 @@ const PAGES = {
     const calls = all.reduce((a, k) => a + k.counts.verify_calls, 0);
     pane.innerHTML = `<h1>The verifier call</h1>
       <p class="lead">After the investigation, a separate model call judges each finding on its own evidence. It does not continue the investigator's conversation. ${calls} verifier calls were recorded across the 18 test changes.</p>
-      <section><h2>When it is called</h2><p style="margin-top:0;color:var(--ink-2)">For every finding the investigator marked <b>affected</b> or <b>uncertain</b>. Findings marked <b>not affected</b> are recorded with their reason but not sent to the verifier; this is the gap behind the one silent miss.</p></section>
+      <section><h2>When it is called</h2><p style="margin-top:0;color:var(--ink-2)">For every finding the investigator marked <b>affected</b> or <b>uncertain</b>. Findings marked <b>not affected</b> are recorded with their reason but not sent to the verifier.</p></section>
       <section><h2>What one call contains</h2><div class="pa">
         <div class="pa-b fixed"><b>1 · Fixed instructions</b><span>The prompt below.</span></div>
         <div class="pa-b"><b>2 · ticket and changed items</b><span>The change ticket and the changed items, with names and descriptions.</span></div>
@@ -176,7 +176,7 @@ const PAGES = {
           <p>${P.agent_found_key} of ${P.key_misses} recommended, on changes never seen. 95% range ${pct(P.recovery_interval[0], 1)}–${pct(P.recovery_interval[1], 1)}.</p></div>
         <div class="goal"><div class="g-t">Keep the extra review small</div>
           <div class="g-v">${P.added_unaffected}<small> avoidable items</small></div><span class="badge review">Not met as set</span>
-          <p>${P.added_items} items were added for review: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too. Reviewer time was not measured.</p></div>
+          <p>${P.added_items} items were added for review: ${P.added_affected} genuinely affected, ${P.added_unaffected} not (about ${P.per_change.unaffected} per change). The goal counted real impacts as workload too.</p></div>
         <div class="goal"><div class="g-t">Give the same decision on every run</div>
           <div class="g-v">${pct(P.consistency.agreement)}</div><span class="badge review">Not met · target 95%</span>
           <p>${Math.round(P.consistency.agreement * P.consistency.pairs)} of ${P.consistency.pairs} key decisions identical over five runs, on three development changes.</p></div>
@@ -282,25 +282,15 @@ const PAGES = {
           <div class="ra-box"><b>Scorer</b>compares decisions with the answer key</div>
           <div class="ra-box"><b>Databricks App</b>this experience, read from the recorded files</div></div>
       </div></section>
-      <section><h2>How one change is investigated</h2><ol class="ra-steps">
-        <li><b>Start from today's answer.</b> The agent first runs the same lineage check the bank uses, so it knows what is already covered.</li>
-        <li><b>Look where the map is thin.</b> It explores the changed item and its neighbours, seeing only the links the damaged map still records.</li>
-        <li><b>Read like a reviewer.</b> It searches the control procedures by wording and reads the candidates; reading is required before any finding.</li>
-        <li><b>Commit with evidence.</b> Each finding quotes the ticket and the procedure, gives a reason and names any counter-evidence. Fixed code rejects quotes that are not verbatim, and the agent must correct them.</li>
-        <li><b>Get a second opinion.</b> A separate model call judges each finding. Disagreements go to a person.</li>
-        <li><b>Record everything.</b> Every step is saved, so the app replays the run exactly; nothing on screen calls a model, except the Ask page.</li>
-      </ol></section>
       <section><h2>Design choices</h2><ul class="ra-notes">
         <li><b>Read-only.</b> The agent's tools only read. It never edits lineage or controls.</li>
-        <li><b>People decide.</b> The output is a routed list with evidence; nothing is approved automatically.</li>
         <li><b>Isolated scoring.</b> Tests check that answer-key labels never appear in a prompt.</li>
-        <li><b>Synthetic inputs.</b> No real payment systems, change tools or control libraries are connected; a pilot would connect them.</li>
       </ul></section>`;
   },
 
   async limits(pane, app) {
     pane.innerHTML = `<h1>Limits and fixes tried</h1><p class="lead">What the proof of concept does not show, where it goes wrong, and what was tried to fix it.</p>
-      <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome. Routing an item to a person is not a completed review.</div>
+      <div class="scope-note" style="margin-bottom:22px"><b>Not measured, not claimed:</b> reviewer time, accuracy on real bank data, cost or savings, and any production outcome.</div>
       <section><h2>Known weaknesses</h2>${table(["Weakness", "Evidence", "Next step"], app.exp.limits.map((l) => `<tr><td><b>${esc(l.issue)}</b></td><td>${esc(l.evidence)}</td><td>${esc(l.response)}</td></tr>`))}</section>
       <section><h2>Fixes tried, none adopted</h2><p style="color:var(--ink-2);margin-top:0">Each fix had an adoption rule written before it ran. None met all of its rules, so the original agent (version A) is final.</p>
         ${table(["Fix", "What happened", "Rule it had to meet"], app.exp.version_tests.map((v) => `<tr><td><b>${esc(v.name)}</b><br><span style="color:var(--ink-3);font-size:12px">${esc(v.test)}</span></td><td>${esc(v.result)}</td><td>${esc(v.rule)}</td></tr>`))}

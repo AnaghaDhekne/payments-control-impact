@@ -49,7 +49,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.set_xy(18, 16)
     text(
         9,
-        f"Payments control-impact proof of concept  |  Synthetic benchmark data  |  Version A, frozen {frozen_on}",
+        f"Payments control-impact proof of concept  |  Synthetic benchmark data  |  Version A, brief {frozen_on}",
         MUTED,
     )
     pdf.ln(2)
@@ -119,7 +119,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     for n, col, label in (
         (rules_found, BLUE, "Found by the existing lineage check"),
         (h["key_recovered"], GREEN, "Found by the detective"),
-        (still, GREY, "Still missed"),
+        (still, GREY, "Not recommended"),
     ):
         bw = w * n / 162
         pdf.set_fill_color(*col)
@@ -132,7 +132,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.set_y(y + 11)
     text(
         8.5,
-        "Blue: found by the existing lineage check   Green: found by the detective   Grey: still missed (30 of 31 routed for human review; 1 silent miss)",
+        "Blue: found by the existing lineage check   Green: found by the detective   Grey: not recommended (30 routed for human review; 1 silent miss)",
         MUTED,
     )
     pdf.ln(3)
@@ -180,8 +180,8 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
             "Across five runs, 80% of key decisions were identical, against a 95% target.",
         ),
         (
-            "Cost and speed",
-            "About 70 model calls and a median of 11 minutes per change on a shared Free Edition endpoint.",
+            "Execution characteristics",
+            "1,280 model calls across 18 held-out changes (71.1 per change on average). Monetary cost and reviewer time were not measured.",
         ),
     ]
     for head, body in lines:
@@ -196,9 +196,9 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     for target, status, detail in (
         ("Find >= 50% of missed key controls", "Met", "78.5% on unseen changes"),
         (
-            "Review items added",
-            "Reported",
-            "406: 331 real impacts, 75 not affected",
+            "Added review volume <= 25%",
+            "Not met",
+            "406 added vs 64 baseline; 331 affected",
         ),
         (
             "Tried with control owners in practice",
@@ -246,9 +246,8 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
         w - 6,
         5,
         _p(
-            "A practitioner review of a sample of the detective's output, including controls it marked not affected; "
-            "closing the gaps on the benchmark first (a five-run vote, a promote-only tie-break, a second check of "
-            "not-affected key controls, each registered in advance); both; or stopping at the proof of concept."
+            "Next: control owners assess recommended, uncertain, and excluded controls on real changes. "
+            "Before a supervised pilot, evaluate silent misses, decision stability, review effort, and model operating cost."
         ),
         new_x="LMARGIN",
         new_y="NEXT",
@@ -256,7 +255,7 @@ def build(h: dict, cons: dict, frozen_on: str) -> bytes:
     pdf.set_y(282)
     text(
         8,
-        "Synthetic benchmark: no real bank, customer or control data. Proof of concept, not in production.",
+        "Held-out run: 16 Oct 2026. Synthetic data only; no production validation.",
         MUTED,
     )
     return bytes(pdf.output())

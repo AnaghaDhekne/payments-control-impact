@@ -6,6 +6,7 @@ import { createGraph } from "./graph.js";
 import { go, openInspector, getCase } from "./main.js";
 
 export const MOMENTS = [
+  { id: "bank", label: "The test bank", intro: true },
   { id: "change", label: "The change" },
   { id: "blindspot", label: "The blind spot" },
   { id: "investigate", label: "The investigation" },
@@ -54,6 +55,25 @@ function wireEstates(root, app, c) {
     });
     b.addEventListener("mouseleave", (e) => tip(e, null));
   });
+}
+
+// ------------------------------------------------------------------ 0. the test bank (intro)
+
+async function bank(main, app) {
+  const stage = el(`<div class="stage">
+    <aside class="story">
+      <div class="kicker"><span class="n intro">i</span>Before you start</div>
+      <h1 class="title">Meet the test bank the walkthrough runs on.</h1>
+      <p class="lead">The walkthrough follows one change through an invented bank's outbound cross-border payments. Knowing what is in the bank makes every step that follows easier to read.</p>
+      <ul class="intro-list">
+        <li><b>It is complete and known.</b> Every link between items is recorded in a master copy, so for each change the right answer is known exactly.</li>
+        <li><b>The check sees a damaged copy.</b> For the test, 30% of the links are removed, nearest the change first, as happens when documentation lags behind change.</li>
+        <li><b>Everything carries a code.</b> The letter gives the item's type, so C02 is a control and S03 a system. Names are always shown beside codes.</li>
+      </ul>
+      <p class="note">A synthetic scenario: no real bank, customer or control data.</p>
+    </aside>
+    <section class="canvas">${bankCard(app)}</section></div>`);
+  main.append(stage);
 }
 
 // ------------------------------------------------------------------ 1. the change
@@ -111,7 +131,6 @@ async function change(main, app, c) {
       <p class="note">A synthetic scenario: an invented bank, with a complete map we can check against. No real release was approved or stopped.</p>
     </aside>
     <section class="canvas change-canvas">
-      ${bankCard(app)}
       <article class="card record" aria-label="Change record">
         <div class="rh"><div><div class="rid">CHANGE RECORD · ${esc(c.id)}</div><div class="rt">${esc(c.title)}</div></div>
           <span class="chip">${esc((c.change_type || "").replace("_", " ").toLowerCase())}</span></div>
@@ -793,4 +812,4 @@ async function decision(main, app, c) {
   wireGo(stage, app);
 }
 
-export const SCREENS = { change, blindspot, investigate, consequence, decision };
+export const SCREENS = { bank, change, blindspot, investigate, consequence, decision };

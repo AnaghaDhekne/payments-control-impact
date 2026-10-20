@@ -128,7 +128,7 @@ function renderTop() {
   const section = inWalk ? "walkthrough" : app.route === "room" ? "room" : app.route === "overview" ? "overview" : "home";
   document.querySelectorAll("#sitenav a").forEach((a) => {
     const n = a.dataset.nav;
-    if (n === "walkthrough") a.href = `#/change?case=${app.caseId}`;
+    if (n === "walkthrough") a.href = `#/bank?case=${app.caseId}`;
     if (n === "room") a.href = `#/room?case=${app.caseId}`;
     if (n === section) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -137,14 +137,14 @@ function renderTop() {
   document.getElementById("subbar").hidden = !inWalk;
   // The decision covers all 18 changes, so the change selector does not apply there.
   const selector = document.getElementById("case");
-  selector.style.display = app.route === "decision" ? "none" : "";
+  selector.style.display = app.route === "decision" || app.route === "bank" ? "none" : "";
   document.body.classList.toggle("has-subbar", inWalk);
   const nav = document.getElementById("journey");
   const idx = MOMENTS.findIndex((m) => m.id === app.route);
   nav.innerHTML = MOMENTS.map(
     (m, i) =>
       `<li><a href="#/${m.id}?case=${app.caseId}" ${i === idx ? 'aria-current="step"' : ""} class="${idx > i ? "done" : ""}">` +
-      `<span class="n">${i + 1}</span><span class="t">${esc(m.label)}</span></a></li>`
+      `<span class="n ${m.intro ? "intro" : ""}">${m.intro ? "i" : i}</span><span class="t">${esc(m.label)}</span></a></li>`
   ).join("");
   // Point to the next step, both in the step bar and with a Next button.
   nav.querySelectorAll("a")[idx + 1]?.classList.add("up-next");

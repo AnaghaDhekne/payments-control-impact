@@ -805,3 +805,9 @@ body.has-subbar .replay { max-height: calc(100vh - 272px); }
 .bank-note { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); }
 @media (max-width: 900px) { .bank-nums { grid-template-columns: 1fr 1fr; } .bank-split { grid-template-columns: 1fr; gap: 18px; } }
 @media (max-width: 480px) { .bank-types { grid-template-columns: 1fr; } }
+
+/* Walkthrough intro: the test bank */
+.journey a .n.intro, .kicker .n.intro { font-style: italic; font-family: Georgia, serif; }
+.intro-list { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 12px; }
+.intro-list li { font-size: 14.5px; color: var(--ink-2); padding-left: 14px; border-left: 3px solid var(--line-2); }
+.intro-list b { display: block; color: var(--ink); }

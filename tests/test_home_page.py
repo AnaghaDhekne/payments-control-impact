@@ -100,6 +100,11 @@ def test_one_header_is_the_only_way_between_pages(page, experience):
     page.wait_for_selector(".h-hero")
     page.locator("#sitenav a[data-nav=walkthrough]").click()
     page.wait_for_selector("h1.title")
+    # The walkthrough opens on the test bank, before the change.
+    assert "#/bank?case=CHG-027" in page.url
+    assert page.locator(".bank-types").count() == 1
+    page.locator("#next-step").click()
+    page.wait_for_selector(".record")
     assert "#/change?case=CHG-027" in page.url
     assert "finds nothing to review" in page.locator("h1.title").inner_text()
     assert page.locator("#journey").is_visible()
@@ -126,10 +131,10 @@ def test_home_fits_a_phone(page):
     assert overflow <= 0
 
 
-def test_next_button_walks_all_five_steps(page):
-    page.goto(page.base + "#/change?case=CHG-027")
+def test_next_button_walks_every_step(page):
+    page.goto(page.base + "#/bank?case=CHG-027")
     page.wait_for_selector("h1.title")
-    for step in ("blindspot", "investigate", "consequence", "decision"):
+    for step in ("change", "blindspot", "investigate", "consequence", "decision"):
         assert page.locator("#journey a.up-next").count() == 1
         page.locator("#next-step").click()
         page.wait_for_timeout(400)
@@ -138,16 +143,13 @@ def test_next_button_walks_all_five_steps(page):
 
 
 def test_reference_codes_are_explained(page):
-    page.goto(page.base + "#/change?case=CHG-027")
+    page.goto(page.base + "#/bank?case=CHG-027")
     page.wait_for_selector(".bank-types")
     key = page.locator(".bank-types").inner_text()
     for code, kind in (("C", "Controls"), ("S", "Systems"), ("I", "Interfaces")):
         assert code in key and kind in key
-    # The bank's numbers come before the change record on step 1.
-    assert (
-        page.locator(".bank").bounding_box()["y"]
-        < page.locator(".record").bounding_box()["y"]
-    )
+    # The test bank is the first stop of the walkthrough.
+    assert page.locator("#journey a").first.inner_text().endswith("The test bank")
     page.goto(page.base + "#/investigate?case=CHG-027&control=C02")
     page.wait_for_selector("#inspector.open")
     reasons = page.locator("#inspector .verdict").first.inner_text()

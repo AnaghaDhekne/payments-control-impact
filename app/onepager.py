@@ -39,7 +39,7 @@ def _p(text: str) -> str:
 
 def _checks(reach, total, today, caught):
     return [
-        ("Seven times the catch", f"{caught} critical safeguards caught with evidence, against {today} today; only one of {total} slipped past both."),
+        ("Seven times the catch", f"{caught} affected key controls caught with evidence, against {today} today. {reach - caught} more flagged for a person; {total - reach} missed."),
         ("Right when it flags", "More than 9 in 10 of its new recommendations are correct."),
         ("Shows its evidence", "Every finding quotes the change request and the control procedure, with a second, independent opinion."),
         ("Keeps people in charge", "Doubtful cases go to the control owner; every release decision stays with people."),
@@ -73,12 +73,13 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     text(9, f"Control Impact Detective  |  Synthetic proof of concept  |  {run_label}", MUTED)
     pdf.ln(2)
     reach = rules_found + h["key_recovered"] + routed
-    text(20, f"{reach} of {total} critical safeguards reach their owner before release, against {rules_found} today", INK, "B", 9)
+    caught = rules_found + h["key_recovered"]
+    text(20, f"{caught} of {total} affected key controls caught with evidence before release, against {rules_found} today", INK, "B", 9)
     pdf.ln(1)
     text(
         10.5,
-        "Tested on realistic payment changes the detective had never seen, in a synthetic bank whose dependency map "
-        "is missing links near each change.",
+        f"{routed} more were flagged for a person to decide and {silent} was missed. Tested on 18 realistic payment changes the detective "
+        "had never seen, in a synthetic bank whose dependency map is missing links near each change.",
         MUTED,
     )
     pdf.ln(6)
@@ -116,7 +117,7 @@ def build(h: dict, cons: dict, run_label: str) -> bytes:
     pdf.set_x(18)
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(*MUTED)
-    pdf.cell(w - 42, 5, _p("Each bar is the same set of critical safeguards that the test changes actually affected."))
+    pdf.cell(w - 42, 5, _p(f"Each bar is the same {total} cases where a key control was affected across the 18 test changes."))
     pdf.ln(5)
     pdf.ln(5)
 

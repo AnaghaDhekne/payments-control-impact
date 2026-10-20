@@ -3,6 +3,7 @@
 import { esc, highlight, ROUTE_LABEL, TYPE_LABEL, routingReason, quoteWeakness } from "./util.js";
 import { SCREENS, MOMENTS } from "./screens.js";
 import { renderRoom, ROOM_PAGES } from "./room.js";
+import { renderHome } from "./home.js";
 
 const app = {
   exp: null,
@@ -79,9 +80,9 @@ function enrich(c) {
 function parseHash() {
   const h = location.hash.replace(/^#\/?/, "");
   const [path, query] = h.split("?");
-  const parts = (path || "change").split("/");
+  const parts = (path || "home").split("/");
   const q = new URLSearchParams(query || "");
-  return { route: parts[0] || "change", sub: parts[1] || null, caseId: q.get("case"), control: q.get("control") };
+  return { route: parts[0] || "home", sub: parts[1] || null, caseId: q.get("case"), control: q.get("control") };
 }
 
 export function go(route, opts = {}) {
@@ -103,7 +104,10 @@ async function render() {
   const main = document.getElementById("main");
   main.innerHTML = "";
   main.className = "";
-  if (route === "room") {
+  document.body.classList.toggle("is-home", route === "home");
+  if (route === "home") {
+    await renderHome(main, app);
+  } else if (route === "room") {
     await renderRoom(main, app, c, sub || ROOM_PAGES[0].id);
   } else {
     const screen = SCREENS[route] || SCREENS.change;
@@ -116,7 +120,7 @@ async function render() {
   window.scrollTo(0, 0);
 }
 
-const titleFor = (r) => (r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
+const titleFor = (r) => (r === "home" ? "Find the controls a change could break" : r === "room" ? "Evidence room" : MOMENTS.find((m) => m.id === r)?.label || "Change");
 
 function renderTop() {
   const nav = document.getElementById("journey");

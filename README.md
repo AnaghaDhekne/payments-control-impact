@@ -102,7 +102,11 @@ Full instructions and troubleshooting: [docs/runbook.md](docs/runbook.md).
 
 The POC is presented as an investigation experience (`app/web`), served by a
 standard-library Python server (`app/server.py`, the command in `app.yaml`).
-It walks through five moments on any of the 18 held-out changes (flagship:
+It opens on a plain-language product page (`#/home`, `app/web/js/home.js`):
+what the product does, a high-level workflow from inputs to decisions, a real
+example finding, measured benefits and trade-offs, where it fits in a bank's
+systems, what is proven and what is not, and common questions. Every figure on
+it is read from the same exported results. From there it walks through five moments on any of the 18 held-out changes (flagship:
 CHG-027, a screening-interface change the lineage check clears; all 20 affected
 controls are recommended, with full-phrase evidence):
 

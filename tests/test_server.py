@@ -30,10 +30,12 @@ def test_pages_and_data(base):
         "/js/main.js",
         "/js/screens.js",
         "/js/room.js",
+        "/js/home.js",
         "/js/graph.js",
         "/css/app.css",
         "/data/graph.json",
         "/data/cases/CHG-003.json",
+        "/data/cases/CHG-027.json",
     ]:
         assert get(base + path)[0] == 200
     e = json.loads(get(base + "/data/experience.json")[2])
